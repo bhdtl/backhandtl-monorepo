@@ -1,0 +1,723 @@
+import { useState, useEffect, useRef } from 'react';
+import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, TrendingUp, Award, Zap, ArrowRight, BarChart3, AlertTriangle, Percent, Target, Scale, Wallet, PieChart } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { PlayerCard } from '../components/PlayerCard';
+import { ScrollToTop } from '../components/ScrollToTop';
+import { SearchableSelect } from '../components/SearchableSelect';
+import { trackEvent } from '../lib/analytics';
+import { Link } from 'react-router-dom';
+import { LoadingScreen } from '../components/LoadingScreen'; 
+import { useTranslation } from 'react-i18next';
+
+// --- CONFIGURATION ---
+// 🚀 SOTA: "Line in the Sand" - Reset auf V3 Engine Launch Date (Sync with Performance Page)
+const STATS_RESET_DATE = '2026-05-15T00:00:00.000Z';
+
+// --- ROBUST HELPERS ---
+const isPlayer1Target = (pickName: string, p1Name: string) => {
+    const pick = pickName.toLowerCase().trim();
+    const p1 = p1Name.toLowerCase().trim();
+    if (pick.includes(p1) || p1.includes(pick)) return true;
+    const pickLast = pick.split(' ').pop() || '';
+    if (pickLast && p1.includes(pickLast)) return true;
+    return false;
+};
+
+const checkWinnerResult = (pickName: string, actualWinner: string | null) => {
+    if (!actualWinner || !pickName) return false;
+    const p = pickName.toLowerCase().trim();
+    const w = actualWinner.toLowerCase().trim();
+    if (p.includes(w) || w.includes(p)) return true;
+    const pLast = p.split(' ').pop() || '';
+    if (pLast && w.includes(pLast)) return true;
+    return false;
+};
+
+// 🚀 SOTA FIX: Sync with Performance Page to include 'type' and 'fairOdds'
+const parseValueFromText = (text: string | undefined) => {
+    if (!text) {
+        return { hasValue: false, marketOdds: 0, edge: 0, fairOdds: 0, pickName: '', stake: 0, type: '' };
+    }
+
+    if (text.includes('[') && text.includes('Edge:')) {
+        const typeMatch = text.match(/\[(.*?):/);
+        const playerMatch = text.match(/:\s*(.*?)\s*@/);
+        const oddsMatch = text.match(/@\s*([\d.]+)/);
+        const fairMatch = text.match(/Fair:\s*([\d.]+)/);
+        const edgeMatch = text.match(/Edge:\s*(-?[\d.]+)%/);
+        const stakeMatch = text.match(/Stake:\s*([\d.]+)u/);
+
+        if (playerMatch && oddsMatch && edgeMatch) {
+            let rawStake = stakeMatch ? parseFloat(stakeMatch[1]) : 0;
+            let finalStake = Math.max(0, Math.min(5, rawStake));
+            finalStake = Math.round(finalStake * 10) / 10;
+
+            return {
+                hasValue: true,
+                type: typeMatch ? typeMatch[1].trim() : 'VALUE',
+                pickName: playerMatch[1].trim(),
+                marketOdds: parseFloat(oddsMatch[1]),
+                fairOdds: fairMatch ? parseFloat(fairMatch[1]) : 0,
+                edge: parseFloat(edgeMatch[1]),
+                stake: finalStake
+            };
+        }
+    }
+
+    if (text.includes('Stake:')) {
+         const legacyRegex = /\[?(💎|🛡️|⚖️|💰|HUNTER).*?:\s*(.*?)\s*@\s*([\d.]+).*?Edge:\s*(-?[\d.]+)%.*?Stake:\s*([\d.]+)u/;
+         const match = text.match(legacyRegex);
+         if (match) {
+            let rawStake = parseFloat(match[5]);
+            let finalStake = Math.max(0, Math.min(5, rawStake));
+            finalStake = Math.round(finalStake * 10) / 10;
+
+            return {
+                hasValue: true,
+                type: 'LEGACY',
+                pickName: match[2].trim(),
+                marketOdds: parseFloat(match[3]),
+                fairOdds: 0,
+                edge: parseFloat(match[4]),
+                stake: finalStake
+            };
+         }
+    }
+
+    return { hasValue: false, marketOdds: 0, edge: 0, fairOdds: 0, pickName: '', stake: 0, type: '' };
+};
+
+// --- COMPONENT: AI HERO STATS WIDGET ---
+const AIStatsHero = () => {
+  const { t } = useTranslation();
+  
+  const [stats, setStats] = useState({ avgClv: 0, totalUnits: 0, roi: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPerformance = async () => {
+      try {
+          // 🚀 SOTA FIX: Absolute Sync mit PerformancePage (created_at ASC + 50,000 Limit)
+          const { data, error } = await supabase
+            .from('market_odds')
+            .select('*') 
+            .neq('actual_winner_name', null)
+            .neq('actual_winner_name', '')
+            .gt('created_at', STATS_RESET_DATE)
+            .order('created_at', { ascending: true }) 
+            .limit(50000); 
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            let sumClv = 0;
+            let cumulativeUnits = 0;
+            let totalUnitsStaked = 0;
+            let validSignals = 0;
+
+            data.forEach(match => {
+              let valInfo = parseValueFromText(match.ai_analysis_text);
+              
+              if (!valInfo.hasValue && match.ai_fair_odds1 && match.ai_fair_odds2) {
+                  const op1 = match.opening_odds1 || match.odds1;
+                  const op2 = match.opening_odds2 || match.odds2;
+                  if (op1 && op2) {
+                      const edge1 = ((op1 / match.ai_fair_odds1) - 1) * 100;
+                      const edge2 = ((op2 / match.ai_fair_odds2) - 1) * 100;
+                      if (edge1 > 1.0) valInfo = { hasValue: true, marketOdds: op1, fairOdds: match.ai_fair_odds1, edge: edge1, pickName: match.player1_name, stake: 1, type: 'INFO' };
+                      else if (edge2 > 1.0) valInfo = { hasValue: true, marketOdds: op2, fairOdds: match.ai_fair_odds2, edge: edge2, pickName: match.player2_name, stake: 1, type: 'INFO' };
+                  }
+              }
+
+              // 🛑 SOTA: Fractional Kelly & Buchdahl Efficiency Purge (Absolute Sync with PerformancePage)
+              if (!valInfo.hasValue) return;
+
+              if (valInfo.type === 'LEGACY') {
+                  // Historischer Purge: Löscht den alten ineffizienten "Core-Graveyard" aus der KPI Berechnung.
+                  if (valInfo.marketOdds < 2.0 && valInfo.stake < 2.0) return; 
+                  if (valInfo.marketOdds >= 1.50 && valInfo.marketOdds < 2.00 && valInfo.edge < 8.0) return;
+              } else {
+                  // Safety Check für das neue Modell (Filtert Noise heraus)
+                  if (valInfo.marketOdds >= 3.0 && valInfo.stake < 0.5) return;
+                  if (valInfo.marketOdds >= 2.0 && valInfo.marketOdds < 3.0 && valInfo.stake < 1.0) return;
+              }
+
+              const isWin = checkWinnerResult(valInfo.pickName, match.actual_winner_name);
+              const actualStake = valInfo.stake; 
+              const unitProfit = isWin ? (actualStake * (valInfo.marketOdds - 1)) : -actualStake;
+              
+              cumulativeUnits += unitProfit;
+              totalUnitsStaked += actualStake;
+
+              const p1IsPick = isPlayer1Target(valInfo.pickName, match.player1_name);
+              const closingOdds = p1IsPick ? match.odds1 : match.odds2;
+              let clv = 0;
+              const entryOdds = valInfo.marketOdds;
+              
+              if (closingOdds > 0 && entryOdds > 0) {
+                  clv = ((entryOdds / closingOdds) - 1) * 100;
+              }
+
+              sumClv += clv;
+              validSignals++;
+            });
+
+            if (validSignals > 0) {
+                const roiVal = totalUnitsStaked > 0 ? (cumulativeUnits / totalUnitsStaked) * 100 : 0;
+                setStats({
+                  avgClv: parseFloat((sumClv / validSignals).toFixed(2)),
+                  totalUnits: parseFloat(cumulativeUnits.toFixed(2)),
+                  roi: parseFloat(roiVal.toFixed(2))
+                });
+            } else {
+                setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+            }
+          } else {
+              setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+          }
+      } catch (err) {
+          console.error("Error fetching stats:", err);
+          setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+      } finally {
+          setLoading(false);
+      }
+    };
+
+    fetchPerformance();
+  }, []);
+
+  if (loading) return <div className="h-32 w-full lg:w-[480px] bg-[#1a1d26] rounded-2xl animate-pulse border border-white/5"></div>;
+
+  return (
+    <Link to="/performance" className="group relative w-full lg:w-auto bg-[#1a1d26] border border-white/10 rounded-2xl p-5 block hover:border-tennis-lime/50 transition-all duration-300 shadow-2xl overflow-hidden cursor-pointer no-underline">
+      <div className="absolute top-0 right-0 w-40 h-40 bg-tennis-lime/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-tennis-lime/10 transition-all pointer-events-none"></div>
+      
+      <div className="flex items-center justify-between mb-5 relative z-10">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-tennis-lime/10 rounded-lg ring-1 ring-tennis-lime/20">
+            <Zap size={14} className="text-tennis-lime fill-current" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{t('homePage.aiStats.title')}</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full border border-tennis-lime/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse shadow-[0_0_8px_#84cc16]"></div>
+            {t('homePage.aiStats.live')}
+            </div>
+            <ArrowRight size={14} className="text-gray-600 group-hover:text-tennis-lime group-hover:translate-x-1 transition-all" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 md:flex md:items-center md:justify-between md:gap-x-8 relative z-10">
+        
+        <div className="flex flex-col">
+            <div className="flex items-end gap-1 mb-1">
+                <span className={`text-2xl md:text-3xl font-black leading-none tabular-nums ${stats.totalUnits >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
+                    {stats.totalUnits > 0 ? '+' : ''}{stats.totalUnits}
+                </span>
+                <span className={`text-sm font-bold mb-0.5 ${stats.totalUnits >= 0 ? 'text-tennis-lime/70' : 'text-red-500/70'}`}>u</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                <Wallet size={10} /> NET PROFIT
+            </div>
+        </div>
+
+        <div className="hidden md:block h-8 w-px bg-white/10"></div>
+
+        <div className="flex flex-col">
+            <div className="flex items-end gap-1 mb-1">
+                <span className={`text-2xl md:text-3xl font-black leading-none tabular-nums ${stats.roi >= 0 ? 'text-blue-400' : 'text-red-500'}`}>
+                    {stats.roi > 0 ? '+' : ''}{stats.roi}
+                </span>
+                <span className={`text-sm font-bold mb-0.5 ${stats.roi >= 0 ? 'text-blue-400/70' : 'text-red-500/70'}`}>%</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                <PieChart size={10} /> YIELD (ROI)
+            </div>
+        </div>
+
+        <div className="hidden md:block h-8 w-px bg-white/10"></div>
+
+        <div className="flex flex-col">
+             <div className="flex items-end gap-1 mb-1">
+                <span className={`text-2xl md:text-3xl font-black leading-none tabular-nums ${stats.avgClv >= 0 ? 'text-emerald-400' : 'text-gray-400'}`}>
+                    {stats.avgClv > 0 ? '+' : ''}{stats.avgClv}
+                </span>
+                <span className={`text-sm font-bold mb-0.5 ${stats.avgClv >= 0 ? 'text-emerald-400/70' : 'text-gray-500'}`}>%</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                <Zap size={10} /> AVG. CLV
+            </div>
+        </div>
+        
+      </div>
+    </Link>
+  );
+};
+
+// --- REST OF HOMEPAGE COMPONENT ---
+const MultiSelect = ({ options, selected, onChange, placeholder, icon: Icon }: any) => {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [wrapperRef]);
+
+  const toggleOption = (option: string) => {
+    if (selected.includes(option)) {
+      onChange(selected.filter((item: string) => item !== option));
+    } else {
+      onChange([...selected, option]);
+    }
+  };
+
+  return (
+    <div className="relative w-full group" ref={wrapperRef}>
+      <div 
+        className={`w-full px-4 py-3 bg-[#15171e] border rounded-xl flex items-center justify-between cursor-pointer transition-all duration-300 ${isOpen ? 'border-tennis-lime shadow-[0_0_15px_rgba(132,204,22,0.1)]' : 'border-white/10 hover:border-white/30'}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-3 overflow-hidden">
+          {Icon && <Icon size={16} className={`shrink-0 transition-colors ${isOpen || selected.length > 0 ? 'text-tennis-lime' : 'text-gray-400'}`} />}
+          {selected.length === 0 ? (
+            <span className="text-gray-500 text-sm truncate font-medium">{placeholder}</span>
+          ) : (
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+              <span className="text-white text-sm font-bold tracking-wide">{selected.length} {t('homePage.filters.selected')}</span>
+            </div>
+          )}
+        </div>
+        <div className={`transition-transform duration-300 text-gray-500 ${isOpen ? 'rotate-180 text-tennis-lime' : ''}`}>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-30 w-full mt-2 bg-[#1a1d26] border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {options.map((option: string) => (
+            <div
+              key={option}
+              className="px-4 py-3 text-sm text-gray-300 hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors group/item"
+              onClick={() => toggleOption(option)}
+            >
+              <span className={`font-medium transition-all ${selected.includes(option) ? 'text-white translate-x-1' : 'group-hover/item:text-white'}`}>{option}</span>
+              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-200 ${selected.includes(option) ? 'bg-tennis-lime border-tennis-lime scale-100' : 'border-gray-600 bg-transparent scale-90 opacity-50'}`}>
+                {selected.includes(option) && <X size={10} className="text-black stroke-[3px]" />}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface Player {
+  id: string;
+  first_name: string;
+  last_name: string;
+  country: string;
+  play_style: string;
+  surface_preference: string;
+  profile_image_url: string;
+  overall_rating?: number;
+  tour: 'ATP' | 'WTA';
+}
+
+interface HomePageProps {
+  onPlayerClick: (playerId: string) => void;
+}
+
+export function HomePage({ onPlayerClick }: HomePageProps) {
+  const { t } = useTranslation();
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+    
+  const [showFilters, setShowFilters] = useState(false);
+  const [overflowVisible, setOverflowVisible] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tourFilter, setTourFilter] = useState<'ATP' | 'WTA'>('ATP');
+  const [countryFilter, setCountryFilter] = useState('');
+  const [playStyleFilter, setPlayStyleFilter] = useState<string[]>([]);
+  const [surfaceFilter, setSurfaceFilter] = useState('');
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<'name' | 'rating'>('name');
+
+  const [countries, setCountries] = useState<string[]>([]);
+  const [playStyles, setPlayStyles] = useState<string[]>([]);
+  const [surfaces, setSurfaces] = useState<string[]>([]);
+
+  const normalizePlayStyle = (style: string) => {
+    if (!style) return '';
+    return style;
+  };
+
+  useEffect(() => {
+    loadPlayers();
+    const playersChannel = supabase
+      .channel('homepage-players')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, () => {
+        loadPlayers();
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(playersChannel);
+    };
+  }, []);
+
+  useEffect(() => {
+    let timeout: any;
+    if (showFilters) {
+        timeout = setTimeout(() => {
+            setOverflowVisible(true);
+        }, 500); 
+    } else {
+        setOverflowVisible(false);
+    }
+    return () => clearTimeout(timeout);
+  }, [showFilters]);
+
+  useEffect(() => {
+    filterPlayers();
+  }, [searchTerm, tourFilter, countryFilter, playStyleFilter, surfaceFilter, ratingFilter, sortBy, players]);
+
+  useEffect(() => {
+    if (searchTerm.trim().length > 2) {
+      const timer = setTimeout(() => {
+        trackEvent('global_search', { query: searchTerm, tour: tourFilter });
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (countryFilter || playStyleFilter.length > 0 || surfaceFilter || ratingFilter > 0) {
+      trackEvent('filters_refined', {
+        country: countryFilter || 'all',
+        style: playStyleFilter.join(',') || 'all',
+        surface: surfaceFilter || 'all',
+        min_rating: ratingFilter
+      });
+    }
+  }, [countryFilter, playStyleFilter, surfaceFilter, ratingFilter]);
+
+  const loadPlayers = async () => {
+    try {
+      const { data: playersData, error: playersError } = await supabase
+        .from('players')
+        .select('*')
+        .order('last_name', { ascending: true });
+
+      if (playersError) throw playersError;
+
+      const { data: skillsData } = await supabase
+        .from('player_skills')
+        .select('player_id, overall_rating');
+
+      const skillsMap = new Map(skillsData?.map(s => [s.player_id, s.overall_rating]) || []);
+
+      const playersWithRatings = playersData?.map(player => ({
+        ...player,
+        play_style: normalizePlayStyle(player.play_style),
+        overall_rating: skillsMap.get(player.id) || 0
+      })) || [];
+
+      setPlayers(playersWithRatings);
+      setFilteredPlayers(playersWithRatings);
+
+      const uniqueCountries = [...new Set(playersWithRatings.map(p => p.country).filter(Boolean))];
+        
+      const allStylesRaw = playersWithRatings.map(p => p.play_style).filter(Boolean);
+      const uniquePlayStyles = new Set<string>();
+      allStylesRaw.forEach(s => {
+          s.split(',').forEach(sub => uniquePlayStyles.add(sub.split('(')[0].trim())); 
+      });
+
+      const uniqueSurfaces = [...new Set(playersWithRatings.map(p => p.surface_preference).filter(Boolean))];
+
+      setCountries(uniqueCountries.sort());
+      setPlayStyles(Array.from(uniquePlayStyles).sort());
+      setSurfaces(uniqueSurfaces.sort());
+    } catch (error) {
+      console.error('Error loading players:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterPlayers = () => {
+    let filtered = [...players];
+
+    filtered = filtered.filter((p) => p.tour === tourFilter);
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.first_name.toLowerCase().includes(term) ||
+          p.last_name.toLowerCase().includes(term) ||
+          p.country.toLowerCase().includes(term) || 
+          p.play_style.toLowerCase().includes(term)
+      );
+    }
+
+    if (countryFilter) {
+      filtered = filtered.filter((p) => p.country === countryFilter);
+    }
+
+    if (playStyleFilter.length > 0) {
+      filtered = filtered.filter((p) => {
+        return playStyleFilter.some(selectedStyle => 
+          p.play_style.toLowerCase().includes(selectedStyle.toLowerCase())
+        );
+      });
+    }
+
+    if (surfaceFilter) {
+      filtered = filtered.filter((p) => p.surface_preference === surfaceFilter);
+    }
+
+    if (ratingFilter > 0) {
+      filtered = filtered.filter((p) => (p.overall_rating || 0) >= ratingFilter);
+    }
+
+    if (sortBy === 'rating') {
+      filtered.sort((a, b) => (b.overall_rating || 0) - (a.overall_rating || 0));
+    } else {
+      filtered.sort((a, b) => a.last_name.localeCompare(b.last_name));
+    }
+
+    setFilteredPlayers(filtered);
+  };
+
+  const handleTourChange = (tour: 'ATP' | 'WTA') => {
+    setTourFilter(tour);
+    trackEvent('tour_toggle', { tour });
+  };
+
+  const handlePlayerClick = (playerId: string) => {
+    const player = players.find(p => p.id === playerId);
+    trackEvent('player_card_open', { 
+      player_id: playerId, 
+      player_name: player ? `${player.first_name} ${player.last_name}` : 'Unknown',
+      tour: tourFilter
+    });
+    onPlayerClick(playerId);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setCountryFilter('');
+    setPlayStyleFilter([]);
+    setSurfaceFilter('');
+    setRatingFilter(0);
+    setSortBy('name');
+    trackEvent('filters_reset');
+  };
+
+  const removePlayStyleTag = (style: string) => {
+    setPlayStyleFilter(playStyleFilter.filter(s => s !== style));
+  };
+
+  const hasActiveFilters = countryFilter || playStyleFilter.length > 0 || surfaceFilter || ratingFilter > 0;
+
+  if (loading) return <LoadingScreen message={t('homePage.loading')} />;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+      
+      {/* 🚀 SOTA FIX: CSS nativ in der Component, damit SSR Build nicht crasht */}
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+      
+      {/* HEADER SECTION WITH AI STATS WIDGET */}
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="flex-1">
+          <h1 className="text-3xl md:text-5xl font-black text-white mb-3 uppercase tracking-tight">{t('homePage.title')}</h1>
+          <p className="text-gray-400 text-sm md:text-base font-medium max-w-xl">
+            {t('homePage.subtitle')}
+          </p>
+        </div>
+        
+        {/* HERO WIDGET PLACEMENT */}
+        <div className="w-full lg:w-auto">
+            <AIStatsHero />
+        </div>
+      </div>
+
+      {/* COMPACT FILTER BAR */}
+      <div className="bg-[#1a1d26] rounded-2xl shadow-xl border border-white/5 mb-8 transition-all duration-300 hover:border-white/10">
+        
+        {/* TOP ROW */}
+        <div className="p-4 flex flex-col md:flex-row gap-4 items-center">
+            
+            <div className="relative flex-1 w-full group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={18} />
+                <input
+                    type="text"
+                    placeholder={t('homePage.searchPlaceholder')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime focus:bg-black/40 text-white placeholder-gray-500 text-sm transition-all shadow-inner"
+                />
+            </div>
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex bg-black/20 p-1 rounded-xl border border-white/10 flex-1 md:flex-none relative">
+                    <button 
+                        onClick={() => handleTourChange('ATP')}
+                        className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black tracking-widest transition-all duration-300 ${tourFilter === 'ATP' ? 'bg-tennis-lime text-black shadow-[0_0_15px_rgba(132,204,22,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                    >ATP</button>
+                    <button 
+                        onClick={() => handleTourChange('WTA')}
+                        className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black tracking-widest transition-all duration-300 ${tourFilter === 'WTA' ? 'bg-tennis-lime text-black shadow-[0_0_15px_rgba(132,204,22,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                    >WTA</button>
+                </div>
+
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-3 rounded-xl border transition-all duration-300 relative group ${showFilters || hasActiveFilters ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-black/20 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'}`}
+                >
+                    {showFilters ? <X size={20} /> : <SlidersHorizontal size={20} className="group-hover:scale-110 transition-transform"/>}
+                    {!showFilters && hasActiveFilters && (
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-tennis-lime rounded-full border-2 border-[#1a1d26]"></span>
+                    )}
+                </button>
+            </div>
+        </div>
+        
+        {/* ACTIVE FILTERS VISUALIZATION */}
+        {(countryFilter || playStyleFilter.length > 0 || surfaceFilter || ratingFilter > 0) && (
+            <div className="px-4 pb-4 flex flex-wrap gap-2 animate-in slide-in-from-top-2 border-t border-white/5 pt-3">
+                {countryFilter && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold uppercase tracking-wider shadow-sm">
+                        <MapPin size={10} /> {countryFilter}
+                        <button onClick={() => setCountryFilter('')} className="hover:text-white transition-colors"><X size={12} /></button>
+                    </div>
+                )}
+                {surfaceFilter && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-400 text-xs font-bold uppercase tracking-wider shadow-sm">
+                        <Layers size={10} /> {surfaceFilter}
+                        <button onClick={() => setSurfaceFilter('')} className="hover:text-white transition-colors"><X size={12} /></button>
+                    </div>
+                )}
+                {playStyleFilter.map(style => (
+                    <div key={style} className="flex items-center gap-2 px-3 py-1 bg-tennis-lime/10 border border-tennis-lime/30 rounded-full text-tennis-lime text-xs font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(132,204,22,0.1)]">
+                        <Activity size={10} /> {style}
+                        <button onClick={() => removePlayStyleTag(style)} className="hover:text-white transition-colors"><X size={12} /></button>
+                    </div>
+                ))}
+                {ratingFilter > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-500 text-xs font-bold uppercase tracking-wider shadow-sm">
+                        <Sparkles size={10} /> {ratingFilter}+ {t('homePage.filters.rating')}
+                        <button onClick={() => setRatingFilter(0)} className="hover:text-white transition-colors"><X size={12} /></button>
+                    </div>
+                )}
+                
+                <button onClick={resetFilters} className="text-[10px] text-gray-500 hover:text-red-400 underline ml-auto transition-colors font-medium">{t('homePage.filters.clearAll')}</button>
+            </div>
+        )}
+
+        {/* COLLAPSIBLE ADVANCED FILTERS */}
+        <div className={`transition-[max-height,opacity] duration-500 ease-in-out ${showFilters ? 'max-h-[500px] opacity-100 border-t border-white/5' : 'max-h-0 opacity-0'} ${overflowVisible ? 'overflow-visible' : 'overflow-hidden'}`}>
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-black/20">
+                <SearchableSelect 
+                    placeholder={t('homePage.filters.allCountries')}
+                    options={countries}
+                    value={countryFilter}
+                    onChange={setCountryFilter}
+                    icon={MapPin}
+                />
+                <MultiSelect 
+                    placeholder={t('homePage.filters.filterStyles')}
+                    options={playStyles}
+                    selected={playStyleFilter}
+                    onChange={setPlayStyleFilter}
+                    icon={Activity}
+                />
+                <SearchableSelect 
+                    placeholder={t('homePage.filters.allSurfaces')}
+                    options={surfaces}
+                    value={surfaceFilter}
+                    onChange={setSurfaceFilter}
+                    icon={Layers}
+                />
+                <div className="relative group">
+                    <select
+                        value={ratingFilter}
+                        onChange={(e) => setRatingFilter(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-[#15171e] border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime text-white text-sm appearance-none cursor-pointer transition-colors"
+                    >
+                        <option value="0">{t('homePage.filters.allRatings')}</option>
+                        <option value="90">90+ Elite</option>
+                        <option value="80">80+ Excellent</option>
+                        <option value="70">70+ Very Good</option>
+                        <option value="60">60+ Good</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 group-hover:text-tennis-lime transition-colors">
+                        <Sparkles size={16} />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {/* FOOTER BAR */}
+         <div className="px-4 py-3 bg-black/40 border-t border-white/5 flex flex-wrap justify-between items-center gap-3 text-xs md:text-sm rounded-b-2xl">
+            <span className="text-gray-500 font-medium">{t('homePage.footer.found', { count: filteredPlayers.length })} <span className="text-white font-bold">{filteredPlayers.length}</span> {t('homePage.footer.players')}</span>
+            
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-black/20 px-2 py-1 rounded-lg border border-white/5">
+                    <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">{t('homePage.footer.sortBy')}</span>
+                    <button onClick={() => setSortBy('name')} className={`font-bold transition-colors ${sortBy === 'name' ? 'text-tennis-lime' : 'text-gray-400 hover:text-white'}`}>{t('homePage.footer.name')}</button>
+                    <span className="text-gray-700">|</span>
+                    <button onClick={() => setSortBy('rating')} className={`font-bold transition-colors ${sortBy === 'rating' ? 'text-tennis-lime' : 'text-gray-400 hover:text-white'}`}>{t('homePage.footer.rating')}</button>
+                </div>
+            </div>
+        </div>
+
+      </div>
+
+      {/* PLAYER GRID */}
+      {filteredPlayers.length === 0 ? (
+        <div className="text-center py-20 bg-[#1a1d26] rounded-3xl border border-white/5 border-dashed animate-in fade-in zoom-in-95 duration-300">
+          <div className="bg-black/30 p-6 rounded-full inline-block mb-4 shadow-lg"><Filter size={32} className="text-gray-600"/></div>
+          <h3 className="text-white font-bold text-lg mb-1">{t('homePage.noResults.title')}</h3>
+          <p className="text-gray-400 font-medium mb-6">{t('homePage.noResults.subtitle')}</p>
+          <button onClick={resetFilters} className="px-6 py-2 bg-white text-black font-bold rounded-full hover:bg-tennis-lime transition-colors shadow-lg">{t('homePage.noResults.button')}</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPlayers.map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              onClick={() => handlePlayerClick(player.id)}
+            />
+          ))}
+          <ScrollToTop />
+        </div>
+      )}
+
+      {/* RESPONSIBLE GAMBLING DISCLAIMER */}
+      <div className="mt-16 pt-8 border-t border-white/5 text-center">
+          <p className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-gray-600">
+              <AlertTriangle size={12} /> {t('homePage.disclaimer')}
+          </p>
+      </div>
+
+    </div>
+  );
+}

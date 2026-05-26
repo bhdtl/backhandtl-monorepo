@@ -1,0 +1,588 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "playerDatabase": "Database Giocatori",
+    "watchlist": "Osservati",
+    "aiPerformance": "Performance IA",
+    "performanceScores": "Punteggi",
+    "matchupAnalyzer": "Analisi Match",
+    "valueScanner": "Scanner Valore",
+    "courtIndex": "Indice Campi BSI",
+    "admin": "Admin Sistema",
+    "intelligenceTools": "STRUMENTI INTELLIGENCE",
+    "activeAccount": "Account Attivo",
+    "accessGranted": "Accesso Concesso",
+    "logout": "Esci",
+    "login": "Accedi"
+  },
+  "auth": {
+    "titles": {
+      "login": "Bentornato",
+      "register": "Crea Account",
+      "reset": "Reimposta Password"
+    },
+    "subtitles": {
+      "login": "Accedi ai dati di scouting pro",
+      "register": "Unisciti al network di scouting",
+      "reset": "Inserisci la tua email per le istruzioni"
+    },
+    "labels": {
+      "firstName": "Nome",
+      "email": "Email",
+      "password": "Password"
+    },
+    "buttons": {
+      "signIn": "Accedi",
+      "createAccount": "Registrati",
+      "sendLink": "Invia Link"
+    },
+    "prompts": {
+      "noAccount": "Non hai un account?",
+      "hasAccount": "Hai già un account?"
+    },
+    "links": {
+      "signUp": "Registrati",
+      "login": "Accedi",
+      "forgotPassword": "Password dimenticata?",
+      "backToLogin": "Torna al login"
+    },
+    "messages": {
+      "resetSent": "Link inviato! Controlla la tua casella di posta.",
+      "accountCreated": "Account creato! Per favore conferma la tua email."
+    },
+    "errors": {
+      "firstNameRequired": "Il nome è obbligatorio",
+      "generic": "Si è verificato un errore"
+    }
+  },
+  "homePage": {
+    "loading": "Caricamento Database...",
+    "title": "Database Giocatori",
+    "subtitle": "Accedi a report di scouting d'élite, metriche fisiche e analisi tattiche IA.",
+    "searchPlaceholder": "Cerca giocatore, paese o stile...",
+    "aiStats": {
+      "title": "Performance IA",
+      "live": "LIVE",
+      "winRate": "% Vittoria",
+      "avgOdds": "Quota Media",
+      "profit": "Profitto"
+    },
+    "filters": {
+      "selected": "Selezionati",
+      "allCountries": "Tutti i Paesi",
+      "filterStyles": "Filtra Stili",
+      "allSurfaces": "Tutte le Superfici",
+      "allRatings": "Tutti i Rating",
+      "rating": "Rating",
+      "clearAll": "Cancella tutto"
+    },
+    "footer": {
+      "found": "Trovati",
+      "players": "giocatori",
+      "sortBy": "Ordina per",
+      "name": "Nome",
+      "rating": "Rating"
+    },
+    "noResults": {
+      "title": "Nessun giocatore trovato",
+      "subtitle": "Prova a modificare i filtri per vedere più risultati.",
+      "button": "Cancella filtri"
+    },
+    "disclaimer": "Le scommesse sportive comportano rischi. Scommetti responsabilmente."
+  },
+  "dashboard": {
+    "header": {
+      "title": "Il Mio Account",
+      "subtitle": "Gestisci il tuo profilo e le statistiche",
+      "logout": "Esci"
+    },
+    "accessDenied": {
+      "title": "Accesso Negato",
+      "message": "Accedi per visualizzare il tuo profilo.",
+      "loginButton": "Accedi"
+    },
+    "profile": {
+      "authorizedUser": "Utente Autorizzato",
+      "adminAccess": "Accesso Admin"
+    },
+    "actions": {
+      "watchlist": {
+        "title": "I Miei Osservati",
+        "desc": "Visualizza giocatori seguiti"
+      },
+      "discovery": {
+        "title": "Scoperta Giocatori",
+        "desc": "Cerca e filtra atleti"
+      }
+    },
+    "settings": {
+      "title": "Impostazioni Account",
+      "preferences": "Preferenze App"
+    }
+  },
+  "metricsDashboard": {
+    "loading": "Calcolo Intelligence in Tempo Reale...",
+    "cards": {
+      "retention": {
+        "title": "Ritenzione Reale W1",
+        "subValue": "Escl. Traffico Admin",
+        "description": "Utenti reali che ritornano dopo la settimana 1. (Dati admin filtrati)"
+      },
+      "winRate": {
+        "title": "Win Rate IA Verificato",
+        "subValue": "Basato su match chiusi",
+        "description": "Percentuale di previsioni corrette su match terminati."
+      },
+      "activation": {
+        "title": "Tempo al Valore",
+        "subValue": "Registrazione ad Analisi",
+        "description": "Ore medie prima che un nuovo utente avvii la prima analisi."
+      },
+      "cost": {
+        "title": "Costo / Analisi",
+        "subValue": "Margine Tech: 92%",
+        "description": "Costo API Gemini per analisi (Tracciamento live)."
+      }
+    },
+    "charts": {
+      "performance": {
+        "title": "Trend Performance IA",
+        "subtitle": "Media Mobile di Successo"
+      },
+      "retention": {
+        "title": "Imbuto Ritenzione Utenti",
+        "subtitle": "Tasso di sopravvivenza utenti attivi"
+      }
+    }
+  },
+  "matchup": {
+    "analyzeButton": "Analizza Match",
+    "loading": "Consulto IA...",
+    "proFeature": "Funzione Pro",
+    "analyzing": "Esecuzione Simulazione Neurale...",
+    "headers": {
+      "briefing": "Briefing Intelligence Neurale",
+      "matrix": "Matrice Geometria Tattica",
+      "dominance": "Metriche Dominio Tecnico"
+    },
+    "slots": {
+      "alpha": "Bersaglio Alfa",
+      "beta": "Bersaglio Beta",
+      "assign": "Assegna {{label}}",
+      "vs": "VS"
+    },
+    "buttons": {
+      "run": "Esegui Analisi Neurale",
+      "processing": "Elaborazione..."
+    },
+    "modal": {
+      "title": "Seleziona Giocatore",
+      "search": "Cerca per nome...",
+      "noImg": "No Img"
+    },
+    "controls": {
+      "searchCourt": "Cerca matrice campo...",
+      "bsi": "Valutazione BSI",
+      "type": "Tipo",
+      "override": "Manuale",
+      "dbSearch": "Cerca DB"
+    },
+    "metrics": {
+      "service": "Pressione Servizio",
+      "forehand": "Dettatura Dritto",
+      "mental": "Soglia Mentale",
+      "physical": "Logoramento Fisico"
+    },
+    "analysisLabels": {
+      "surface": "Realtà Superficie",
+      "tactical": "Vantaggio Tattico",
+      "verdict": "Il Verdetto"
+    }
+  },
+  "matchupCard": {
+    "labels": {
+      "prediction": "Previsione",
+      "confidence": "Fiducia",
+      "length": "Durata",
+      "edge": "Vantaggio"
+    },
+    "sets": {
+      "straight": "Set Diretti (2-0)",
+      "competitive": "2 Set Competitivi",
+      "deciding": "Set Decisivo (2-1)"
+    },
+    "footer": "Screenshot da condividere 📸"
+  },
+  "valueScanner": {
+    "loading": "Scansione Mercati Globali...",
+    "header": {
+      "badge": "Intelligence di Mercato",
+      "title": "Scanner di Valore",
+      "subtitle": "Caccia al vantaggio matematico su 40+ bookmaker.",
+      "updated": "Aggiornato"
+    },
+    "dates": {
+      "today": "Oggi",
+      "tomorrow": "Domani"
+    },
+    "filters": {
+      "search": "Cerca partite..."
+    },
+    "sort": {
+      "edge": "Vantaggio Max",
+      "confidence": "Fiducia",
+      "time": "Ora Inizio"
+    },
+    "card": {
+      "trueFair": "Vero Equo",
+      "won": "VINTO",
+      "miss": "PERSO",
+      "edge": "Vantaggio"
+    },
+    "noMatches": {
+      "title": "Nessuna partita trovata",
+      "subtitle": "Prova a selezionare un'altra data."
+    }
+  },
+  "performance": {
+    "loading": "Audit Registro Performance...",
+    "title": "Registro Performance",
+    "subtitle": "La trasparenza è il nostro valore fondamentale. Questo registro traccia ogni previsione IA in tempo reale.",
+    "liveStatus": "Audit Attivo",
+    "kpis": {
+      "netProfit": {
+        "title": "Profitto Netto (U)",
+        "subtext": "Puntata corretta per il rischio"
+      },
+      "winRate": {
+        "title": "Tasso Vittoria",
+        "subtext": "Tasso di successo globale"
+      },
+      "avgOdds": {
+        "title": "Quota Media",
+        "subtext": "Qualità delle scelte vincenti"
+      },
+      "signals": {
+        "title": "Segnali Totali",
+        "subtext": "Opportunità elaborate"
+      }
+    },
+    "table": {
+      "title": "Cronologia Transazioni",
+      "verified": "Verificato da Neural Scout",
+      "pick": "Scelta",
+      "cols": {
+        "date": "Data",
+        "event": "Evento",
+        "selection": "Selezione IA",
+        "odds": "Quota",
+        "stake": "Puntata",
+        "outcome": "Esito"
+      }
+    },
+    "noData": {
+      "title": "Nessun dato ancora",
+      "message": "Appena l'IA verificherà i risultati, appariranno qui automaticamente."
+    }
+  },
+  "watchlist": {
+    "loading": "Sincronizzazione...",
+    "title": "Osservati",
+    "sort": "Ordina",
+    "loggedOut": {
+      "titleLine1": "Mantieni il tuo",
+      "titleLine2": "Scouting Mirato.",
+      "description": "Crea la tua lista di osservati personalizzata per tracciare cambiamenti tattici e trend di performance in tempo reale.",
+      "signInPrompt": "Accedi per iniziare"
+    },
+    "features": {
+      "alerts": "Avvisi Smart",
+      "access": "Accesso Rapido",
+      "scouting": "Scouting Pro"
+    },
+    "empty": {
+      "title": "La tua lista è vuota",
+      "message": "Inizia a scovare giocatori e aggiungili alla tua lista per un accesso prioritario."
+    }
+  },
+  "courtDatabase": {
+    "loading": "Caricamento Database Campi...",
+    "title": "Database Campi BSI",
+    "subtitle": "Indice ufficiale velocità campi e condizioni.",
+    "searchPlaceholder": "Cerca per nome torneo o luogo...",
+    "filters": {
+      "allSurfaces": "Tutte le Superfici",
+      "hard": "Cemento",
+      "clay": "Terra",
+      "grass": "Erba",
+      "fastestFirst": "Più Veloci Prima",
+      "slowestFirst": "Più Lenti Prima"
+    },
+    "table": {
+      "tournament": "Torneo",
+      "location": "Luogo",
+      "surface": "Superficie",
+      "bsi": "Valutazione BSI",
+      "bounce": "Rimbalzo",
+      "details": "Dettagli"
+    },
+    "noResults": "Nessun torneo trovato",
+    "clearFilters": "Cancella filtri"
+  },
+  "courtProfile": {
+    "analyzing": "Analisi Fisica Campo...",
+    "notFound": "Torneo non trovato.",
+    "officialData": "Dati Ufficiali",
+    "bsiRating": "Valutazione BSI",
+    "bounce": "Rimbalzo",
+    "conditionsHeader": "Condizioni & Insight Tattico",
+    "noData": "Nessun dato di scouting dettagliato disponibile per questo torneo.",
+    "cards": {
+      "resistance": {
+        "title": "Resistenza Aria",
+        "desc": "La pressione indoor influenza la velocità."
+      },
+      "temp": {
+        "title": "Temp. Superficie",
+        "desc": "Influenza la compressione della palla."
+      },
+      "efficacy": {
+        "title": "Efficacia Colpi",
+        "desc": "Premia il gioco aggressivo."
+      }
+    }
+  },
+  "scoresBenchmark": {
+    "header": {
+      "badge": "Standard di Scouting v2.0",
+      "title": "Punteggio Giocatore",
+      "subtitle": "Legenda di Riferimento.",
+      "descriptionPart1": "Questa scala definisce il contesto tattico e fisico dei",
+      "descriptionHighlight": "punteggi analitici 1-100",
+      "descriptionPart2": "utilizzati in tutti i report di scouting professionali."
+    },
+    "levels": {
+      "elite": {
+        "title": "Élite / Classe Mondiale",
+        "desc": "Top 20 Ranking Globale. Il giocatore mostra chiari vantaggi sulla maggior parte del campo professionale."
+      },
+      "atpTour": {
+        "title": "Standard ATP Tour",
+        "desc": "Giocatori affermati nel Tour Principale (Livello ATP 250/500). Compete costantemente a livello Top 100."
+      },
+      "challenger": {
+        "title": "Regolare Challenger",
+        "desc": "Il giocatore gioca costantemente nei Tabelloni Principali Challenger o nelle Qualificazioni ATP. Solido livello professionale."
+      },
+      "itfTop": {
+        "title": "Top ITF Future",
+        "desc": "Il giocatore raggiunge regolarmente semifinali/finali ITF e mostra potenziale per entrare nel Challenger Tour."
+      },
+      "itfStandard": {
+        "title": "Standard ITF Future",
+        "desc": "Il giocatore vince costantemente match di qualificazione e compete regolarmente nel Tabellone Principale degli eventi ITF."
+      },
+      "entry": {
+        "title": "Livello Base",
+        "desc": "Il giocatore è nuovo nel circuito professionale, competendo principalmente nelle qualificazioni o negli ITF di livello inferiore."
+      }
+    },
+    "footer": "La valutazione complessiva è una media ponderata di abilità tecniche, condizione fisica e gioco mentale."
+  },
+  "playerProfile": {
+    "track": "Traccia Giocatore",
+    "tracking": "Tracciamento",
+    "headers": {
+      "scoutingReport": "Report Scouting Tattico",
+      "psychological": "Profilo Psicologico",
+      "achievements": "Risultati"
+    },
+    "sections": {
+      "strengths": "Punti di Forza",
+      "weaknesses": "Vulnerabilità",
+      "mental": "Profilo Psicologico"
+    },
+    "notFound": "Giocatore non trovato",
+    "noMentalData": "Nessun dato psicologico ancora disponibile.",
+    "gamified": {
+      "backToPlayers": "Torna ai Giocatori",
+      "favoritedBy": "utenti seguono questo giocatore",
+      "ctaTrackTitle": "Vuoi seguire questa stella?",
+      "ctaTrackButton": "Unisciti per salvare",
+      "lastUpdated": "Ultimo agg.: {{date}}",
+      "liveData": "DATI LIVE",
+      "updated": "AGGIORNATO!",
+      "performanceRadar": "Radar Prestazioni",
+      "coreStrengths": "Punti di Forza",
+      "developmentAreas": "Aree di Sviluppo",
+      "mentalAnalysis": "Analisi Mentale",
+      "noDataTitle": "Nessun dato di scouting ancora",
+      "noDataDesc": "Torna presto per analisi dettagliate"
+    }
+  },
+  "playerCard": {
+    "labels": {
+      "style": "Stile",
+      "surface": "Superficie"
+    }
+  },
+  "skills": {
+    "forehand": "Dritto",
+    "backhand": "Rovescio",
+    "serve": "Servizio",
+    "return": "Risposta",
+    "speed": "Velocità",
+    "stamina": "Resistenza",
+    "mental": "Mentale",
+    "power": "Potenza",
+    "volley": "Volée",
+    "touch": "Tocco"
+  },
+  "achievements": {
+    "status": {
+      "unlocked": "Sbloccato",
+      "locked": "Bloccato"
+    },
+    "power_hitter": {
+      "title": "Colpitore Potente",
+      "desc": "Colpi da fondo esplosivi"
+    },
+    "defensive_master": {
+      "title": "Maestro Difensivo",
+      "desc": "Tasso di salvataggio palle break d'élite"
+    },
+    "hot_streak": {
+      "title": "Serie Positiva",
+      "desc": "Prestazioni costanti sotto pressione"
+    },
+    "tactical_genius": {
+      "title": "Genio Tattico",
+      "desc": "Alto tasso di vittoria strategica"
+    },
+    "precision_pro": {
+      "title": "Professionista Precisione",
+      "desc": "Basso numero di errori non forzati"
+    },
+    "aggressive_play": {
+      "title": "Gioco Aggressivo",
+      "desc": "Presenza dominante a rete"
+    }
+  },
+  "styleAnalysis": {
+    "title": "Trend Archetipo",
+    "winProb": "Prob. Vittoria",
+    "loading": "Elaborazione Dati...",
+    "noData": "Nessun dato per questo stile",
+    "unknownStyles": "Stili Sconosciuti",
+    "tooltip": {
+      "won": "VINTO",
+      "lost": "PERSO"
+    },
+    "legend": {
+      "win": "Vittoria",
+      "loss": "Sconfitta"
+    },
+    "locked": {
+      "title": "Intelligence Trend",
+      "description": "Sblocca i grafici visivi 'Green Wall' per individuare istantaneamente i modelli di dominio degli archetipi.",
+      "button": "Passa a Pro"
+    }
+  },
+  "newsPage": {
+    "loading": "Caricamento Intelligence...",
+    "header": {
+      "badge": "Hub di Intelligence",
+      "title": "Briefing",
+      "titleHighlight": "Tattici.",
+      "subtitle": "Analisi approfondite delle partite alimentate da reti neurali. Niente fronzoli, solo dati tattici puri e anomalie di fisica della superficie."
+    },
+    "empty": {
+      "title": "Nessun articolo pubblicato ancora",
+      "subtitle": "Torna presto per i briefing tattici."
+    },
+    "readMore": "Leggi l'Analisi"
+  },
+  "articlePage": {
+    "loading": "Caricamento Articolo...",
+    "notFound": "404 - INTELLIGENCE NON TROVATA",
+    "backButton": "TORNA ALL'INTELLIGENCE",
+    "cta": {
+      "title": "Vuoi dati in tempo reale?",
+      "subtitle": "Questa analisi è stata generata utilizzando Neural Scout Pro.",
+      "button": "Avvia Value Scanner"
+    }
+  },
+  "premium": {
+    "locked": "Funzione Bloccata",
+    "unlockButton": "Sblocca {{tier}}",
+    "styleAnalysis": {
+      "title": "ANALISI ELITE"
+    }
+  },
+  "updatePassword": {
+    "title": "Aggiorna Password",
+    "subtitle": "Inserisci la tua nuova password qui sotto",
+    "labels": {
+      "newPassword": "Nuova Password",
+      "confirmPassword": "Conferma Password"
+    },
+    "buttons": {
+      "update": "Aggiorna Password",
+      "updating": "Aggiornamento..."
+    },
+    "messages": {
+      "success": "Password aggiornata con successo! Reindirizzamento...",
+      "mismatch": "Le password non corrispondono",
+      "tooShort": "La password deve contenere almeno 6 caratteri"
+    },
+    "errors": {
+      "generic": "Impossibile aggiornare la password. Riprova."
+    }
+  },
+  "mobileTabBar": {
+    "scout": "Scout",
+    "scanner": "Scanner",
+    "picks": "Picks",
+    "analyze": "Analisi",
+    "oracle": "Oracle",
+    "menu": "Menu",
+    "login": "Accedi"
+  },
+  "mobileMenu": {
+    "menu": "Menu",
+    "myAccount": "Il Mio Account",
+    "redeemCode": "Riscatta Codice",
+    "enterPromoCode": "INSERISCI CODICE PROMO",
+    "unlockFullAccess": "Sblocca Accesso Completo",
+    "loginNow": "Accedi Ora",
+    "loginSignUp": "Accedi / Registrati",
+    "logout": "Esci",
+    "status": {
+      "pro": "STATO PRO",
+      "free": "STATO GRATUITO",
+      "expires": "Scade",
+      "balance": "Saldo",
+      "credits": "Crediti"
+    },
+    "nav": {
+      "playerDatabase": "Database Giocatori",
+      "watchlist": "Lista Osservati",
+      "membershipPlans": "Piani di Abbonamento",
+      "intelligenceHub": "Hub Intelligence",
+      "matchupAnalyzer": "Analizzatore di Scontri",
+      "valueScanner": "Scanner di Valore",
+      "aiPicks": "Selezioni IA",
+      "totals": "Totali Quantistici",
+      "bsiCourtIndex": "Indice BSI dei Campi",
+      "aiPerformance": "Prestazioni IA",
+      "supportIdeas": "Supporto e Idee",
+      "systemAdmin": "Amministratore di Sistema"
+    },
+    "badges": {
+      "upgrade": "Aggiorna",
+      "new": "Nuovo",
+      "hot": "Hot",
+      "help": "Aiuto"
+    }
+  }
+}

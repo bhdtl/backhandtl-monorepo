@@ -1,0 +1,11 @@
+playwright
+beautifulsoup4
+supabase
+httpx
+numpy
+google-generativeai
+pandas
+openpyxl
+requests
+groq
+pywebpush==1.14.0

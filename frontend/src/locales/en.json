@@ -1,0 +1,589 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "playerDatabase": "Player Database",
+    "watchlist": "Watchlist",
+    "aiPerformance": "AI Performance",
+    "performanceScores": "Performance Scores",
+    "matchupAnalyzer": "Matchup Analyzer",
+    "valueScanner": "Value Scanner",
+    "courtIndex": "BSI Court Index",
+    "admin": "System Admin",
+    "intelligenceTools": "INTELLIGENCE TOOLS",
+    "activeAccount": "Active Account",
+    "accessGranted": "Access Granted",
+    "logout": "Sign Out Session",
+    "login": "Login to Account"
+  },
+  "auth": {
+    "titles": {
+      "login": "Welcome Back",
+      "register": "Create Account",
+      "reset": "Reset Password"
+    },
+    "subtitles": {
+      "login": "Access professional scouting data",
+      "register": "Join the scouting network",
+      "reset": "Enter your email to receive reset instructions"
+    },
+    "labels": {
+      "firstName": "First Name",
+      "email": "Email",
+      "password": "Password"
+    },
+    "buttons": {
+      "signIn": "Sign In",
+      "createAccount": "Create Account",
+      "sendLink": "Send Link"
+    },
+    "prompts": {
+      "noAccount": "Don't have an account?",
+      "hasAccount": "Already have an account?"
+    },
+    "links": {
+      "signUp": "Sign Up",
+      "login": "Login",
+      "forgotPassword": "Forgot Password?",
+      "backToLogin": "Back to Login"
+    },
+    "messages": {
+      "resetSent": "Reset link sent! Please check your email inbox.",
+      "accountCreated": "Account created! Please check your email to confirm."
+    },
+    "errors": {
+      "firstNameRequired": "First name is required",
+      "generic": "An error occurred"
+    }
+  },
+  "homePage": {
+    "loading": "Loading Player Database...",
+    "title": "Player Database",
+    "subtitle": "Access elite scouting reports, physical metrics, and AI-driven tactical analysis.",
+    "searchPlaceholder": "Search player, country, or style...",
+    "aiStats": {
+      "title": "AI Performance",
+      "live": "LIVE",
+      "winRate": "Win Rate",
+      "avgOdds": "Avg Odds",
+      "profit": "Profit"
+    },
+    "filters": {
+      "selected": "Selected",
+      "allCountries": "All Countries",
+      "filterStyles": "Filter Play Styles",
+      "allSurfaces": "All Surfaces",
+      "allRatings": "All Ratings",
+      "rating": "Rating",
+      "clearAll": "Clear all"
+    },
+    "footer": {
+      "found": "Found",
+      "players": "players",
+      "sortBy": "Sort by",
+      "name": "Name",
+      "rating": "Rating"
+    },
+    "noResults": {
+      "title": "No players found",
+      "subtitle": "Try adjusting your filters to see more results.",
+      "button": "Clear all filters"
+    },
+    "disclaimer": "Sports betting involves risk. Please bet responsibly."
+  },
+  "dashboard": {
+    "header": {
+      "title": "My Account",
+      "subtitle": "Manage your profile and platform insights",
+      "logout": "Logout"
+    },
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "Please log in to view your profile and metrics.",
+      "loginButton": "Login"
+    },
+    "profile": {
+      "authorizedUser": "Authorized User",
+      "adminAccess": "Admin Access"
+    },
+    "actions": {
+      "watchlist": {
+        "title": "My Watchlist",
+        "desc": "View your tracked players"
+      },
+      "discovery": {
+        "title": "Player Discovery",
+        "desc": "Search and filter athletes"
+      }
+    },
+    "settings": {
+      "title": "Account Settings",
+      "preferences": "App Preferences"
+    }
+  },
+  "metricsDashboard": {
+    "loading": "Calculating Real-Time Intelligence...",
+    "cards": {
+      "retention": {
+        "title": "Real W1 Retention",
+        "subValue": "Excl. Admin Traffic",
+        "description": "Real users returning after week 1. (Admin data filtered)"
+      },
+      "winRate": {
+        "title": "Verified AI Win Rate",
+        "subValue": "Based on closed matches",
+        "description": "Percentage of correct predictions (Fair Odds < Opponent) for closed matches."
+      },
+      "activation": {
+        "title": "Time to Value",
+        "subValue": "Signup to Analysis",
+        "description": "Average hours until a new user starts their first analysis."
+      },
+      "cost": {
+        "title": "Cost / Analysis",
+        "subValue": "Tech Margin: 92%",
+        "description": "Gemini API cost per analysis (Live Tracking)."
+      }
+    },
+    "charts": {
+      "performance": {
+        "title": "AI Performance Trend",
+        "subtitle": "Moving Average of Success"
+      },
+      "retention": {
+        "title": "User Retention Funnel",
+        "subtitle": "Active users survival rate"
+      }
+    }
+  },
+  "matchup": {
+    "analyzeButton": "Analyze Matchup",
+    "loading": "Consulting AI...",
+    "proFeature": "Pro Feature",
+    "analyzing": "Running Neural Simulation...",
+    "headers": {
+      "briefing": "Neural Intelligence Briefing",
+      "matrix": "Tactical Geometry Matrix",
+      "dominance": "Technical Dominance Metrics"
+    },
+    "slots": {
+      "alpha": "Alpha Target",
+      "beta": "Beta Target",
+      "assign": "Assign {{label}}",
+      "vs": "VS"
+    },
+    "buttons": {
+      "run": "Run Neural Analysis",
+      "processing": "Processing..."
+    },
+    "modal": {
+      "title": "Select Player",
+      "search": "Search by name...",
+      "noImg": "No Img"
+    },
+    "controls": {
+      "searchCourt": "Search court matrix...",
+      "bsi": "BSI Rating",
+      "type": "Type",
+      "override": "Override",
+      "dbSearch": "DB Search"
+    },
+    "metrics": {
+      "service": "Service Pressure",
+      "forehand": "Forehand Dictation",
+      "mental": "Mental Threshold",
+      "physical": "Physical Attrition"
+    },
+    "analysisLabels": {
+      "surface": "Surface Reality",
+      "tactical": "Tactical Edge",
+      "verdict": "The Verdict"
+    }
+  },
+  "matchupCard": {
+    "labels": {
+      "prediction": "Prediction",
+      "confidence": "Confidence",
+      "length": "Length",
+      "edge": "The Edge"
+    },
+    "sets": {
+      "straight": "Straight Sets (2-0)",
+      "competitive": "2 Competitive Sets",
+      "deciding": "Deciding Set (2-1)"
+    },
+    "footer": "Screenshot to share 📸"
+  },
+  "valueScanner": {
+    "loading": "Scanning Global Markets...",
+    "header": {
+      "badge": "Market Intelligence",
+      "title": "Value Scanner",
+      "subtitle": "Hunting mathematical edge across 40+ bookmakers.",
+      "updated": "Updated"
+    },
+    "dates": {
+      "today": "Today",
+      "tomorrow": "Tmrrw"
+    },
+    "filters": {
+      "search": "Search matches..."
+    },
+    "sort": {
+      "edge": "Highest Edge",
+      "confidence": "Confidence",
+      "time": "Start Time"
+    },
+    "card": {
+      "trueFair": "True Fair",
+      "won": "WON",
+      "miss": "MISS",
+      "edge": "Edge"
+    },
+    "noMatches": {
+      "title": "No Matches Found",
+      "subtitle": "Try selecting another date."
+    }
+  },
+  "performance": {
+    "loading": "Auditing Performance Ledger...",
+    "title": "Performance Ledger",
+    "subtitle": "Transparency is our core value. This ledger tracks every single AI prediction, win or loss, in real-time.",
+    "liveStatus": "Live Audit Active",
+    "kpis": {
+      "netProfit": {
+        "title": "Net Profit (Units)",
+        "subtext": "Risk-Adjusted Staking"
+      },
+      "winRate": {
+        "title": "Win Rate",
+        "subtext": "Strike rate on all picks"
+      },
+      "avgOdds": {
+        "title": "Avg. Winning Odds",
+        "subtext": "Quality of winning picks"
+      },
+      "signals": {
+        "title": "Total Signals",
+        "subtext": "Processed opportunities"
+      }
+    },
+    "table": {
+      "title": "Transaction History",
+      "verified": "Verified by Neural Scout",
+      "pick": "Pick",
+      "cols": {
+        "date": "Date",
+        "event": "Event",
+        "selection": "AI Selection",
+        "odds": "Odds",
+        "stake": "Stake",
+        "outcome": "Outcome"
+      }
+    },
+    "noData": {
+      "title": "No Data Yet",
+      "message": "Once the AI verifies match results, they will appear here automatically."
+    }
+  },
+  "watchlist": {
+    "loading": "Syncing Watchlist...",
+    "title": "Watchlist",
+    "sort": "Sort",
+    "loggedOut": {
+      "titleLine1": "Keep your",
+      "titleLine2": "Scouting Targeted.",
+      "description": "Create your personalized Player Watchlist to track tactical shifts, performance trends, and BSI adjustments in real-time.",
+      "signInPrompt": "Sign in to start tracking"
+    },
+    "features": {
+      "alerts": "Smart Alerts",
+      "access": "Fast Access",
+      "scouting": "Pro Scouting"
+    },
+    "empty": {
+      "title": "Your watchlist is empty",
+      "message": "Start scouting players and add them to your watchlist for prioritized access."
+    }
+  },
+  "courtDatabase": {
+    "loading": "Loading Court Database...",
+    "title": "BSI Court Database",
+    "subtitle": "Official court speed index and tournament conditions.",
+    "searchPlaceholder": "Search by tournament name or location...",
+    "filters": {
+      "allSurfaces": "All Surfaces",
+      "hard": "Hard",
+      "clay": "Clay",
+      "grass": "Grass",
+      "fastestFirst": "Fastest First",
+      "slowestFirst": "Slowest First"
+    },
+    "table": {
+      "tournament": "Tournament",
+      "location": "Location",
+      "surface": "Surface",
+      "bsi": "BSI Rating",
+      "bounce": "Bounce",
+      "details": "Details"
+    },
+    "noResults": "No matching tournaments found",
+    "clearFilters": "Clear all filters"
+  },
+  "courtProfile": {
+    "analyzing": "Analyzing Court Physics...",
+    "notFound": "Tournament not found.",
+    "officialData": "Official Court Data",
+    "bsiRating": "BSI Rating",
+    "bounce": "Bounce",
+    "conditionsHeader": "Conditions & Tactical Insight",
+    "noData": "No detailed scouting data available for this tournament yet.",
+    "cards": {
+      "resistance": {
+        "title": "Air Resistance",
+        "desc": "Indoor pressure affects velocity."
+      },
+      "temp": {
+        "title": "Surface Temp",
+        "desc": "Impacts ball compression."
+      },
+      "efficacy": {
+        "title": "Shot Efficacy",
+        "desc": "Rewards aggressive play."
+      }
+    }
+  },
+  "scoresBenchmark": {
+    "header": {
+      "badge": "Scouting Standards v2.0",
+      "title": "Player Score",
+      "subtitle": "Benchmark Legend.",
+      "descriptionPart1": "This scale defines the tactical and physical context of the",
+      "descriptionHighlight": "1-100 analytics scores",
+      "descriptionPart2": "used across all professional scouting reports."
+    },
+    "levels": {
+      "elite": {
+        "title": "Elite / World Class",
+        "desc": "Top 20 Global Ranking. Player shows clear advantages over the majority of the professional field."
+      },
+      "atpTour": {
+        "title": "ATP Tour Standard",
+        "desc": "Established players on the Main Tour (ATP 250/500 Level). Consistently competes at the Top 100 level."
+      },
+      "challenger": {
+        "title": "Challenger Regular",
+        "desc": "Player consistently plays in Challenger Main Draws or ATP Qualifications. Solid professional level."
+      },
+      "itfTop": {
+        "title": "ITF Future Top",
+        "desc": "Player regularly reaches ITF semifinals/finals and shows potential to break onto the Challenger Tour."
+      },
+      "itfStandard": {
+        "title": "ITF Future Standard",
+        "desc": "Player consistently winning qualification matches and competes regularly in the Main Draw of ITF events."
+      },
+      "entry": {
+        "title": "Entry Level",
+        "desc": "Player is new to the professional circuit, primarily competing in qualifications or lower-level ITFs."
+      }
+    },
+    "footer": "The overall rating is a weighted average of technical skills, physical conditioning & mental game."
+  },
+  "playerProfile": {
+    "track": "Track Player",
+    "tracking": "Tracking",
+    "headers": {
+      "scoutingReport": "Tactical Scouting Report",
+      "psychological": "Psychological Profile",
+      "achievements": "Achievements"
+    },
+    "sections": {
+      "strengths": "Key Strengths",
+      "weaknesses": "Vulnerabilities",
+      "mental": "Psychological Profile"
+    },
+    "notFound": "Player not found",
+    "noMentalData": "No psychological data available yet.",
+    "gamified": {
+      "backToPlayers": "Back to Players",
+      "favoritedBy": "user(s) have favorited this player",
+      "ctaTrackTitle": "Want to track this rising star?",
+      "ctaTrackButton": "Join to Save Players",
+      "lastUpdated": "Last updated: {{date}}",
+      "liveData": "LIVE DATA",
+      "updated": "UPDATED!",
+      "performanceRadar": "Performance Radar",
+      "coreStrengths": "Core Strengths",
+      "developmentAreas": "Development Areas",
+      "mentalAnalysis": "Mental Game Analysis",
+      "noDataTitle": "No scouting data available yet",
+      "noDataDesc": "Check back soon for detailed analytics"
+    }
+  },
+  "playerCard": {
+    "labels": {
+      "style": "Style",
+      "surface": "Surface"
+    }
+  },
+  "skills": {
+    "forehand": "Forehand",
+    "backhand": "Backhand",
+    "serve": "Serve",
+    "return": "Return",
+    "speed": "Speed",
+    "stamina": "Stamina",
+    "mental": "Mental",
+    "power": "Power",
+    "volley": "Volley",
+    "touch": "Touch"
+  },
+  "achievements": {
+    "status": {
+      "unlocked": "Unlocked",
+      "locked": "Locked"
+    },
+    "power_hitter": {
+      "title": "Power Hitter",
+      "desc": "Explosive groundstrokes"
+    },
+    "defensive_master": {
+      "title": "Defensive Master",
+      "desc": "Elite save rate on break points"
+    },
+    "hot_streak": {
+      "title": "Hot Streak",
+      "desc": "Constant performance under pressure"
+    },
+    "tactical_genius": {
+      "title": "Tactical Genius",
+      "desc": "High strategy score win rate"
+    },
+    "precision_pro": {
+      "title": "Precision Pro",
+      "desc": "Low unforced error count"
+    },
+    "aggressive_play": {
+      "title": "Aggressive Play",
+      "desc": "Dominant net presence"
+    }
+  },
+  "styleAnalysis": {
+    "title": "Archetype Trend",
+    "winProb": "Win Prob.",
+    "loading": "Crunching Data...",
+    "noData": "No Data for this Style",
+    "unknownStyles": "Unknown Styles",
+    "tooltip": {
+      "won": "WON",
+      "lost": "LOST"
+    },
+    "legend": {
+      "win": "Win",
+      "loss": "Loss"
+    },
+    "locked": {
+      "title": "Trend Intelligence",
+      "description": "Unlock visual \"Green Wall\" charts to spot archetype dominance patterns instantly.",
+      "button": "Go Pro"
+    }
+  },
+  "newsPage": {
+    "loading": "Loading Intelligence...",
+    "header": {
+      "badge": "Intelligence Hub",
+      "title": "Tactical",
+      "titleHighlight": "Briefings.",
+      "subtitle": "Deep-dive match analysis powered by neural networks. No fluff, just raw tactical data and surface physics anomalies."
+    },
+    "empty": {
+      "title": "No articles published yet",
+      "subtitle": "Check back soon for tactical briefings."
+    },
+    "readMore": "Read Analysis"
+  },
+  "articlePage": {
+    "loading": "Loading Article...",
+    "notFound": "404 - INTELLIGENCE NOT FOUND",
+    "backButton": "BACK TO INTELLIGENCE",
+    "cta": {
+      "title": "Want real-time data?",
+      "subtitle": "This analysis was generated using Neural Scout Pro.",
+      "button": "Launch Value Scanner"
+    }
+  },
+  "premium": {
+    "locked": "Locked Feature",
+    "unlockButton": "Unlock {{tier}}",
+    "styleAnalysis": {
+      "title": "ELITE ANALYSIS"
+    }
+  },
+  "updatePassword": {
+    "title": "Update Password",
+    "subtitle": "Enter your new password below",
+    "labels": {
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password"
+    },
+    "buttons": {
+      "update": "Update Password",
+      "updating": "Updating..."
+    },
+    "messages": {
+      "success": "Password updated successfully! Redirecting...",
+      "mismatch": "Passwords do not match",
+      "tooShort": "Password must be at least 6 characters"
+    },
+    "errors": {
+      "generic": "Failed to update password. Please try again."
+    }
+  },
+  "mobileTabBar": {
+    "scout": "Scout",
+    "scanner": "Scanner",
+    "picks": "Picks",
+    "analyze": "Analyze",
+    "oracle": "Oracle",
+    "menu": "Menu",
+    "login": "Login"
+  },
+  "mobileMenu": {
+    "menu": "Menu",
+    "myAccount": "My Account",
+    "redeemCode": "Redeem Code",
+    "enterPromoCode": "ENTER PROMO CODE",
+    "unlockFullAccess": "Unlock Full Access",
+    "loginNow": "Login Now",
+    "loginSignUp": "Login / Sign Up",
+    "logout": "Logout",
+    "status": {
+      "pro": "PRO STATUS",
+      "free": "FREE STATUS",
+      "expires": "Expires",
+      "balance": "Balance",
+      "credits": "Credits"
+    },
+    "nav": {
+      "playerDatabase": "Player Database",
+      "watchlist": "Watchlist",
+      "membershipPlans": "Membership Plans",
+      "intelligenceHub": "Intelligence Hub",
+
+      "matchupAnalyzer": "Matchup Analyzer",
+      "valueScanner": "Value Scanner",
+      "aiPicks": "AI Picks",
+      "totals": "Quantum Totals",
+      "bsiCourtIndex": "BSI Court Index",
+      "aiPerformance": "AI Performance",
+      "supportIdeas": "Support & Ideas",
+      "systemAdmin": "System Admin"
+    },
+    "badges": {
+      "upgrade": "Upgrade",
+      "new": "New",
+      "hot": "Hot",
+      "help": "Help"
+    }
+  }
+}

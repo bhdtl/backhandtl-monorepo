@@ -1,0 +1,148 @@
+// src/components/LegalModal.tsx
+import { motion } from 'framer-motion';
+import { X, FileText, Scale, Cpu, Cookie, Info } from 'lucide-react';
+
+export function LegalModal({ type, onClose }: { type: string; onClose: () => void }) {
+  const contentMap: Record<string, { title: string; icon: any; body: JSX.Element }> = {
+    privacy: {
+      title: "Privacy Policy",
+      icon: FileText,
+      body: (
+        <div className="space-y-6 text-gray-400 text-sm leading-relaxed">
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">1. Data Controller & Scope</p>
+            <p>BACKHAND.DTL Analytics (Oldenburg, Germany) acts as the primary data controller under Art. 4 No. 7 GDPR. We implement "Privacy by Design" to ensure that your analytical footprints are minimized and anonymized. Our processing is strictly governed by the General Data Protection Regulation (GDPR).</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">2. Processing Infrastructure & Payment</p>
+            <p>Authentication and high-performance data storage are handled via Supabase (AWS Node Frankfurt), utilizing AES-256 encryption at rest. All subscription and transactional processing is managed by our authorized third-party Merchant of Record (MoR), <strong>Lemon Squeezy</strong>. We do not store, process, or transmit credit card information on our servers. Financial data is strictly subject to Lemon Squeezy's privacy policy.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">3. Exclusive Data Source (Odds Aggregation)</p>
+            <p>Our platform aggregates real-time market data and odds via API exclusively from our data provider, 1win. We explicitly state that <strong>no user data, IP addresses, or personally identifiable information (PII) is ever shared with, transmitted to, or accessible by 1win.</strong> The data flow is strictly unidirectional (inbound to our servers).</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">4. Advanced Analytics & PostHog</p>
+            <p>We utilize PostHog for behavior-based event tracking. This data is strictly used to refine our neural models and BSI accuracy. No personally identifiable betting history or financial strategies are ever harvested, indexed, or shared with third-party advertising networks.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">5. User Rights & DSA Compliance</p>
+            <p>You maintain absolute rights to data portability, rectification, and erasure. Requests are processed within 72 hours via bh.dtl@web.de. We act in accordance with the EU Digital Services Act regarding content moderation and the use of athlete imagery for identifying analytical reports.</p>
+          </section>
+        </div>
+      )
+    },
+    terms: {
+      title: "Terms of Service",
+      icon: Scale,
+      body: (
+        <div className="space-y-6 text-gray-400 text-sm leading-relaxed">
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">1. Definitive Non-Financial Advisory</p>
+            <p>The information, metrics, and "Alpha" signals provided by BACKHAND.DTL are for educational and analytical purposes only. Statistical probabilities and AI-generated models are NOT guarantees of future performance. Usage of this data is at your own exclusive financial risk. We do not provide financial, legal, or betting advice. Market odds provided by our data partner (1win) are presented "as is" without warranty of accuracy.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">2. Subscriptions, Refunds & Cancellations</p>
+            <p>Order processing, tax calculation, and subscription management are conducted by our Merchant of Record, <strong>Lemon Squeezy</strong>. By purchasing a subscription, you enter into a commercial agreement subject to their Terms of Sale. Due to the digital nature of the platform and the immediate delivery of proprietary data, <strong>all sales are final and we do not offer refunds.</strong> You may cancel your subscription at any time; your access will remain active until the end of your currently paid billing period.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">3. IP Protection & Anti-Scraping Shield</p>
+            <p>Our BSI metrics, tactical player profiles, and "Neural Raw Intel" are protected intellectual property. Use of automated bots, scripts, or spiders to extract data from our platform is a breach of contract and will result in immediate termination of the service without refund and legal action for damages.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">4. Notice-and-Takedown Process</p>
+            <p>We use imagery of professional athletes solely for the purpose of identifying statistical reports (§ 23 KunstUrhG). If you are a rights holder and identify a violation, we guarantee a removal within 24 hours of notification via our official support channel to bh.dtl@web.de.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">5. Limitation of Liability & Jurisdiction</p>
+            <p>To the maximum extent permitted by law, BACKHAND.DTL’s total liability is limited to the amount paid by the user in the 12 months preceding the claim. These terms are governed by the laws of Germany. The exclusive place of jurisdiction for all commercial disputes arising from this contract is Oldenburg, Germany.</p>
+          </section>
+        </div>
+      )
+    },
+    ai: {
+      title: "AI Disclosure",
+      icon: Cpu,
+      body: (
+        <div className="space-y-6 text-gray-400 text-sm leading-relaxed">
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Neural Engine Methodology</p>
+            <p>Our "Alpha Engine" utilizes high-tier Deep Learning architectures (CNN & Transformers) to process over 140,000 data points per match. This includes visual surface analysis and tactical player profiling. This system does not make automated decisions that have legal effects on users, acting strictly in compliance with the EU AI Act.</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Predictive Limitation & Latency</p>
+            <p>While our models aim for high-confidence variances, AI results are statistical estimates. The "BSI" ball physics data is captured through real-time feeds and is subject to local court conditions, environmental variables, and technical latency.</p>
+          </section>
+        </div>
+      )
+    },
+    cookies: {
+      title: "Cookie Settings",
+      icon: Cookie,
+      body: (
+        <div className="space-y-6 text-gray-400 text-sm leading-relaxed">
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Strictly Necessary (Supabase)</p>
+            <p>These cookies are critical for session persistence and identity validation. They are encrypted and expire upon logout. Required for the technical operation of the SaaS (TDDDG compliant).</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Analytical Logic (PostHog)</p>
+            <p>Used to measure conversion paths and dashboard interaction. These cookies do not store personally identifiable betting data or financial strategies and can be opted out via the cookie banner.</p>
+          </section>
+        </div>
+      )
+    },
+    imprint: {
+      title: "Imprint / Legal",
+      icon: Info,
+      body: (
+        <div className="space-y-6 text-gray-400 text-sm leading-relaxed">
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Provider Identification (§ 5 DDG)</p>
+            <p>Phi-Nam Pham<br />Plaggenhau 41<br />26135 Oldenburg<br />Germany</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Contact & SAR</p>
+            <p>Email: bh.dtl@web.de<br />Web: backhandtl.com<br />Notice-and-Takedown Office: Oldenburg</p>
+          </section>
+          <section>
+            <p className="text-white font-black uppercase text-xs mb-2 tracking-widest underline decoration-tennis-lime decoration-2">Tax Information & Payment</p>
+            <p>Steuernummer (Tax ID): 64/133/09478<br /><em>Payments processed externally via Merchant of Record (Lemon Squeezy).</em></p>
+          </section>
+        </div>
+      )
+    }
+  };
+
+  const content = contentMap[type] || contentMap.privacy;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose}></div>
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative bg-[#15171e] border border-white/10 w-full max-w-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+      >
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-tennis-lime/10 rounded-lg text-tennis-lime">
+              <content.icon size={20} />
+            </div>
+            <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter">{content.title}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+            <X size={18} className="text-gray-500 hover:text-white" />
+          </button>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          {content.body}
+        </div>
+        <div className="mt-8 pt-6 border-t border-white/5 flex justify-end">
+          <button onClick={onClose} className="px-6 py-2 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-tennis-lime transition-all">Close</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
