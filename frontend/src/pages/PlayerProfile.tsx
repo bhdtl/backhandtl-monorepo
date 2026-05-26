@@ -1026,7 +1026,7 @@ export function PlayerProfile() {
                         {/* STYLE ANALYSIS CARD */}
                         <div className="w-[88vw] md:w-[440px] snap-center shrink-0 flex flex-col">
                             <PremiumLock 
-                                isLocked={!isElite}
+                                isLocked={false}
                                 minTier="ELITE"
                                 title={t('premium.styleAnalysis.title') || "ELITE ANALYSIS"}
                                 description=""

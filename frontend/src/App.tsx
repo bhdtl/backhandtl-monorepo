@@ -296,8 +296,9 @@ function GlobalFooter({ onOpenLegal }: { onOpenLegal: (type: string) => void }) 
     return (
         <footer className="w-full border-t border-white/5 bg-[#0a0b0e] py-8 mt-auto relative z-20 pb-32 md:pb-8">
             <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-                <div className="text-[10px] font-mono text-gray-600">
-                    © {new Date().getFullYear()} BACKHAND.DTL Analytics. All rights reserved.
+                <div className="text-[10px] font-mono text-gray-600 space-y-1">
+                    <div>© {new Date().getFullYear()} BACKHAND.DTL Analytics. All rights reserved.</div>
+                    <div className="text-[9px] text-gray-500/70 max-w-md">Historical player data and matchup statistics are powered by datasets from Jeff Sackmann (licensed under CC BY-NC-SA 4.0, strictly non-commercial use only).</div>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     <button onClick={() => onOpenLegal('terms')} className="hover:text-tennis-lime transition-colors">Terms</button>

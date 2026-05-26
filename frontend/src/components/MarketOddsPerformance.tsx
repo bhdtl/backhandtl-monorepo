@@ -44,7 +44,7 @@ export function MarketOddsPerformance({ playerName }: { playerName: string }) {
 
   if (!playerName) return null;
 
-  const isLocked = !isElite; 
+  const isLocked = false; 
 
   useEffect(() => {
     if (playerName) {

@@ -537,7 +537,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
             </div>
             
             <p className="text-[10px] text-gray-700 leading-relaxed font-medium uppercase tracking-wider">
-              BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Sports analysis involves risk. Please use responsibly.
+              BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Historical player data and matchup statistics are powered by data from Jeff Sackmann (CC BY-NC-SA 4.0, non-commercial only). Sports analysis involves risk. Please use responsibly.
             </p>
           </div>
         </div>
