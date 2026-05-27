@@ -696,6 +696,7 @@ export function AIPicksPage() {
 
                             </motion.div>
                         )
+                    })}
                 </AnimatePresence>
              </motion.div>
           )}
