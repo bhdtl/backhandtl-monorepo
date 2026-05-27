@@ -152,8 +152,13 @@ const getBookieColors = (bookieName: string) => {
 };
 
 const formatLastName = (fullName: string) => {
-  const parts = fullName.trim().split(' ');
-  return parts.length > 1 ? parts[parts.length - 1] : fullName;
+  if (!fullName) return "";
+  const clean = fullName.trim();
+  if (/\d/.test(clean) || clean.toLowerCase().includes('over') || clean.toLowerCase().includes('under')) {
+    return clean;
+  }
+  const parts = clean.split(' ');
+  return parts.length > 1 ? parts[parts.length - 1] : clean;
 };
 
 // --- TACTICAL BRIEFING MODAL ---
@@ -1019,9 +1024,9 @@ export function ValueScanner() {
                                         }
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="w-full py-2.5 bg-gradient-to-r from-tennis-lime to-emerald-500 text-black font-black text-[9px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(132,204,22,0.1)] hover:shadow-[0_0_20px_rgba(132,204,22,0.2)] transform-gpu"
+                                        className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
                                     >
-                                        <Zap size={10} className="fill-black" />
+                                        <Zap size={10} className="fill-current shrink-0" />
                                         {t('picks.neobetCta', 'In den Wettschein')}
                                     </a>
                                     <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">

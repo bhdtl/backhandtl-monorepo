@@ -79,6 +79,15 @@ const parseValueFromText = (text: string | undefined) => {
     return { hasValue: false, marketOdds: 0, edge: 0, pickName: '', stake: 0, type: '' };
 };
 
+const displayPickName = (name: string) => {
+    if (!name) return "";
+    const clean = name.trim();
+    if (/\d/.test(clean) || clean.toLowerCase().includes('over') || clean.toLowerCase().includes('under')) {
+        return clean;
+    }
+    return clean.split(' ').pop() || clean;
+};
+
 // 🚀 SOTA: PARSER FÜR DIE GIL GROSS AI ANALYSE
 const parseAiAnalysis = (text: string | undefined) => {
     if (!text) return null;
@@ -573,8 +582,8 @@ export function AIPicksPage() {
                                             <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max mb-1.5 border ${tagClasses}`}>
                                                 {val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}
                                             </span>
-                                            <span className={`text-sm md:text-base font-black text-white truncate max-w-[140px]`}>
-                                                {val.pickName.split(' ').pop()}
+                                            <span className="text-xs md:text-sm font-black text-white truncate max-w-[160px]" title={val.pickName}>
+                                                {displayPickName(val.pickName)}
                                             </span>
                                         </div>
                                         
@@ -615,9 +624,9 @@ export function AIPicksPage() {
                                             }
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="w-full py-3 bg-gradient-to-r from-tennis-lime to-emerald-500 text-black font-black text-[9px] uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(132,204,22,0.15)] hover:shadow-[0_0_25px_rgba(132,204,22,0.3)] transform-gpu"
+                                            className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
                                         >
-                                            <Zap size={10} className="fill-black" />
+                                            <Zap size={10} className="fill-current shrink-0" />
                                             {t('picks.neobetCta', 'In den Wettschein')}
                                         </a>
                                         <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
