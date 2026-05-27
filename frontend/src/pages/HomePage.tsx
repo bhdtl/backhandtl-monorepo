@@ -10,8 +10,8 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 
 // --- CONFIGURATION ---
-// 🚀 SOTA: "Line in the Sand" - Reset auf V3 Engine Launch Date (Sync with Performance Page)
-const STATS_RESET_DATE = '2026-05-15T00:00:00.000Z';
+// 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
+const STATS_RESET_DATE = '2026-05-27T00:00:00.000Z';
 
 // --- ROBUST HELPERS ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {

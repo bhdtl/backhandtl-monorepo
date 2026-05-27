@@ -1009,6 +1009,25 @@ export function ValueScanner() {
                                         })}
                                     </div>
                                 )}
+
+                                {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
+                                <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                                    <a 
+                                        href={match.games_prediction?.neo_betslip?.url 
+                                            ? `${match.games_prediction.neo_betslip.url}-scanner-cta` 
+                                            : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${match.neo_contest_id || match.id}!Set_MATCH_HC2W(0.0)!${p1IsPick ? '1' : '2'}&affiliateId=backhandtl-scanner-cta`
+                                        }
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="w-full py-2.5 bg-gradient-to-r from-tennis-lime to-emerald-500 text-black font-black text-[9px] uppercase tracking-widest rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(132,204,22,0.1)] hover:shadow-[0_0_20px_rgba(132,204,22,0.2)] transform-gpu"
+                                    >
+                                        <Zap size={10} className="fill-black" />
+                                        {t('picks.neobetCta', 'In den Wettschein')}
+                                    </a>
+                                    <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                        {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -1020,9 +1039,14 @@ export function ValueScanner() {
                 <div className="text-white font-black uppercase text-sm tracking-wide">{t('valueScanner.noMatches.title')}</div>
                 <p className="text-gray-600 text-[10px] mt-1">{t('valueScanner.noMatches.subtitle')}</p>
               </div>
-            )}
-          </div>
       </PremiumLock>
+
+      {/* Germany Regulatory Whitelist Footer */}
+      <div className="mt-16 pt-8 border-t border-white/5 text-center">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
+              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+          </p>
+      </div>
     </div>
   );
 }

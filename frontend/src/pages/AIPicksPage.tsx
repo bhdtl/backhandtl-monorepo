@@ -605,6 +605,25 @@ export function AIPicksPage() {
                                             </span>
                                         </div>
                                     </div>
+
+                                    {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
+                                    <div className="mt-4 relative z-10 flex flex-col gap-1.5">
+                                        <a 
+                                            href={pick.games_prediction?.neo_betslip?.url 
+                                                ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                                : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
+                                            }
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="w-full py-3 bg-gradient-to-r from-tennis-lime to-emerald-500 text-black font-black text-[9px] uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(132,204,22,0.15)] hover:shadow-[0_0_25px_rgba(132,204,22,0.3)] transform-gpu"
+                                        >
+                                            <Zap size={10} className="fill-black" />
+                                            {t('picks.neobetCta', 'In den Wettschein')}
+                                        </a>
+                                        <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                            {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                        </div>
+                                    </div>
                                     
                                     {/* 🚀 SOTA: EXPAND BUTTON FOR AI ANALYSIS */}
                                     {analysisData && (
@@ -679,9 +698,14 @@ export function AIPicksPage() {
                         )
                     })}
                 </AnimatePresence>
-             </motion.div>
-          )}
       </PremiumLock>
+
+      {/* Germany Regulatory Whitelist Footer */}
+      <div className="mt-16 pt-8 border-t border-white/5 text-center">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
+              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+          </p>
+      </div>
     </div>
   );
 }

@@ -12,8 +12,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { motion } from 'framer-motion';
 
 // --- CONFIGURATION ---
-// 🚀 SOTA: "Line in the Sand" - Reset auf Heute (V211.00 Engine Launch Date)
-const STATS_RESET_DATE = '2026-05-19T00:00:00.000Z'; 
+// 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date
+const STATS_RESET_DATE = '2026-05-27T00:00:00.000Z'; 
 
 // --- ROBUST HELPERS ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {

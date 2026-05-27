@@ -584,5 +584,10 @@
       "hot": "Hot",
       "help": "Aiuto"
     }
+  },
+  "picks": {
+    "neobetCta": "Aggiungi al coupon",
+    "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
+    "footerDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de"
   }
 }

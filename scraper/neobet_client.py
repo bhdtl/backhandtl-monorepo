@@ -1,0 +1,261 @@
+import httpx
+import json
+import logging
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+
+logger = logging.getLogger("NeuralScout_NeoBetClient")
+
+def log(msg: str):
+    logger.info(msg)
+
+def reorder_player_name(name: str) -> str:
+    """
+    Converts name format from 'Lastname, Firstname' to 'Firstname Lastname'.
+    If no comma is present, returns the name unchanged.
+    """
+    if not name:
+        return ""
+    if "," in name:
+        parts = [p.strip() for p in name.split(",")]
+        if len(parts) == 2:
+            return f"{parts[1]} {parts[0]}"
+    return name.strip()
+
+class NeoBetAPI:
+    """
+    Client for the public NEO.bet Program Matches API.
+    Bypasses key constraints and rate limits via direct affiliate program queries.
+    """
+    def __init__(self, api_key: Optional[str] = None):
+        # API key is not strictly needed for public program requests, but we maintain init signature
+        self.api_key = api_key
+        self.base_url = "https://neo.bet/.sportsbet/program/matches"
+        self._odds_cache: Dict[str, Dict[str, Any]] = {}
+        self._raw_matches_cache: List[Dict[str, Any]] = []
+
+    async def get_fixtures(self, date_str: str) -> List[Dict[str, Any]]:
+        """
+        Fetches active Tennis matches from NEO.bet and translates them 
+        into standard fixture dictionaries expected by the scraper.
+        """
+        params = {
+            "sport": "Tennis",
+            "language": "de",
+            "license": "Germany",
+            "sortBy": "begin"
+        }
+        
+        log(f"📡 [NEO.BET API] Requesting live Tennis program for {date_str}...")
+        
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(self.base_url, params=params)
+                
+            if response.status_code != 200:
+                log(f"❌ [NEO.BET API] HTTP Error: {response.status_code}")
+                return []
+                
+            data = response.json()
+            if not isinstance(data, list):
+                log("❌ [NEO.BET API] Unexpected response format (not a list)")
+                return []
+                
+            log(f"✅ [NEO.BET API] Fetched {len(data)} bulk matches successfully.")
+            self._raw_matches_cache = data
+            
+            fixtures = []
+            
+            for match in data:
+                # Filter out finished/invalid matches
+                status_info = match.get("contestStatus", {})
+                status_name = status_info.get("name", "Pregame")
+                if status_name in ["Ended", "EndedRetired", "Canceled", "Aborted"]:
+                    continue
+                
+                # Filter out Live/InAction matches unless they are pre-game
+                # (PreMatch and Live are the main trading types)
+                trading_type = match.get("tradingType", "PreMatch")
+                
+                home_raw = match.get("home", "")
+                away_raw = match.get("away", "")
+                match_id = match.get("id", "")
+                
+                if not home_raw or not away_raw or not match_id:
+                    continue
+                
+                # Normalize player names
+                p1_name = reorder_player_name(home_raw)
+                p2_name = reorder_player_name(away_raw)
+                
+                # Parse begin date & time
+                begin_str = match.get("begin", "")
+                event_date = date_str  # fallback
+                event_time = "00:00"
+                if begin_str:
+                    try:
+                        # Format: '2026-05-27T09:00:00Z'
+                        dt = datetime.strptime(begin_str.replace("Z", "+00:00"), "%Y-%m-%dT%H:%M:%S%z")
+                        event_date = dt.strftime("%Y-%m-%d")
+                        event_time = dt.strftime("%H:%M")
+                    except Exception as date_err:
+                        pass
+                
+                # Only include matches starting on the target date string
+                # E.g. date_str is '2026-05-27'
+                if event_date != date_str:
+                    continue
+                
+                # Compile the standard fixture format
+                fix_dict = {
+                    "event_first_player": p1_name,
+                    "event_second_player": p2_name,
+                    "event_key": match_id,
+                    "first_player_key": None,  # NEO doesn't use third-party player keys
+                    "second_player_key": None,
+                    "tournament_name": match.get("league", "Unknown Tournament"),
+                    "event_date": event_date,
+                    "event_time": event_time,
+                    "event_status": status_name
+                }
+                
+                fixtures.append(fix_dict)
+                
+                # Parse and cache odds for get_odds calls
+                self._cache_match_odds(match_id, match)
+                
+            log(f"✅ [NEO.BET API] Map matching completed: {len(fixtures)} relevant fixtures for {date_str}.")
+            return fixtures
+            
+        except Exception as e:
+            log(f"❌ [NEO.BET API] Exception during get_fixtures: {e}")
+            return []
+
+    def _cache_match_odds(self, match_id: str, match_data: Dict[str, Any]):
+        """
+        Parses NEO.bet markets and caches them in the format expected by get_odds.
+        """
+        odds_dict = {
+            "Home/Away": {},
+            "Spread": [],
+            "Over/Under": [],
+            "RawMarkets": match_data.get("betmarkets", [])  # Keep raw markets for direct deep linking!
+        }
+        
+        for market in match_data.get("betmarkets", []):
+            betting_type = market.get("bettingType", "")
+            market_key = market.get("key", "")
+            
+            # 1. Match Winner Odds
+            if betting_type == "MatchWin" or "MATCH_HC2W(0.0)" in market_key:
+                home_odd = 0.0
+                away_odd = 0.0
+                for outcome in market.get("odds", []):
+                    o_name = outcome.get("outcome", "")
+                    o_odds = outcome.get("odds", 0.0)
+                    if o_name == "Home":
+                        home_odd = o_odds
+                    elif o_name == "Away":
+                        away_odd = o_odds
+                
+                if home_odd > 0 and away_odd > 0:
+                    odds_dict["Home/Away"] = {
+                        "Home": {
+                            "neobet": home_odd,
+                            "bet365": home_odd  # Populate bet365 key for backward compatibility
+                        },
+                        "Away": {
+                            "neobet": away_odd,
+                            "bet365": away_odd
+                        }
+                    }
+            
+            # 2. Handicap Spreads
+            elif betting_type == "Spread" or "Game_MATCH_HC2W" in market_key:
+                handicap_val = market.get("handicap")
+                if handicap_val is None:
+                    # Parse handicap from key e.g. Game_MATCH_HC2W(-5.5) -> -5.5
+                    try:
+                        inner = market_key.split("(")[1].split(")")[0]
+                        handicap_val = float(inner)
+                    except:
+                        continue
+                
+                home_odd = 0.0
+                away_odd = 0.0
+                home_key = "1"
+                away_key = "2"
+                
+                for outcome in market.get("odds", []):
+                    o_name = outcome.get("outcome", "")
+                    o_odds = outcome.get("odds", 0.0)
+                    o_key = outcome.get("key", "1")
+                    if o_name == "Home":
+                        home_odd = o_odds
+                        home_key = o_key
+                    elif o_name == "Away":
+                        away_odd = o_odds
+                        away_key = o_key
+                
+                if home_odd > 0 and away_odd > 0:
+                    odds_dict["Spread"].append({
+                        "handicap": handicap_val,
+                        "market_key": market_key,
+                        "odds1": home_odd,
+                        "odds2": away_odd,
+                        "key1": home_key,
+                        "key2": away_key
+                    })
+            
+            # 3. Totals Over/Under
+            elif betting_type == "OverUnder" or "Game_MATCH_OU" in market_key:
+                boundary_val = market.get("boundary")
+                if boundary_val is None:
+                    try:
+                        inner = market_key.split("(")[1].split(")")[0]
+                        boundary_val = float(inner)
+                    except:
+                        continue
+                
+                under_odd = 0.0
+                over_odd = 0.0
+                under_key = "-"
+                over_key = "+"
+                
+                for outcome in market.get("odds", []):
+                    o_name = outcome.get("outcome", "")
+                    o_odds = outcome.get("odds", 0.0)
+                    o_key = outcome.get("key", "-")
+                    if o_name == "Under":
+                        under_odd = o_odds
+                        under_key = o_key
+                    elif o_name == "Over":
+                        over_odd = o_odds
+                        over_key = o_key
+                
+                if under_odd > 0 and over_odd > 0:
+                    odds_dict["Over/Under"].append({
+                        "boundary": boundary_val,
+                        "market_key": market_key,
+                        "under": under_odd,
+                        "over": over_odd,
+                        "key_under": under_key,
+                        "key_over": over_key
+                    })
+                    
+        self._odds_cache[match_id] = odds_dict
+
+    async def get_odds(self, match_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves cached odds for a specific match key.
+        Returns mapped dictionary in format compatible with scraper pipeline.
+        """
+        return self._odds_cache.get(match_key)
+
+    async def get_players(self, player_key: str) -> Optional[Dict[str, Any]]:
+        # Third-party players endpoint not needed under NEO partnership
+        return None
+
+    async def get_h2h(self, p1_key: str, p2_key: str) -> Optional[Dict[str, Any]]:
+        # NEO API does not provide historic H2H stats (we rely on our own historical database)
+        return None

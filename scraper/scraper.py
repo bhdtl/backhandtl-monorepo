@@ -20,6 +20,7 @@ import numpy as np
 
 import httpx
 from supabase import create_client, Client
+from neobet_client import NeoBetAPI
 
 # =================================================================
 # 1. CONFIGURATION & LOGGING
@@ -46,10 +47,9 @@ log("🔌 Initialisiere Neural Scout (V211.00 - SYNDICATE TWO-BRAIN ENGINE)...")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
-API_TENNIS_KEY = os.environ.get("API_TENNIS_KEY")
 
-if not OPENROUTER_API_KEY or not SUPABASE_URL or not SUPABASE_KEY or not API_TENNIS_KEY:
-    log("❌ CRITICAL: Secrets fehlen! Prüfe GitHub/OpenRouter/API_TENNIS Secrets.")
+if not OPENROUTER_API_KEY or not SUPABASE_URL or not SUPABASE_KEY:
+    log("❌ CRITICAL: Secrets fehlen! Prüfe GitHub/OpenRouter/Supabase Secrets.")
     sys.exit(1)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -77,71 +77,10 @@ CITY_TO_DB_STRING = {
 COUNTRY_TO_CITY_MAP: Dict[str, str] = {}
 
 # =================================================================
-# 1.1 TENNIS DATA API CLIENT 
+# 1.1 TENNIS DATA API CLIENT (REPLACED BY NEO.BET)
 # =================================================================
-class TennisDataAPI:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.base_url = "https://api.api-tennis.com/tennis/"
-        self.valid_tours = [
-            "Atp Singles", 
-            "Wta Singles", 
-            "Challenger Men Singles",
-            "Challenger Women Singles",  
-            "Itf Men Singles",            
-            "Itf Women Singles"          
-        ]
+# NeoBetAPI is imported directly from neobet_client.py
 
-    async def get_fixtures(self, date_str: str) -> List[Dict]:
-        log(f"📡 [API] Fetching Fixtures for {date_str}...")
-        url = f"{self.base_url}?method=get_fixtures&APIkey={self.api_key}&date_start={date_str}&date_stop={date_str}&timezone=UTC"
-        async with httpx.AsyncClient() as client:
-            try:
-                res = await client.get(url, timeout=25.0)
-                data = res.json()
-                if data.get('success') == 1 and data.get('result'):
-                    fixtures = [m for m in data['result'] if m.get('event_type_type') in self.valid_tours]
-                    log(f"✅ [API] Found {len(fixtures)} relevant fixtures for {date_str}.")
-                    return fixtures
-            except Exception as e:
-                log(f"❌ [API] Fixture Request Failed: {e}")
-        return []
-
-    async def get_odds(self, match_key: str) -> Dict:
-        url = f"{self.base_url}?method=get_odds&APIkey={self.api_key}&match_key={match_key}"
-        async with httpx.AsyncClient() as client:
-            try:
-                res = await client.get(url, timeout=15.0)
-                data = res.json()
-                if data.get('success') == 1 and data.get('result'):
-                    return data['result'].get(str(match_key), {})
-            except Exception as e:
-                pass
-        return {}
-
-    async def get_player_stats(self, player_key: str) -> Dict:
-        url = f"{self.base_url}?method=get_players&APIkey={self.api_key}&player_key={player_key}"
-        async with httpx.AsyncClient() as client:
-            try:
-                res = await client.get(url, timeout=15.0)
-                data = res.json()
-                if data.get('success') == 1 and data.get('result'):
-                    return data['result'][0] if isinstance(data['result'], list) and len(data['result']) > 0 else {}
-            except Exception as e:
-                pass
-        return {}
-
-    async def get_h2h(self, p1_key: str, p2_key: str) -> Dict:
-        url = f"{self.base_url}?method=get_H2H&APIkey={self.api_key}&first_player_key={p1_key}&second_player_key={p2_key}"
-        async with httpx.AsyncClient() as client:
-            try:
-                res = await client.get(url, timeout=15.0)
-                data = res.json()
-                if data.get('success') == 1 and data.get('result'):
-                    return data['result']
-            except:
-                pass
-        return {}
 
 # =================================================================
 # 1.5 TENNIS-MY-LIFE (TML) INGESTION ENGINE
@@ -812,6 +751,8 @@ class MarkovChainEngine:
         match_wins_A, match_wins_B = 0, 0
         scores_log = {"2:0": 0, "2:1": 0, "0:2": 0, "1:2": 0}
         total_game_diff_A = 0
+        game_diffs = []
+        total_games_list = []
 
         for _ in range(iterations):
             sets_A, sets_B = 0, 0
@@ -834,6 +775,8 @@ class MarkovChainEngine:
                 else: scores_log["1:2"] += 1
                 
             total_game_diff_A += (games_A_match - games_B_match)
+            game_diffs.append(games_A_match - games_B_match)
+            total_games_list.append(games_A_match + games_B_match)
 
         prob_A = (match_wins_A / iterations) * 100
         prob_B = (match_wins_B / iterations) * 100
@@ -851,7 +794,9 @@ class MarkovChainEngine:
             "probA": round(prob_A, 1),
             "probB": round(prob_B, 1),
             "set_betting_probs": set_betting_probs,
-            "projected_handicap_A": round(avg_handicap_A, 1)
+            "projected_handicap_A": round(avg_handicap_A, 1),
+            "game_differentials": game_diffs,
+            "total_games_list": total_games_list
         }
 
 # =================================================================
@@ -1671,7 +1616,7 @@ class QuantumGamesSimulator:
 async def run_pipeline():
     log(f"🚀 Neural Scout V211.00 (SYNDICATE TWO-BRAIN ENGINE) Starting...")
     
-    api = TennisDataAPI(API_TENNIS_KEY)
+    api = NeoBetAPI()
 
     players, all_skills, all_reports, all_tournaments = await get_db_data()
     if not players: 
@@ -1728,27 +1673,13 @@ async def run_pipeline():
             
             if o1 <= 1.01 or o2 <= 1.01: continue
             
-            set_betting_api = odds_data.get("Set Betting", {})
             bookie_set_odds = {}
-            if set_betting_api:
-                for score_key, bookies in set_betting_api.items():
-                    main_line = to_float(bookies.get("bet365") or bookies.get("1xbet") or next(iter(bookies.values()), 0))
-                    bookie_set_odds[score_key] = main_line
 
             actual_ou_line = None
-            ou_dict = odds_data.get("Over/Under", {})
-            if ou_dict:
-                best_diff = 999.0
-                for line_str, line_odds in ou_dict.items():
-                    try:
-                        line_val = float(line_str)
-                        over_odd = to_float(line_odds.get("bet365") or next(iter(line_odds.values()), 0))
-                        diff_to_even = abs(over_odd - 1.90)
-                        if diff_to_even < best_diff and over_odd > 1.01:
-                            best_diff = diff_to_even
-                            actual_ou_line = line_val
-                    except:
-                        pass
+            over_under_list = odds_data.get("Over/Under", [])
+            if over_under_list:
+                # Use the primary Over/Under boundary (usually the first one returned)
+                actual_ou_line = over_under_list[0].get("boundary")
 
             try:
                 dt = datetime.strptime(f"{e_date} {e_time}", "%Y-%m-%d %H:%M")
@@ -1768,7 +1699,10 @@ async def run_pipeline():
                 "odds2": o2,
                 "bookmaker_odds": bookmaker_odds,
                 "bookie_set_odds": bookie_set_odds,
-                "actual_ou_line": actual_ou_line
+                "actual_ou_line": actual_ou_line,
+                "neobet_spreads": odds_data.get("Spread", []),
+                "neobet_over_unders": over_under_list,
+                "raw_betmarkets": odds_data.get("RawMarkets", [])
             })
             
     if not matches:
@@ -2061,19 +1995,152 @@ async def run_pipeline():
                     sim_result['projected_handicap'] = round((prob - 0.50) * 100 * 0.14, 2)
                     sim_result['bookmaker_set_odds'] = m.get('bookie_set_odds', {})
 
-                    # 🚀 SOTA: Fractional Kelly + AI Filter
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'])
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'])
-                    
+                    # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
+                    candidate_picks = []
+
+                    # 1. Match Winner Candidates
+                    candidate_picks.append({
+                        "market_type": "WINNER",
+                        "pick_name": full_n1,
+                        "market_odds": m['odds1'],
+                        "fair_odds": fair1,
+                        "value_metrics": val_p1,
+                        "betslip": {
+                            "contestId": m['api_match_key'],
+                            "bettingTypeKey": "Set_MATCH_HC2W(0.0)",
+                            "outcomeKey": "1"
+                        }
+                    })
+                    candidate_picks.append({
+                        "market_type": "WINNER",
+                        "pick_name": full_n2,
+                        "market_odds": m['odds2'],
+                        "fair_odds": fair2,
+                        "value_metrics": val_p2,
+                        "betslip": {
+                            "contestId": m['api_match_key'],
+                            "bettingTypeKey": "Set_MATCH_HC2W(0.0)",
+                            "outcomeKey": "2"
+                        }
+                    })
+
+                    # 2. Handicap Spreads Candidates (Games Spread)
+                    game_diffs = mc_results.get("game_differentials", [])
+                    for sp in m.get("neobet_spreads", []):
+                        hc = sp["handicap"]
+                        p_home_sp = sum(1 for diff in game_diffs if diff + hc > 0) / len(game_diffs) if game_diffs else prob
+                        p_away_sp = 1.0 - p_home_sp
+                        
+                        fair_home_sp = round(1/p_home_sp, 2) if p_home_sp > 0.01 else 99
+                        fair_away_sp = round(1/p_away_sp, 2) if p_away_sp > 0.01 else 99
+                        
+                        val_home_sp = calculate_value_metrics(p_home_sp, sp["odds1"], matched_tour_name, ai['conviction_multiplier'])
+                        val_away_sp = calculate_value_metrics(p_away_sp, sp["odds2"], matched_tour_name, ai['conviction_multiplier'])
+                        
+                        sign1 = "+" if hc > 0 else ""
+                        sign2 = "+" if -hc > 0 else ""
+                        
+                        candidate_picks.append({
+                            "market_type": "HANDICAP",
+                            "pick_name": f"{full_n1} {sign1}{hc} Games",
+                            "market_odds": sp["odds1"],
+                            "fair_odds": fair_home_sp,
+                            "value_metrics": val_home_sp,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": sp["market_key"],
+                                "outcomeKey": sp["key1"]
+                            }
+                        })
+                        candidate_picks.append({
+                            "market_type": "HANDICAP",
+                            "pick_name": f"{full_n2} {sign2}{-hc} Games",
+                            "market_odds": sp["odds2"],
+                            "fair_odds": fair_away_sp,
+                            "value_metrics": val_away_sp,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": sp["market_key"],
+                                "outcomeKey": sp["key2"]
+                            }
+                        })
+
+                    # 3. Totals Over/Under Candidates (Total Games)
+                    total_games_list = mc_results.get("total_games_list", [])
+                    for ou in m.get("neobet_over_unders", []):
+                        boundary = ou["boundary"]
+                        p_over = sum(1 for tg in total_games_list if tg > boundary) / len(total_games_list) if total_games_list else 0.5
+                        
+                        emp_val = 0.5
+                        if boundary <= 21.0: emp_val = empirical_ou.get("over_20_5", 0.5)
+                        elif boundary <= 22.0: emp_val = empirical_ou.get("over_21_5", 0.5)
+                        elif boundary <= 23.0: emp_val = empirical_ou.get("over_22_5", 0.5)
+                        else: emp_val = empirical_ou.get("over_23_5", 0.5)
+                        p_over_blended = (p_over * 0.65) + (emp_val * 0.35)
+                        p_under_blended = 1.0 - p_over_blended
+                        
+                        fair_over = round(1/p_over_blended, 2) if p_over_blended > 0.01 else 99
+                        fair_under = round(1/p_under_blended, 2) if p_under_blended > 0.01 else 99
+                        
+                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'])
+                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'])
+                        
+                        candidate_picks.append({
+                            "market_type": "TOTALS",
+                            "pick_name": f"Over {boundary} Games",
+                            "market_odds": ou["over"],
+                            "fair_odds": fair_over,
+                            "value_metrics": val_over,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": ou["market_key"],
+                                "outcomeKey": ou["key_over"]
+                            }
+                        })
+                        candidate_picks.append({
+                            "market_type": "TOTALS",
+                            "pick_name": f"Under {boundary} Games",
+                            "market_odds": ou["under"],
+                            "fair_odds": fair_under,
+                            "value_metrics": val_under,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": ou["market_key"],
+                                "outcomeKey": ou["key_under"]
+                            }
+                        })
+
+                    # Filter and Sort Value Picks by Edge Percent to find the maximum math edge
+                    value_picks = [c for c in candidate_picks if c["value_metrics"]["is_value"]]
+                    value_picks.sort(key=lambda x: x["value_metrics"]["edge_percent"], reverse=True)
+
                     value_tag = ""
-                    if val_p1["is_value"]: 
-                        value_tag = f"\n\n[{val_p1['type']}: {full_n1} @ {m['odds1']} | Fair: {fair1} | Edge: {val_p1['edge_percent']}% | Stake: {val_p1['kelly_stake']}u]"
+                    best_betslip = None
+                    main_bet_type = "WINNER"
+
+                    if value_picks:
+                        best_pick = value_picks[0]
+                        best_val = best_pick["value_metrics"]
+                        value_tag = f"\n\n[{best_val['type']}: {best_pick['pick_name']} @ {best_pick['market_odds']} | Fair: {best_pick['fair_odds']} | Edge: {best_val['edge_percent']}% | Stake: {best_val['kelly_stake']}u]"
                         hist_is_value = True
-                        hist_pick_player = full_n1
-                    elif val_p2["is_value"]: 
-                        value_tag = f"\n\n[{val_p2['type']}: {full_n2} @ {m['odds2']} | Fair: {fair2} | Edge: {val_p2['edge_percent']}% | Stake: {val_p2['kelly_stake']}u]"
-                        hist_is_value = True
-                        hist_pick_player = full_n2
+                        hist_pick_player = best_pick["pick_name"]
+                        
+                        best_betslip = best_pick["betslip"]
+                        best_betslip["url"] = f"https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se={best_betslip['contestId']}!{best_betslip['bettingTypeKey']}!{best_betslip['outcomeKey']}"
+                        main_bet_type = best_pick["market_type"]
+                        
+                        sim_result["neo_betslip"] = best_betslip
+                        sim_result["main_bet_type"] = main_bet_type
+                    else:
+                        # Fallback winner betslip URL if no value is present
+                        best_betslip = {
+                            "contestId": m['api_match_key'],
+                            "bettingTypeKey": "Set_MATCH_HC2W(0.0)",
+                            "outcomeKey": "1",
+                            "url": f"https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se={m['api_match_key']}!Set_MATCH_HC2W(0.0)!1"
+                        }
+                        sim_result["neo_betslip"] = best_betslip
+                        sim_result["main_bet_type"] = "WINNER"
 
                     derivative_note = f"\n[{sim_result['derivative_edge']}]" if sim_result.get('derivative_edge') else ""
                     ai_text_final = f"{ai['ai_text']} {value_tag}{derivative_note}\n[🎲 SIM: {sim_result['predicted_line']} Games]"
@@ -2092,7 +2159,9 @@ async def run_pipeline():
                         "odds2": m['odds2'],
                         "bookmaker_odds": m['bookmaker_odds'],
                         "is_visible_in_scanner": True,
-                        "api_match_key": m['api_match_key']
+                        "api_match_key": m['api_match_key'],
+                        "neo_contest_id": m['api_match_key'],
+                        "main_bet_type": main_bet_type
                     }
                     
                     hist_fair1 = fair1
