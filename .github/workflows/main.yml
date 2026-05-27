@@ -13,6 +13,9 @@ jobs:
     name: Run Scraper Job
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: scraper
 
     steps:
       - name: Checkout Code

@@ -6,6 +6,9 @@ on:
 jobs:
   recalibrate:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scraper
 
     steps:
       - name: 📥 Checkout Repository
