@@ -1039,6 +1039,8 @@ export function ValueScanner() {
                 <div className="text-white font-black uppercase text-sm tracking-wide">{t('valueScanner.noMatches.title')}</div>
                 <p className="text-gray-600 text-[10px] mt-1">{t('valueScanner.noMatches.subtitle')}</p>
               </div>
+            )}
+          </div>
       </PremiumLock>
 
       {/* Germany Regulatory Whitelist Footer */}
