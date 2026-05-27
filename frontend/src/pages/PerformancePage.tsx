@@ -188,7 +188,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function PerformancePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const [processedBets, setProcessedBets] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -519,16 +519,18 @@ export function PerformancePage() {
             <div className="p-2 bg-tennis-lime/10 rounded-xl">
               <Activity size={24} className="text-tennis-lime" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">Model Performance</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
+              {t('performance.title')}
+            </h1>
           </div>
           <p className="text-gray-400 text-sm font-medium max-w-2xl leading-relaxed pl-1">
-            Analyzing the theoretical performance of the AI Value Engine based on historical ledger data since V211 Launch.
+            {t('performance.subtitle')}
           </p>
         </div>
         
         <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] border border-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400 self-start md:self-auto shadow-lg">
           <div className="w-2 h-2 bg-tennis-lime rounded-full animate-pulse shadow-[0_0_10px_#84cc16]"></div>
-          Live Validation
+          {t('performance.liveStatus')}
         </div>
       </div>
 
@@ -536,18 +538,18 @@ export function PerformancePage() {
       <div className="flex overflow-x-auto pb-6 gap-4 mb-4 -mx-4 px-4 snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-2 xl:grid-cols-4 md:pb-0 md:mx-0 md:px-0">
         
         <StatCard 
-          title="NET PROFIT" 
+          title={t('performance.kpis.netProfit.title')} 
           value={`${stats.totalUnits > 0 ? '+' : ''}${stats.totalUnits}`} 
-          subtext="Cumulative Units"
+          subtext={t('performance.kpis.netProfit.subtext')}
           icon={Wallet} 
           colorClass={stats.totalUnits >= 0 ? "text-tennis-lime" : "text-red-500"} 
           isUnit={true}
         />
 
         <StatCard 
-          title="YIELD (ROI)" 
+          title={t('performance.kpis.winRate.title')} 
           value={`${stats.roi > 0 ? '+' : ''}${stats.roi}%`} 
-          subtext="Return on Investment"
+          subtext={i18n.language.startsWith('de') ? "Return on Investment" : "Return on Investment"}
           icon={PieChart} 
           colorClass={stats.roi >= 0 ? "text-blue-400" : "text-red-500"} 
         />
@@ -555,15 +557,25 @@ export function PerformancePage() {
         <StatCard 
           title="CLOSING LINE VALUE" 
           value={`${stats.avgClv > 0 ? '+' : ''}${stats.avgClv}%`} 
-          subtext="Average CLV Magnitude"
+          subtext={
+            i18n.language.startsWith('de') 
+              ? "Durchschnittliche CLV-Stärke" 
+              : (i18n.language.startsWith('es') 
+                ? "Magnitud media del CLV" 
+                : (i18n.language.startsWith('fr') 
+                  ? "Magnitude moyenne du CLV" 
+                  : (i18n.language.startsWith('it') 
+                    ? "Magnitudo media del CLV" 
+                    : "Average CLV Magnitude")))
+          }
           icon={Zap} 
           colorClass={stats.avgClv >= 0 ? "text-emerald-400" : "text-gray-400"} 
         />
 
         <StatCard 
-          title="BETS PLAYED" 
+          title={t('performance.kpis.signals.title')} 
           value={stats.totalSignals} 
-          subtext="Identified Opportunities"
+          subtext={t('performance.kpis.signals.subtext')}
           icon={BarChart3} 
           colorClass="text-fuchsia-400" 
         />
@@ -572,32 +584,46 @@ export function PerformancePage() {
       {stats.totalSignals > 0 && (
           <div className="mb-8 bg-[#1a1d26] rounded-3xl border border-white/5 overflow-hidden shadow-2xl p-6">
               <h3 className="text-white font-black text-lg uppercase tracking-tighter mb-4 flex items-center gap-2">
-                  <Swords size={18} className="text-tennis-lime" /> Deep Portfolio Insights
+                  <Swords size={18} className="text-tennis-lime" /> {
+                    i18n.language.startsWith('de') 
+                      ? 'Portfolio-Insights' 
+                      : (i18n.language.startsWith('es') 
+                        ? 'Insights de Portafolio' 
+                        : (i18n.language.startsWith('fr') 
+                          ? 'Analyses de Portefeuille' 
+                          : (i18n.language.startsWith('it') 
+                            ? 'Insight di Portafoglio' 
+                            : 'Deep Portfolio Insights')))
+                  }
               </h3>
               
               <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-3 md:grid md:grid-cols-3 md:gap-6 mb-6 -mx-6 px-6 md:mx-0 md:px-0">
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> 10-Day Run</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '10-Tage Verlauf' : '10-Day Run'}</span>
                       <span className={`text-2xl font-black ${stats.units10d >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
                           {stats.units10d > 0 ? '+' : ''}{stats.units10d}u
                       </span>
                   </div>
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> 30-Day Run</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '30-Tage Verlauf' : '30-Day Run'}</span>
                       <span className={`text-2xl font-black ${stats.units30d >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
                           {stats.units30d > 0 ? '+' : ''}{stats.units30d}u
                       </span>
                   </div>
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/5 to-transparent pointer-events-none"></div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1 relative z-10"><Target size={10}/> All-Time</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1 relative z-10"><Target size={10}/> {i18n.language.startsWith('de') ? 'Gesamtzeit' : 'All-Time'}</span>
                       <span className={`text-2xl font-black ${stats.totalUnits >= 0 ? 'text-tennis-lime' : 'text-red-500'} relative z-10`}>
                           {stats.totalUnits > 0 ? '+' : ''}{stats.totalUnits}u
                       </span>
                   </div>
               </div>
 
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">Model Efficiency by Conviction (Stake Size)</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">{
+                i18n.language.startsWith('de') 
+                  ? 'Modell-Effizienz nach Überzeugung (Einsatzhöhe)' 
+                  : 'Model Efficiency by Conviction (Stake Size)'
+              }</h4>
               <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 mb-6">
                   <MiniInsightCard 
                       title="Micro/Small (< 1.0U)" colorClass="text-blue-400"
@@ -621,7 +647,11 @@ export function PerformancePage() {
                   />
               </div>
 
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">Model Efficiency by Conviction (Stake Size)</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">{
+                i18n.language.startsWith('de') 
+                  ? 'Modell-Effizienz nach Überzeugung (Einsatzhöhe)' 
+                  : 'Model Efficiency by Conviction (Stake Size)'
+              }</h4>
               <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4">
                   <MiniInsightCard 
                       title="Micro/Small (< 1.0u)" colorClass="text-blue-400"
@@ -650,9 +680,29 @@ export function PerformancePage() {
       <div className="bg-[#1a1d26] rounded-3xl border border-white/5 overflow-hidden shadow-2xl mb-8 pt-6">
           <div className="px-6 mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                  <h3 className="text-white font-black text-lg uppercase tracking-tighter">Bankroll Trajectory</h3>
+                  <h3 className="text-white font-black text-lg uppercase tracking-tighter">{
+                    i18n.language.startsWith('de') 
+                      ? 'Kontostand-Entwicklung' 
+                      : (i18n.language.startsWith('es') 
+                        ? 'Trayectoria de Bankroll' 
+                        : (i18n.language.startsWith('fr') 
+                          ? 'Trajectoire du Capital' 
+                          : (i18n.language.startsWith('it') 
+                            ? 'Traiettoria del Bankroll' 
+                            : 'Bankroll Trajectory')))
+                  }</h3>
                   <div className="flex items-center gap-3 mt-1">
-                      <p className="text-xs text-gray-500 font-medium">Cumulative Unit Growth</p>
+                      <p className="text-xs text-gray-500 font-medium">{
+                        i18n.language.startsWith('de') 
+                          ? 'Kumuliertes Unit-Wachstum' 
+                          : (i18n.language.startsWith('es') 
+                            ? 'Crecimiento acumulado de unidades' 
+                            : (i18n.language.startsWith('fr') 
+                              ? 'Croissance cumulative des unités' 
+                              : (i18n.language.startsWith('it') 
+                                ? 'Crescita cumulativa delle unità' 
+                                : 'Cumulative Unit Growth')))
+                      }</p>
                       <div className="flex items-center gap-1.5 bg-tennis-lime/10 px-2 py-0.5 rounded-md border border-tennis-lime/20">
                           <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime shadow-[0_0_8px_#84cc16] animate-pulse"></div>
                           <span className="text-[8px] font-black text-tennis-lime uppercase tracking-widest">Model Alpha</span>
@@ -717,11 +767,11 @@ export function PerformancePage() {
       <div className="bg-[#1a1d26] rounded-3xl border border-white/5 overflow-hidden shadow-2xl flex flex-col min-h-[600px]">
         <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
           <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-            <History size={16} className="text-gray-500" /> Signal Validation History
+            <History size={16} className="text-gray-500" /> {t('performance.table.title')}
           </h3>
           <div className="flex items-center gap-3">
              <span className="text-[10px] font-mono text-gray-500">
-               PAGE {currentPage}/{totalPages || 1}
+               {i18n.language.startsWith('de') ? 'SEITE' : (i18n.language.startsWith('es') ? 'PÁGINA' : (i18n.language.startsWith('fr') ? 'PAGE' : (i18n.language.startsWith('it') ? 'PAGINA' : 'PAGE')))} {currentPage}/{totalPages || 1}
              </span>
           </div>
         </div>
@@ -732,10 +782,10 @@ export function PerformancePage() {
               <tr className="bg-black/20 text-gray-500 text-[9px] font-black uppercase tracking-[0.2em] border-b border-white/5">
                 <th className="px-4 md:px-6 py-4">{t('performance.table.cols.date')}</th>
                 <th className="px-4 md:px-6 py-4">{t('performance.table.cols.event')}</th>
-                <th className="px-4 md:px-6 py-4 hidden md:table-cell">VALUE SIDE</th>
-                <th className="px-4 md:px-6 py-4 text-center hidden md:table-cell">STAKE</th>
+                <th className="px-4 md:px-6 py-4 hidden md:table-cell">{t('performance.table.cols.selection')}</th>
+                <th className="px-4 md:px-6 py-4 text-center hidden md:table-cell">{t('performance.table.cols.stake')}</th>
                 <th className="px-4 md:px-6 py-4 text-center hidden md:table-cell">METRICS</th>
-                <th className="px-4 md:px-6 py-4 text-right">P/L</th>
+                <th className="px-4 md:px-6 py-4 text-right">{t('performance.table.cols.outcome')}</th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-white/5">
@@ -856,7 +906,17 @@ export function PerformancePage() {
                     className="flex items-center gap-2 px-4 py-3 md:py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
                 >
                     <ChevronLeft size={16} />
-                    <span className="hidden md:inline">PREV</span>
+                    <span className="hidden md:inline">{
+                      i18n.language.startsWith('de') 
+                        ? 'ZURÜCK' 
+                        : (i18n.language.startsWith('es') 
+                          ? 'ANTERIOR' 
+                          : (i18n.language.startsWith('fr') 
+                            ? 'PRÉCÉDENT' 
+                            : (i18n.language.startsWith('it') 
+                              ? 'PRECEDENTE' 
+                              : 'PREV')))
+                    }</span>
                 </button>
 
                 <div className="hidden md:flex gap-1">
@@ -887,7 +947,17 @@ export function PerformancePage() {
                     disabled={currentPage === totalPages}
                     className="flex items-center gap-2 px-4 py-3 md:py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
                 >
-                    <span className="hidden md:inline">NEXT</span>
+                    <span className="hidden md:inline">{
+                      i18n.language.startsWith('de') 
+                        ? 'WEITER' 
+                        : (i18n.language.startsWith('es') 
+                          ? 'SIGUIENTE' 
+                          : (i18n.language.startsWith('fr') 
+                            ? 'SUIVANT' 
+                            : (i18n.language.startsWith('it') 
+                              ? 'SUCCESSIVO' 
+                              : 'NEXT')))
+                    }</span>
                     <ChevronRight size={16} />
                 </button>
             </div>
@@ -900,7 +970,7 @@ export function PerformancePage() {
             </div>
             <h3 className="text-white font-bold text-lg mb-2">{t('performance.noData.title')}</h3>
             <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
-              Waiting for new picks to complete since the V211 Engine Launch.
+              {t('performance.noData.message')}
             </p>
           </div>
         )}

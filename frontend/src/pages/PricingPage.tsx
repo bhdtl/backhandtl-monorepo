@@ -18,11 +18,11 @@ const PAYMENT_METHODS = [
 
 // --- CONFIGURATION ---
 const PREMIUM_FEATURES = [
-  { icon: DollarSign, label: 'Market Odds ROI Profiler', desc: 'Analyze player profitability across different odds & underdog tiers.' },
-  { icon: Gauge, label: 'BSI Court Speed Matrix', desc: 'Player win-rates & ROI mapped to exact physical court speeds.' },
-  { icon: Target, label: 'Player Style Analysis', desc: 'Historical performance against specific tactical opponent profiles.' },
-  { icon: Zap, label: 'Live Value Scanner', desc: 'Real-time automated edge detection across global sportsbooks.' },
-  { icon: Swords, label: 'AI Matchup Analyzer', desc: 'Deep-learning prediction, expected handicaps & set betting.' }
+  { icon: Swords, label: 'Unlimited AI Matchups', desc: 'Deep-learning prediction, expected handicaps & set betting without daily limits.' },
+  { icon: Zap, label: 'Live Value Scanner', desc: 'Real-time automated edge detection across 40+ global sportsbooks.' },
+  { icon: DollarSign, label: 'Quantum Totals & AI Picks', desc: 'High-yield mathematical predictions and over/under tennis totals.' },
+  { icon: Radar, label: 'Tournament Oracle', desc: 'Draw simulations, bracket analysis, and predictive models.' },
+  { icon: Gauge, label: 'Global Court Index', desc: 'Complete database of physical bounce speeds (BSI) for all professional tour courts.' }
 ];
 
 // 🚀 ORIGINAL: Die Checkout-Links & IDs für ehrliche Nutzer (MIT TRIAL)
@@ -59,7 +59,7 @@ const PLANS = [
     name: 'Free Tier',
     price: '0',
     duration: 'Forever',
-    features: ['3 Free AI Matchups', 'Player Profiles & Stats', 'Scouting Reports', 'Latest Tennis News'],
+    features: ['3 Free AI Matchups', 'Free Player Profile Deep Dives', 'BSI Speed & Style Analytics', 'Scouting Reports & News'],
     cta: 'Stay Free',
     popular: false
   },
