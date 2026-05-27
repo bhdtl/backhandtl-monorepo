@@ -979,7 +979,18 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
         return []
 
 async def update_past_results_api(api: NeoBetAPI, players: List[Dict]):
-    pending = supabase.table("market_odds").select("*").is_("actual_winner_name", "null").execute().data
+    # 🚀 FIX: Limit query to last 7 days and select only needed columns to prevent 57014 statement timeout
+    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    try:
+        pending_result = supabase.table("market_odds")\
+            .select("id, player1_name, player2_name, api_match_key, match_time")\
+            .is_("actual_winner_name", "null")\
+            .gte("match_time", cutoff_date)\
+            .execute()
+        pending = pending_result.data
+    except Exception as e:
+        log(f"⚠️ update_past_results: Could not fetch pending matches: {e}")
+        return
     if not pending or not isinstance(pending, list): 
         return
     safe_to_check = list(pending)
@@ -1996,6 +2007,10 @@ async def run_pipeline():
                     sim_result['bookmaker_set_odds'] = m.get('bookie_set_odds', {})
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
+                    # Compute winner value metrics BEFORE building candidate_picks
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'])
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'])
+
                     candidate_picks = []
 
                     # 1. Match Winner Candidates
