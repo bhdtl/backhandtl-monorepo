@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface PartnerBadgeProps {
   className?: string;
@@ -6,6 +7,8 @@ interface PartnerBadgeProps {
 }
 
 export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBadgeProps) {
+  const { t } = useTranslation();
+
   if (variant === 'compact') {
     return (
       <motion.div
@@ -16,7 +19,7 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
         className={`inline-flex items-center gap-3 px-4 py-2 bg-[#15171e]/60 border border-white/10 rounded-2xl shadow-xl backdrop-blur-md cursor-pointer group ${className}`}
       >
         <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-500 group-hover:text-white transition-colors">
-          OFFIZIELLER PARTNER:
+          {t('partner.officialPartner')}:
         </span>
         <div className="h-4 flex items-center border-l border-white/10 pl-3">
           <img 
@@ -45,14 +48,14 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
               <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
             </span>
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">
-              OFFIZIELLER PREMIUM PARTNER
+              {t('partner.premiumPartner')}
             </span>
           </div>
           <h3 className="text-lg font-black text-white uppercase tracking-tight mb-1">
             BACKHAND.DTL x NEO.bet
           </h3>
           <p className="text-xs text-gray-500 font-medium max-w-sm">
-            Exklusive Quoten, Echtzeit-Schnittstelle & blitzschnelle Wettschein-Abgabe für maximale Performance.
+            {t('partner.description')}
           </p>
         </div>
         
@@ -67,3 +70,4 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
     </motion.div>
   );
 }
+

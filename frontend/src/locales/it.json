@@ -589,5 +589,11 @@
     "neobetCta": "Aggiungi al coupon",
     "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
     "footerDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de"
+  },
+  "partner": {
+    "officialPartner": "Partner Ufficiale",
+    "premiumPartner": "Partner Premium Ufficiale",
+    "description": "Quote esclusive, interfaccia in tempo reale e piazzamento ultrarapido della schedina per le massime prestazioni.",
+    "licensedRegulated": "Licenziato e Regolamentato (Lista Bianca)"
   }
 }

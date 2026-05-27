@@ -590,5 +590,11 @@
     "neobetCta": "Add to Betslip",
     "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
     "footerDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de"
+  },
+  "partner": {
+    "officialPartner": "Official Partner",
+    "premiumPartner": "Official Premium Partner",
+    "description": "Exclusive odds, real-time interface & lightning-fast betslip placement for maximum performance.",
+    "licensedRegulated": "Licensed & Regulated (Whitelist)"
   }
 }

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface NeoBetBannerProps {
   size?: '120x240' | '120x600' | '160x600' | '200x200';
@@ -7,6 +8,8 @@ interface NeoBetBannerProps {
 }
 
 export function NeoBetBanner({ size = '200x200', className = "" }: NeoBetBannerProps) {
+  const { t } = useTranslation();
+
   // Map size to dimensions
   const dims = {
     '120x240': { width: 120, height: 240 },
@@ -33,7 +36,7 @@ export function NeoBetBanner({ size = '200x200', className = "" }: NeoBetBannerP
           <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
         </span>
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-tennis-lime">
-          OFFIZIELLER PREMIUM PARTNER
+          {t('partner.premiumPartner')}
         </span>
       </div>
 
@@ -57,7 +60,7 @@ export function NeoBetBanner({ size = '200x200', className = "" }: NeoBetBannerP
       <div className="mt-4 flex flex-col items-center gap-1.5 text-center max-w-[280px]">
         <div className="flex items-center gap-1 text-[8px] font-black text-gray-500 uppercase tracking-widest">
           <ShieldCheck size={10} className="text-tennis-lime" />
-          <span>Lizenziert & Reguliert (Whitelist)</span>
+          <span>{t('partner.licensedRegulated')}</span>
         </div>
         <p className="text-[9px] font-bold text-gray-600 leading-normal tracking-wide uppercase">
           18+ | Suchtrisiken | Hilfe unter buwei.de
@@ -66,3 +69,4 @@ export function NeoBetBanner({ size = '200x200', className = "" }: NeoBetBannerP
     </motion.div>
   );
 }
+
