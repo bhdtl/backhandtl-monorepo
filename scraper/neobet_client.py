@@ -34,9 +34,9 @@ class NeoBetAPI:
         self._odds_cache: Dict[str, Dict[str, Any]] = {}
         self._raw_matches_cache: List[Dict[str, Any]] = []
 
-    async def get_fixtures(self, date_str: str) -> List[Dict[str, Any]]:
+    async def get_fixtures(self, date_str: str, include_ended: bool = False) -> List[Dict[str, Any]]:
         """
-        Fetches active Tennis matches from NEO.bet and translates them 
+        Fetches active/ended Tennis matches from NEO.bet and translates them 
         into standard fixture dictionaries expected by the scraper.
         """
         params = {
@@ -46,7 +46,7 @@ class NeoBetAPI:
             "sortBy": "begin"
         }
         
-        log(f"📡 [NEO.BET API] Requesting live Tennis program for {date_str}...")
+        log(f"📡 [NEO.BET API] Requesting live Tennis program for {date_str} (include_ended={include_ended})...")
         
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -67,10 +67,11 @@ class NeoBetAPI:
             fixtures = []
             
             for match in data:
-                # Filter out finished/invalid matches
                 status_info = match.get("contestStatus", {})
                 status_name = status_info.get("name", "Pregame")
-                if status_name in ["Ended", "EndedRetired", "Canceled", "Aborted"]:
+                
+                # If not include_ended, filter out finished/invalid matches
+                if not include_ended and status_name in ["Ended", "EndedRetired", "Canceled", "Aborted"]:
                     continue
                 
                 # Filter out Live/InAction matches unless they are pre-game
@@ -106,6 +107,45 @@ class NeoBetAPI:
                 if event_date != date_str:
                     continue
                 
+                # Parse winner and scores for ended/finished matches
+                event_winner = None
+                final_score = ""
+                constructed_scores = []
+                
+                scores_list = match.get("scores", [])
+                if isinstance(scores_list, list):
+                    # Match score
+                    match_score_obj = next((s for s in scores_list if isinstance(s, dict) and s.get("name") == "Match"), None)
+                    if match_score_obj and isinstance(match_score_obj.get("score"), list) and len(match_score_obj["score"]) == 2:
+                        try:
+                            h_score = int(match_score_obj["score"][0])
+                            a_score = int(match_score_obj["score"][1])
+                            final_score = f"{h_score}-{a_score}"
+                            if h_score > a_score:
+                                event_winner = "First Player"
+                            elif a_score > h_score:
+                                event_winner = "Second Player"
+                        except:
+                            pass
+                    
+                    # Set scores mapping
+                    for s in scores_list:
+                        if not isinstance(s, dict):
+                            continue
+                        s_name = s.get("name", "")
+                        if s_name.startswith("SET") or s_name.startswith("Set"):
+                            s_score = s.get("score", [])
+                            if isinstance(s_score, list) and len(s_score) == 2:
+                                try:
+                                    set_num = s_name.replace("SET", "").replace("Set", "").strip()
+                                    constructed_scores.append({
+                                        "score_set": set_num,
+                                        "score_first": s_score[0],
+                                        "score_second": s_score[1]
+                                    })
+                                except:
+                                    pass
+
                 # Compile the standard fixture format
                 fix_dict = {
                     "event_first_player": p1_name,
@@ -116,7 +156,10 @@ class NeoBetAPI:
                     "tournament_name": match.get("league", "Unknown Tournament"),
                     "event_date": event_date,
                     "event_time": event_time,
-                    "event_status": status_name
+                    "event_status": status_name,
+                    "event_winner": event_winner,
+                    "event_final_result": final_score,
+                    "scores": constructed_scores
                 }
                 
                 fixtures.append(fix_dict)
@@ -130,6 +173,7 @@ class NeoBetAPI:
         except Exception as e:
             log(f"❌ [NEO.BET API] Exception during get_fixtures: {e}")
             return []
+
 
     def _cache_match_odds(self, match_id: str, match_data: Dict[str, Any]):
         """

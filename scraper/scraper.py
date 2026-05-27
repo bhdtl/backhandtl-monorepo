@@ -978,7 +978,7 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
         log(f"History Fetch Error: {e}")
         return []
 
-async def update_past_results_api(api: TennisDataAPI, players: List[Dict]):
+async def update_past_results_api(api: NeoBetAPI, players: List[Dict]):
     pending = supabase.table("market_odds").select("*").is_("actual_winner_name", "null").execute().data
     if not pending or not isinstance(pending, list): 
         return
@@ -986,10 +986,10 @@ async def update_past_results_api(api: TennisDataAPI, players: List[Dict]):
 
     for day_off in range(0, 3): 
         t_date = (datetime.now(timezone.utc) - timedelta(days=day_off)).strftime('%Y-%m-%d')
-        fixtures = await api.get_fixtures(t_date)
+        fixtures = await api.get_fixtures(t_date, include_ended=True)
         
         for fix in fixtures:
-            if fix.get("event_status") != "Finished": continue
+            if fix.get("event_status") not in ["Ended", "EndedRetired", "Finished"]: continue
             
             p1_api = fix.get("event_first_player", "")
             p2_api = fix.get("event_second_player", "")
