@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 // 🚀 SOTA FIX: Importiere Lenis für das "Butter Smooth Scrolling" aus dem Video
 import Lenis from '@studio-freight/lenis';
+import { PartnerBadge } from '../components/PartnerBadge';
+import { NeoBetBanner } from '../components/NeoBetBanner';
 
 // --- INTERFACES ---
 interface OnboardingData {
@@ -428,7 +430,19 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                 How it works
               </button>
             </motion.div>
+
+            <motion.div variants={fadeInUp} className="mt-12">
+              <PartnerBadge variant="compact" />
+            </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* 🚀 SOTA: NEO.bet Partner- und Banner-Showcase */}
+      <section className="py-8 px-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <PartnerBadge variant="full" className="lg:col-span-2" />
+          <NeoBetBanner size="200x200" className="w-full h-full" />
         </div>
       </section>
 

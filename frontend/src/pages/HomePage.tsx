@@ -8,6 +8,7 @@ import { trackEvent } from '../lib/analytics';
 import { Link } from 'react-router-dom';
 import { LoadingScreen } from '../components/LoadingScreen'; 
 import { useTranslation } from 'react-i18next';
+import { PartnerBadge } from '../components/PartnerBadge';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
@@ -556,6 +557,11 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
         <div className="w-full lg:w-auto">
             <AIStatsHero />
         </div>
+      </div>
+
+      {/* 🚀 SOTA: NEO.bet Premium-Kooperationsleiste */}
+      <div className="mb-8">
+         <PartnerBadge variant="full" />
       </div>
 
       {/* COMPACT FILTER BAR */}
