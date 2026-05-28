@@ -332,14 +332,17 @@ export function AIPicksPage() {
   };
 
   const displayedPicks = useMemo(() => {
-      if (timeFilter === 'ALL') return activePicks;
+      let list = [...activePicks];
       
-      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).getTime();
-      return activePicks.filter(pick => {
-          // Nutze das neu definierte relevantTime für exaktes Fire-Tracking
-          const pickTime = new Date(pick.relevantTime).getTime();
-          return pickTime >= thirtyMinsAgo;
-      });
+      if (timeFilter === '30MIN') {
+          const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).getTime();
+          list = list.filter(pick => {
+              const pickTime = new Date(pick.relevantTime).getTime();
+              return pickTime >= thirtyMinsAgo;
+          });
+      }
+      
+      return list.filter(pick => !pick.parsedVal.type.toLowerCase().includes('live'));
   }, [activePicks, timeFilter]);
 
   const currentKpis = useMemo(() => {
@@ -383,7 +386,7 @@ export function AIPicksPage() {
         blurAmount="blur-xl"
       >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">Live Stream</h2>
+              <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">Picks Stream</h2>
               <div className="flex items-center bg-[#15171e] p-1 rounded-xl border border-white/5 self-start sm:self-auto shadow-inner w-full sm:w-auto">
                   <button
                       onClick={() => setTimeFilter('ALL')}
@@ -447,17 +450,17 @@ export function AIPicksPage() {
              <motion.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
-               className="flex flex-col items-center justify-center py-24 bg-[#1a1d26]/50 rounded-[2rem] border border-dashed border-white/10 text-center px-6 shadow-inner"
+               className="flex flex-col items-center justify-center py-20 bg-[#1a1d26]/30 backdrop-blur-md rounded-[2rem] border border-white/5 text-center px-6 shadow-2xl relative overflow-hidden"
              >
-               <Shield className="text-gray-600 mb-4" size={40} />
-               <div className="text-white font-black uppercase tracking-widest mb-2">
-                 {timeFilter === '30MIN' ? 'No Recent Drops' : 'No Active Plays'}
-               </div>
-               <p className="text-gray-500 text-xs max-w-sm leading-relaxed">
-                 {timeFilter === '30MIN' 
-                    ? 'The AI has not detected any new edges in the last 30 minutes. Switch back to "All Plays" to view the full active portfolio.' 
-                    : 'The AI has not detected any high-conviction mathematical edges at this moment. The scanner runs 24/7.'}
-               </p>
+                <Shield className="text-gray-600 mb-4 animate-pulse" size={32} />
+                <div className="text-white font-black uppercase tracking-widest mb-2 text-xs">
+                  {timeFilter === '30MIN' ? 'No Recent Drops' : 'No Active Plays'}
+                </div>
+                <p className="text-gray-500 text-[11px] max-w-sm leading-relaxed pl-1">
+                  {timeFilter === '30MIN' 
+                     ? 'The AI has not detected any new edges in the last 30 minutes. Switch back to "All Plays" to view the full active portfolio.' 
+                     : 'The AI has not detected any high-conviction mathematical edges at this moment. The scanner runs 24/7.'}
+                </p>
              </motion.div>
           ) : (
              <motion.div 
@@ -603,8 +606,8 @@ export function AIPicksPage() {
                                         <div className="flex flex-col">
                                              {/* Dynamic Type Tag */}
                                              <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                                 <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border ${tagClasses}`}>
-                                                     {val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}
+                                                 <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                     <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
                                                  </span>
                                                  {pick.games_prediction?.is_grand_slam && (
                                                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">

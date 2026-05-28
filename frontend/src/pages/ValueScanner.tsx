@@ -169,8 +169,8 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
 
   const steps = [
       {
-          title: "Live Value Stream",
-          desc: "This feed finds mathematical value and edges in real-time. We compare 'Market Odds' against our AI's 'Fair Odds'.",
+          title: "Value Stream",
+          desc: "This feed finds mathematical value and edges. We compare 'Market Odds' against our AI's 'Fair Odds'.",
           icon: <Activity size={32} className="text-tennis-lime" />
       },
       {
@@ -238,9 +238,11 @@ const renderTypeBadge = (typeStr: string) => {
       style = 'bg-orange-500/10 text-orange-400 border-orange-500/40';
   }
   
+  const cleanLabel = typeStr.replace(/[\[\]]/g, '').trim();
+  
   return (
-      <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border whitespace-nowrap ${style}`}>
-          {typeStr.replace(/[\[\]]/g, '').trim()}
+      <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border whitespace-nowrap flex items-center gap-1.5 ${style}`}>
+          <span>{cleanLabel}</span>
       </div>
   );
 };
@@ -472,12 +474,25 @@ export function ValueScanner() {
         let fair2 = m.ai_fair_odds2;
 
         if (!fair1 || !fair2 || fair1 === 0 || fair2 === 0) {
-            if (currentOddsA > 1 && currentOddsB > 1) {
-                const implied1 = 1 / currentOddsA;
-                const implied2 = 1 / currentOddsB;
-                const trueProb1 = implied1 / (implied1 + implied2);
-                fair1 = 1 / trueProb1;
-                fair2 = 1 / (1 - trueProb1);
+            if (currentOddsA > 1.01 && currentOddsB > 1.01) {
+                // Logarithmic overround stripping solver (Buchdahl FLB correction)
+                let low = 0.5;
+                let high = 2.0;
+                for (let iter = 0; iter < 20; iter++) {
+                    const mid = (low + high) / 2;
+                    const sumImplied = Math.pow(1 / currentOddsA, mid) + Math.pow(1 / currentOddsB, mid);
+                    if (sumImplied > 1.0) {
+                        low = mid;
+                    } else {
+                        high = mid;
+                    }
+                }
+                const alpha = (low + high) / 2;
+                const p1 = Math.pow(1 / currentOddsA, alpha);
+                const p2 = Math.pow(1 / currentOddsB, alpha);
+                const trueProb1 = p1 / (p1 + p2);
+                fair1 = trueProb1 > 0.001 ? 1 / trueProb1 : 99;
+                fair2 = trueProb1 < 0.999 ? 1 / (1 - trueProb1) : 99;
             } else {
                 fair1 = 1.90;
                 fair2 = 1.90;
@@ -614,7 +629,7 @@ export function ValueScanner() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
               <div>
                 <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">{t('valueScanner.header.title')}</h1>
-                <p className="text-gray-500 font-medium text-xs">Finding mathematical value and edges in real-time</p>
+                <p className="text-gray-500 font-medium text-xs">Finding mathematical value and pre-match edges</p>
               </div>
           </div>
       </div>
@@ -623,7 +638,7 @@ export function ValueScanner() {
         isLocked={!isElite}
         minTier="ELITE"
         title="Elite Intelligence"
-        description="The Value Scanner identifies mathematical edges in real-time. Upgrade to Elite to access this professional trading tool."
+        description="The Value Scanner identifies mathematical pre-match edges. Upgrade to Elite to access this professional trading tool."
         blurAmount="blur-lg"
       >
           {/* TIME STRIP */}
@@ -947,7 +962,25 @@ export function ValueScanner() {
                                 <div className="bg-gradient-to-r from-white/[0.05] to-transparent rounded-lg px-3 py-2.5 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:items-center border border-white/10 border-l-2 border-l-tennis-lime shadow-lg">
                                      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                                          <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">
-                                             Pick: <span className="text-white font-black">{formatLastName(safePickName)}</span>
+                                             Pick: <span className="text-white font-black">
+                                                 {(() => {
+                                                     const formattedName = formatLastName(safePickName);
+                                                     const lowerPick = safePickName.toLowerCase();
+                                                     const isMoneyline = !lowerPick.includes('games') && 
+                                                                         !lowerPick.includes('over') && 
+                                                                         !lowerPick.includes('under');
+                                                     if (isMoneyline && safePickName) {
+                                                         const lang = i18n.language || 'en';
+                                                         let suffix = 'ML';
+                                                         if (lang.startsWith('de')) suffix = 'Sieg';
+                                                         else if (lang.startsWith('fr')) suffix = 'Victoire';
+                                                         else if (lang.startsWith('es')) suffix = 'Ganador';
+                                                         else if (lang.startsWith('it')) suffix = 'Vincitore';
+                                                         return `${formattedName} ${suffix}`;
+                                                     }
+                                                     return formattedName;
+                                                 })()}
+                                             </span>
                                          </span>
                                          {renderTypeBadge(analysis.type)}
                                          {match.games_prediction?.is_grand_slam && (

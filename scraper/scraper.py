@@ -1168,6 +1168,104 @@ def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: 
                 res[label] = prior_rate
         return res
 
+def calculate_empirical_spread_cover_rate(history: List[Dict], player_name: str, target_hc: float, is_slam: bool = False, surface: str = "") -> float:
+    """
+    Calculates the historical spread cover rate for a player on a given surface.
+    Filters the player's last 15 surface matches, parses games won/lost from set-score strings,
+    handles player name orientation (P1 vs P2), scales differentials for Bo3/Bo5 format mismatches,
+    and checks how often the player covered the target handicap spread: diff + target_hc > 0.
+    """
+    surf_target = (surface or '').lower()
+    if 'clay' in surf_target: surf_target = 'clay'
+    elif 'grass' in surf_target: surf_target = 'grass'
+    else: surf_target = 'hard'
+    
+    matches_on_surface = []
+    for h in history:
+        # Filter by surface
+        h_surf = (h.get('surface') or '').lower()
+        if not h_surf:
+            t_name = (h.get('tourney_name') or h.get('tournament') or '').lower()
+            if 'clay' in t_name or 'roland garros' in t_name or 'french open' in t_name:
+                h_surf = 'clay'
+            elif 'grass' in t_name or 'wimbledon' in t_name:
+                h_surf = 'grass'
+            else:
+                h_surf = 'hard'
+        else:
+            if 'clay' in h_surf: h_surf = 'clay'
+            elif 'grass' in h_surf: h_surf = 'grass'
+            else: h_surf = 'hard'
+            
+        if h_surf == surf_target:
+            matches_on_surface.append(h)
+            
+    recent_matches = matches_on_surface[:15]
+    if not recent_matches:
+        recent_matches = history[:15]
+        
+    covers = 0
+    total = 0
+    
+    for h in recent_matches:
+        score_str = h.get('score')
+        if not score_str or not isinstance(score_str, str) or len(score_str) < 3:
+            continue
+            
+        clean_score = re.sub(r'\.\d+', '', score_str.lower().replace(":", "-").strip())
+        if "ret" in clean_score or "w.o" in clean_score:
+            continue
+            
+        sets = re.findall(r'\b(\d+)\s*-\s*(\d+)\b', clean_score)
+        if not sets:
+            continue
+            
+        is_p1 = is_same_player(player_name, h.get('player1_name', ''))
+        is_p2 = is_same_player(player_name, h.get('player2_name', ''))
+        
+        if not is_p1 and not is_p2:
+            p_parts = player_name.split()
+            if p_parts:
+                p_last = p_parts[-1].lower()
+                if p_last in h.get('player1_name', '').lower():
+                    is_p1 = True
+                elif p_last in h.get('player2_name', '').lower():
+                    is_p2 = True
+                else:
+                    continue
+            else:
+                continue
+                
+        try:
+            diff = 0
+            for s in sets:
+                g1 = int(s[0])
+                g2 = int(s[1])
+                if is_p1:
+                    diff += (g1 - g2)
+                else:
+                    diff += (g2 - g1)
+                    
+            h_best_of = int(h.get('best_of') or 3)
+            t_name = (h.get('tourney_name') or h.get('tournament') or '').lower()
+            h_is_slam = h_best_of == 5 or any(s in t_name for s in ["australian open", "roland garros", "french open", "wimbledon", "us open"])
+            
+            if is_slam and not h_is_slam:
+                diff = diff * 1.58
+            elif not is_slam and h_is_slam:
+                diff = diff / 1.58
+                
+            if diff + target_hc > 0:
+                covers += 1
+            total += 1
+        except Exception:
+            continue
+            
+    if total == 0:
+        return 0.5
+        
+    return covers / total
+
 async def get_advanced_load_analysis(matches: List[Dict]) -> str:
     try:
         recent_matches = matches[:5]
@@ -1346,7 +1444,8 @@ def calculate_value_metrics(
     ai_conviction_multiplier: float = 1.0,
     surface: str = "",
     is_favorite: bool = True,
-    is_slam: bool = False
+    is_slam: bool = False,
+    trading_type: str = "PreMatch"
 ) -> Dict[str, Any]:
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
         return {
@@ -1452,7 +1551,6 @@ def calculate_value_metrics(
     # Die Stake wird streng zwischen 0.1 und der neuen 3.0 Max-Grenze eingesperrt
     optimal_stake = round(min(max_allowed_stake, max(0.1, adjusted_stake)), 1)
     
-    # Intelligentes Labeling angepasst an die 3-Unit Skala
     if ai_conviction_multiplier <= 0.2:
         label = "🛑 AI VETO (BAD MATCHUP)"
         return {
@@ -1897,7 +1995,8 @@ async def run_pipeline():
                 "actual_ou_line": actual_ou_line,
                 "neobet_spreads": odds_data.get("Spread", []),
                 "neobet_over_unders": over_under_list,
-                "raw_betmarkets": odds_data.get("RawMarkets", [])
+                "raw_betmarkets": odds_data.get("RawMarkets", []),
+                "trading_type": fix.get("trading_type", "PreMatch")
             })
             
     if not matches:
@@ -2084,8 +2183,8 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
                     
                     value_tag = ""
                     if val_p1["is_value"]: 
@@ -2234,8 +2333,8 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
 
                     candidate_picks = []
 
@@ -2269,17 +2368,45 @@ async def run_pipeline():
                     game_diffs = mc_results.get("game_differentials", [])
                     for sp in m.get("neobet_spreads", []):
                         hc = sp["handicap"]
-                        p_home_sp = sum(1 for diff in game_diffs if diff + hc > 0) / len(game_diffs) if game_diffs else prob
-                        p_away_sp = 1.0 - p_home_sp
+                        p_home_sp_sim = sum(1 for diff in game_diffs if diff + hc > 0) / len(game_diffs) if game_diffs else prob
+                        p_away_sp_sim = 1.0 - p_home_sp_sim
                         
-                        fair_home_sp = round(1/p_home_sp, 2) if p_home_sp > 0.01 else 99
-                        fair_away_sp = round(1/p_away_sp, 2) if p_away_sp > 0.01 else 99
+                        # Fetch player-specific surface-specific format-scaled empirical spread cover rates
+                        emp_home_sp = calculate_empirical_spread_cover_rate(p1_history, full_n1, hc, is_slam=_is_slam, surface=surf)
+                        emp_away_sp = calculate_empirical_spread_cover_rate(p2_history, full_n2, -hc, is_slam=_is_slam, surface=surf)
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam)
-                        val_away_sp = calculate_value_metrics(p_away_sp, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam)
+                        # Apply 60/40 Bayesian blending between MC simulated probability and empirical historical cover rate
+                        p_home_sp_blended = (p_home_sp_sim * 0.60) + (emp_home_sp * 0.40)
+                        p_away_sp_blended = (p_away_sp_sim * 0.60) + (emp_away_sp * 0.40)
+                        
+                        # Normalize to 1.0
+                        tot_sp = p_home_sp_blended + p_away_sp_blended
+                        if tot_sp > 0:
+                            p_home_sp_final = p_home_sp_blended / tot_sp
+                            p_away_sp_final = p_away_sp_blended / tot_sp
+                        else:
+                            p_home_sp_final = 0.5
+                            p_away_sp_final = 0.5
+                        
+                        fair_home_sp = round(1/p_home_sp_final, 2) if p_home_sp_final > 0.01 else 99
+                        fair_away_sp = round(1/p_away_sp_final, 2) if p_away_sp_final > 0.01 else 99
+                        
+                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
                         
                         sign1 = "+" if hc > 0 else ""
                         sign2 = "+" if -hc > 0 else ""
+                        
+                        # Inject custom handicap coverage pattern warning or boost cards
+                        if emp_home_sp >= 0.65:
+                            val_home_sp["pattern_boost"] = f"🚀 Historical Cover Rate: {full_n1} has covered the {sign1}{hc} spread in {emp_home_sp:.1%} of recent matches on {surf.upper()}."
+                        elif emp_home_sp <= 0.35:
+                            val_home_sp["pattern_warning"] = f"⚠️ Historical Cover Risk: {full_n1} has covered the {sign1}{hc} spread in only {emp_home_sp:.1%} of recent matches on {surf.upper()}."
+                            
+                        if emp_away_sp >= 0.65:
+                            val_away_sp["pattern_boost"] = f"🚀 Historical Cover Rate: {full_n2} has covered the {sign2}{-hc} spread in {emp_away_sp:.1%} of recent matches on {surf.upper()}."
+                        elif emp_away_sp <= 0.35:
+                            val_away_sp["pattern_warning"] = f"⚠️ Historical Cover Risk: {full_n2} has covered the {sign2}{-hc} spread in only {emp_away_sp:.1%} of recent matches on {surf.upper()}."
                         
                         candidate_picks.append({
                             "market_type": "HANDICAP",
@@ -2331,8 +2458,8 @@ async def run_pipeline():
                         fair_over = round(1/p_over_blended, 2) if p_over_blended > 0.01 else 99
                         fair_under = round(1/p_under_blended, 2) if p_under_blended > 0.01 else 99
                         
-                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam)
-                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam)
+                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
                         
                         candidate_picks.append({
                             "market_type": "TOTALS",
@@ -2392,9 +2519,16 @@ async def run_pipeline():
                         sim_result["main_bet_type"] = "WINNER"
 
                     # Save pattern warnings / boosts / multipliers in games_prediction (sim_result)
-                    sim_result["pattern_warning"] = val_p1.get("pattern_warning") or val_p2.get("pattern_warning")
-                    sim_result["pattern_boost"] = val_p1.get("pattern_boost") or val_p2.get("pattern_boost")
-                    sim_result["pattern_multiplier"] = val_p1.get("pattern_multiplier") or val_p2.get("pattern_multiplier")
+                    if value_picks:
+                        best_pick = value_picks[0]
+                        best_val = best_pick["value_metrics"]
+                        sim_result["pattern_warning"] = best_val.get("pattern_warning")
+                        sim_result["pattern_boost"] = best_val.get("pattern_boost")
+                        sim_result["pattern_multiplier"] = best_val.get("pattern_multiplier", 1.0)
+                    else:
+                        sim_result["pattern_warning"] = val_p1.get("pattern_warning") or val_p2.get("pattern_warning")
+                        sim_result["pattern_boost"] = val_p1.get("pattern_boost") or val_p2.get("pattern_boost")
+                        sim_result["pattern_multiplier"] = val_p1.get("pattern_multiplier") or val_p2.get("pattern_multiplier")
 
                     derivative_note = f"\n[{sim_result['derivative_edge']}]" if sim_result.get('derivative_edge') else ""
                     ai_text_final = f"{ai['ai_text']} {value_tag}{derivative_note}\n[🎲 SIM: {sim_result['predicted_line']} Games]"

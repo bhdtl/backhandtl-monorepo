@@ -1,14 +1,14 @@
 [
   {
-    "id": "NEO|TN-542480",
-    "tradingType": "PreMatch",
-    "begin": "2026-05-27T09:00:00Z",
-    "lastUpdated": 1779840768985,
+    "id": "NEO|TN-543708",
+    "tradingType": "Live",
+    "begin": "2026-05-28T15:30:00Z",
+    "lastUpdated": 1779995357226,
     "sport": "Tennis",
     "region": "FR",
     "league": "French Open",
-    "home": "Khachanov, Karen",
-    "away": "Trungelliti, Marco",
+    "home": "Comesana, Francisco",
+    "away": "Darderi, Luciano",
     "regionLabel": "Frankreich",
     "homeJerseys": {
       "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
@@ -19,8 +19,8 @@
       "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
     },
     "contestStatus": {
-      "name": "Pregame",
-      "section": "SET1"
+      "name": "Running",
+      "section": "SET5GAME4"
     },
     "betmarkets": [
       {
@@ -30,69 +30,91 @@
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 1.26
+            "odds": 3.8
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 3.85
+            "odds": 1.25
           }
         ]
       },
       {
-        "key": "Set_MATCH_OddsBoost(Or,0.05,(BO(Set_MATCH_CorrectScore,Result(3:0)),BO(Set_MATCH_CorrectScore,Result(3:1))))",
-        "bettingType": "OddsBoost",
-        "odds": [
-          {
-            "key": "Y",
-            "outcome": "Yes",
-            "odds": 1.52,
-            "unboostedOdds": 1.43
-          }
-        ],
-        "translation": "Khachanov, Karen gewinnt 3:0 oder 3:1 nach Sätzen"
-      },
-      {
-        "key": "Game_MATCH_HC2W(-5.5)",
+        "key": "Game_MATCH_HC2W(5.5)",
         "bettingType": "Spread",
         "odds": [
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 1.78
+            "odds": 1.68
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 1.96
+            "odds": 2.08
           }
         ],
-        "handicap": -5.5
+        "handicap": 5.5
       },
       {
-        "key": "Game_MATCH_OU(36.5)",
+        "key": "Game_MATCH_OU(50.5)",
         "bettingType": "OverUnder",
         "odds": [
           {
             "key": "-",
             "outcome": "Under",
-            "odds": 1.82
+            "odds": 1.98
           },
           {
             "key": "+",
             "outcome": "Over",
-            "odds": 1.92
+            "odds": 1.76
           }
         ],
-        "boundary": 36.5
+        "boundary": 50.5
       }
     ],
     "scores": [
       {
+        "name": "SET1",
+        "score": [
+          "7",
+          "6"
+        ]
+      },
+      {
+        "name": "SET2",
+        "score": [
+          "4",
+          "6"
+        ]
+      },
+      {
+        "name": "SET3",
+        "score": [
+          "6",
+          "4"
+        ]
+      },
+      {
+        "name": "SET4",
+        "score": [
+          "2",
+          "6"
+        ]
+      },
+      {
+        "name": "SET5",
+        "score": [
+          "1",
+          "2"
+        ]
+      },
+      {
         "name": "Match",
         "score": [
-          "0",
-          "0"
+          "2",
+          "2"
         ]
       },
       {
@@ -107,15 +129,15 @@
     "atMode": false
   },
   {
-    "id": "NEO|TN-542483",
-    "tradingType": "PreMatch",
-    "begin": "2026-05-27T09:00:00Z",
-    "lastUpdated": 1779841567762,
+    "id": "NEO|TN-542784",
+    "tradingType": "Live",
+    "begin": "2026-05-28T16:20:00Z",
+    "lastUpdated": 1779995369428,
     "sport": "Tennis",
     "region": "FR",
     "league": "French Open",
-    "home": "Davidovich Fokina, Alejandro",
-    "away": "Tirante, Thiago Agustin",
+    "home": "Van Assche, Luca",
+    "away": "Nakashima, Brandon",
     "regionLabel": "Frankreich",
     "homeJerseys": {
       "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
@@ -126,8 +148,8 @@
       "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
     },
     "contestStatus": {
-      "name": "Pregame",
-      "section": "SET1"
+      "name": "Running",
+      "section": "SET3GAME9"
     },
     "betmarkets": [
       {
@@ -137,56 +159,77 @@
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 2.18
+            "odds": 2.4
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 1.66
+            "odds": 1.56
           }
         ]
       },
       {
-        "key": "Game_MATCH_HC2W(1.5)",
+        "key": "Game_MATCH_HC2W(3.5)",
         "bettingType": "Spread",
         "odds": [
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 1.88
+            "odds": 1.74
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 1.84
+            "odds": 2.02
           }
         ],
-        "handicap": 1.5
+        "handicap": 3.5
       },
       {
-        "key": "Game_MATCH_OU(39.5)",
+        "key": "Game_MATCH_OU(48.5)",
         "bettingType": "OverUnder",
         "odds": [
           {
             "key": "-",
             "outcome": "Under",
-            "odds": 1.82
+            "odds": 1.8
           },
           {
             "key": "+",
             "outcome": "Over",
-            "odds": 1.92
+            "odds": 1.94
           }
         ],
-        "boundary": 39.5
+        "boundary": 48.5
       }
     ],
     "scores": [
       {
+        "name": "SET1",
+        "score": [
+          "7",
+          "6"
+        ]
+      },
+      {
+        "name": "SET2",
+        "score": [
+          "4",
+          "6"
+        ]
+      },
+      {
+        "name": "SET3",
+        "score": [
+          "4",
+          "4"
+        ]
+      },
+      {
         "name": "Match",
         "score": [
-          "0",
-          "0"
+          "1",
+          "1"
         ]
       },
       {
@@ -201,15 +244,15 @@
     "atMode": false
   },
   {
-    "id": "NEO|TN-542819",
-    "tradingType": "PreMatch",
-    "begin": "2026-05-27T09:00:00Z",
-    "lastUpdated": 1779842190024,
+    "id": "NEO|TN-543158",
+    "tradingType": "Live",
+    "begin": "2026-05-28T17:45:00Z",
+    "lastUpdated": 1779995367333,
     "sport": "Tennis",
     "region": "FR",
     "league": "French Open",
-    "home": "Cina, Federico",
-    "away": "De Jong, Jesper",
+    "home": "Boulter, Katie",
+    "away": "Potapova, Anastasia",
     "regionLabel": "Frankreich",
     "homeJerseys": {
       "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
@@ -220,8 +263,8 @@
       "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
     },
     "contestStatus": {
-      "name": "Pregame",
-      "section": "SET1"
+      "name": "Running",
+      "section": "SET2GAME8"
     },
     "betmarkets": [
       {
@@ -231,12 +274,12 @@
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 2.22
+            "odds": 3.0
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 1.64
+            "odds": 1.37
           }
         ]
       },
@@ -247,248 +290,277 @@
           {
             "key": "1",
             "outcome": "Home",
-            "odds": 1.88
+            "odds": 2.02
           },
           {
             "key": "2",
             "outcome": "Away",
-            "odds": 1.84
+            "odds": 1.72
           }
         ],
         "handicap": 2.5
       },
       {
-        "key": "Game_MATCH_OU(37.5)",
+        "key": "Game_MATCH_OU(30.5)",
         "bettingType": "OverUnder",
         "odds": [
           {
             "key": "-",
             "outcome": "Under",
-            "odds": 1.92
+            "odds": 1.76
           },
           {
             "key": "+",
             "outcome": "Over",
+            "odds": 1.98
+          }
+        ],
+        "boundary": 30.5
+      }
+    ],
+    "scores": [
+      {
+        "name": "SET1",
+        "score": [
+          "7",
+          "5"
+        ]
+      },
+      {
+        "name": "SET2",
+        "score": [
+          "2",
+          "5"
+        ]
+      },
+      {
+        "name": "Match",
+        "score": [
+          "1",
+          "0"
+        ]
+      },
+      {
+        "name": "CurrentGame",
+        "score": [
+          "40",
+          "0"
+        ]
+      }
+    ],
+    "metadata": {},
+    "atMode": false
+  },
+  {
+    "id": "NEO|TN-543124",
+    "tradingType": "Live",
+    "begin": "2026-05-28T17:55:00Z",
+    "lastUpdated": 1779995356979,
+    "sport": "Tennis",
+    "region": "FR",
+    "league": "French Open",
+    "home": "Collignon, Raphael",
+    "away": "Shelton, Ben",
+    "regionLabel": "Frankreich",
+    "homeJerseys": {
+      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
+      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-home.png"
+    },
+    "awayJerseys": {
+      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-away.png",
+      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
+    },
+    "contestStatus": {
+      "name": "Running",
+      "section": "SET2GAME11"
+    },
+    "betmarkets": [
+      {
+        "key": "Set_MATCH_HC2W(0.0)",
+        "bettingType": "MatchWin",
+        "odds": [
+          {
+            "key": "1",
+            "outcome": "Home",
+            "odds": 1.33
+          },
+          {
+            "key": "2",
+            "outcome": "Away",
+            "odds": 3.3
+          }
+        ]
+      },
+      {
+        "key": "Game_MATCH_HC2W(-3.5)",
+        "bettingType": "Spread",
+        "odds": [
+          {
+            "key": "1",
+            "outcome": "Home",
+            "odds": 1.66
+          },
+          {
+            "key": "2",
+            "outcome": "Away",
+            "odds": 2.16
+          }
+        ],
+        "handicap": -3.5
+      },
+      {
+        "key": "Game_MATCH_OU(43.5)",
+        "bettingType": "OverUnder",
+        "odds": [
+          {
+            "key": "-",
+            "outcome": "Under",
+            "odds": 1.7
+          },
+          {
+            "key": "+",
+            "outcome": "Over",
+            "odds": 2.04
+          }
+        ],
+        "boundary": 43.5
+      }
+    ],
+    "scores": [
+      {
+        "name": "SET1",
+        "score": [
+          "6",
+          "4"
+        ]
+      },
+      {
+        "name": "SET2",
+        "score": [
+          "5",
+          "5"
+        ]
+      },
+      {
+        "name": "Match",
+        "score": [
+          "1",
+          "0"
+        ]
+      },
+      {
+        "name": "CurrentGame",
+        "score": [
+          "40",
+          "0"
+        ]
+      }
+    ],
+    "metadata": {},
+    "atMode": false
+  },
+  {
+    "id": "NEO|TN-543498",
+    "tradingType": "Live",
+    "begin": "2026-05-28T18:00:00Z",
+    "lastUpdated": 1779995370825,
+    "sport": "Tennis",
+    "region": "FR",
+    "league": "French Open",
+    "home": "Arnaldi, Matteo",
+    "away": "Tsitsipas, Stefanos",
+    "regionLabel": "Frankreich",
+    "homeJerseys": {
+      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
+      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-home.png"
+    },
+    "awayJerseys": {
+      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-away.png",
+      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
+    },
+    "contestStatus": {
+      "name": "Running",
+      "section": "SET2GAME2"
+    },
+    "betmarkets": [
+      {
+        "key": "Set_MATCH_HC2W(0.0)",
+        "bettingType": "MatchWin",
+        "odds": [
+          {
+            "key": "1",
+            "outcome": "Home",
+            "odds": 1.44
+          },
+          {
+            "key": "2",
+            "outcome": "Away",
+            "odds": 2.72
+          }
+        ]
+      },
+      {
+        "key": "Game_MATCH_HC2W(-3.5)",
+        "bettingType": "Spread",
+        "odds": [
+          {
+            "key": "1",
+            "outcome": "Home",
+            "odds": 1.9
+          },
+          {
+            "key": "2",
+            "outcome": "Away",
             "odds": 1.82
           }
         ],
-        "boundary": 37.5
-      }
-    ],
-    "scores": [
-      {
-        "name": "Match",
-        "score": [
-          "0",
-          "0"
-        ]
+        "handicap": -3.5
       },
       {
-        "name": "CurrentGame",
-        "score": [
-          "0",
-          "0"
-        ]
-      }
-    ],
-    "metadata": {},
-    "atMode": false
-  },
-  {
-    "id": "NEO|TN-542466",
-    "tradingType": "PreMatch",
-    "begin": "2026-05-27T09:00:00Z",
-    "lastUpdated": 1779838620179,
-    "sport": "Tennis",
-    "region": "FR",
-    "league": "French Open",
-    "home": "McNally, Catherine",
-    "away": "Bencic, Belinda",
-    "regionLabel": "Frankreich",
-    "homeJerseys": {
-      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
-      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-home.png"
-    },
-    "awayJerseys": {
-      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-away.png",
-      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
-    },
-    "contestStatus": {
-      "name": "Pregame",
-      "section": "SET1"
-    },
-    "betmarkets": [
-      {
-        "key": "Set_MATCH_HC2W(0.0)",
-        "bettingType": "MatchWin",
-        "odds": [
-          {
-            "key": "1",
-            "outcome": "Home",
-            "odds": 3.6
-          },
-          {
-            "key": "2",
-            "outcome": "Away",
-            "odds": 1.28
-          }
-        ]
-      },
-      {
-        "key": "Game_MATCH_HC2W(4.5)",
-        "bettingType": "Spread",
-        "odds": [
-          {
-            "key": "1",
-            "outcome": "Home",
-            "odds": 1.84
-          },
-          {
-            "key": "2",
-            "outcome": "Away",
-            "odds": 1.88
-          }
-        ],
-        "handicap": 4.5
-      },
-      {
-        "key": "Game_MATCH_OU(20.5)",
+        "key": "Game_MATCH_OU(42.5)",
         "bettingType": "OverUnder",
         "odds": [
           {
             "key": "-",
             "outcome": "Under",
-            "odds": 1.84
+            "odds": 1.96
           },
           {
             "key": "+",
             "outcome": "Over",
-            "odds": 1.9
-          }
-        ],
-        "boundary": 20.5
-      }
-    ],
-    "scores": [
-      {
-        "name": "Match",
-        "score": [
-          "0",
-          "0"
-        ]
-      },
-      {
-        "name": "CurrentGame",
-        "score": [
-          "0",
-          "0"
-        ]
-      }
-    ],
-    "metadata": {},
-    "atMode": false
-  },
-  {
-    "id": "NEO|TN-542521",
-    "tradingType": "PreMatch",
-    "begin": "2026-05-27T09:00:00Z",
-    "lastUpdated": 1779841125785,
-    "sport": "Tennis",
-    "region": "FR",
-    "league": "French Open",
-    "home": "Korpatsch, Tamara",
-    "away": "Wang, Xinyu",
-    "regionLabel": "Frankreich",
-    "homeJerseys": {
-      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-home.png",
-      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-home.png"
-    },
-    "awayJerseys": {
-      "small": "https://media.neo.bet/sportbet/jerseys/Tennis/w125/Default-away.png",
-      "large": "https://media.neo.bet/sportbet/jerseys/Tennis/w250/Default-away.png"
-    },
-    "contestStatus": {
-      "name": "Pregame",
-      "section": "SET1"
-    },
-    "betmarkets": [
-      {
-        "key": "Set_MATCH_HC2W(0.0)",
-        "bettingType": "MatchWin",
-        "odds": [
-          {
-            "key": "1",
-            "outcome": "Home",
-            "odds": 1.98
-          },
-          {
-            "key": "2",
-            "outcome": "Away",
             "odds": 1.8
           }
-        ]
-      },
-      {
-        "key": "Set_MATCH_OddsBoost(And,0.05,(BO(Set_MATCH_HC2W(0.0),1)))",
-        "bettingType": "OddsBoost",
-        "odds": [
-          {
-            "key": "Y",
-            "outcome": "Yes",
-            "odds": 2.18,
-            "unboostedOdds": 1.98
-          }
         ],
-        "translation": "Korpatsch, Tamara gewinnt"
-      },
-      {
-        "key": "Game_MATCH_HC2W(0.5)",
-        "bettingType": "Spread",
-        "odds": [
-          {
-            "key": "1",
-            "outcome": "Home",
-            "odds": 1.86
-          },
-          {
-            "key": "2",
-            "outcome": "Away",
-            "odds": 1.88
-          }
-        ],
-        "handicap": 0.5
-      },
-      {
-        "key": "Game_MATCH_OU(21.5)",
-        "bettingType": "OverUnder",
-        "odds": [
-          {
-            "key": "-",
-            "outcome": "Under",
-            "odds": 1.84
-          },
-          {
-            "key": "+",
-            "outcome": "Over",
-            "odds": 1.88
-          }
-        ],
-        "boundary": 21.5
+        "boundary": 42.5
       }
     ],
     "scores": [
       {
+        "name": "SET1",
+        "score": [
+          "7",
+          "6"
+        ]
+      },
+      {
+        "name": "SET2",
+        "score": [
+          "1",
+          "0"
+        ]
+      },
+      {
         "name": "Match",
         "score": [
-          "0",
+          "1",
           "0"
         ]
       },
       {
         "name": "CurrentGame",
         "score": [
-          "0",
-          "0"
+          "40",
+          "30"
         ]
       }
     ],
