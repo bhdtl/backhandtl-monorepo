@@ -946,7 +946,7 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
         res_live = supabase.table("market_odds").select("player1_name, player2_name, odds1, odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text").or_(f"player1_name.ilike.%{player_last_name}%,player2_name.ilike.%{player_last_name}%").not_.is_("actual_winner_name", "null").order("created_at", desc=True).limit(limit).execute()
         live = res_live.data or []
 
-        res_hist = supabase.table("historical_matches").select("winner_name, loser_name, match_date, score, tourney_name, surface").or_(f"winner_name.ilike.%{player_last_name}%,loser_name.ilike.%{player_last_name}%").order("match_date", desc=True).limit(limit).execute()
+        res_hist = supabase.table("historical_matches").select("winner_name, loser_name, match_date, score, tourney_name, surface, best_of").or_(f"winner_name.ilike.%{player_last_name}%,loser_name.ilike.%{player_last_name}%").order("match_date", desc=True).limit(limit).execute()
         hist = res_hist.data or []
 
         combined = []
@@ -959,6 +959,8 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
                 "created_at": m["created_at"],
                 "odds1": m.get("odds1", 1.85),
                 "odds2": m.get("odds2", 1.85),
+                "tournament": m.get("tournament", ""),
+                "best_of": 5 if any(kw in (m.get("tournament") or "").lower() for kw in ["australian open", "roland garros", "french open", "wimbledon", "us open"]) else 3
             })
             
         for m in hist:
@@ -970,6 +972,9 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
                 "created_at": m["match_date"] + "T00:00:00Z", 
                 "odds1": 1.85, 
                 "odds2": 1.85,
+                "tourney_name": m.get("tourney_name", ""),
+                "best_of": int(m.get("best_of") or 3),
+                "surface": m.get("surface", "")
             })
 
         combined.sort(key=lambda x: str(x["created_at"]), reverse=True)
@@ -1100,8 +1105,7 @@ def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: 
     """
     Calculates empirical Over/Under rates from player history,
     blending it with the global baseline from pattern_cache.
-    Bo3 (regular): lines 20.5, 21.5, 22.5, 23.5
-    Bo5 (Grand Slam): lines 33.5, 35.5, 37.5, 39.5
+    Dynamically scales game counts up/down if there is a Bo3/Bo5 mismatch.
     """
     surf = (surface or '').lower()
     if 'clay' in surf: surf = 'clay'
@@ -1116,12 +1120,23 @@ def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: 
         prior = _PATTERN_CACHE["ou_base_rates"].get(key, {})
         
     games_list = []
-    min_games = 20 if is_slam else 12  # Bo5 matches have >20 games min
+    min_games = 12  # baseline threshold to filter retirements/walkovers
     for h in history1[:15] + history2[:15]:
         score_str = str(h.get('score', ''))
         if score_str and len(score_str) > 2:
             tg = get_total_games(score_str)
             if tg > min_games:
+                # Detect format of this historical match
+                h_best_of = int(h.get('best_of') or 3)
+                t_name = (h.get('tourney_name') or h.get('tournament') or '').lower()
+                h_is_slam = h_best_of == 5 or any(s in t_name for s in ["australian open", "roland garros", "french open", "wimbledon", "us open"])
+                
+                # Scale if formats mismatch!
+                if is_slam and not h_is_slam:
+                    tg = tg * 1.58
+                elif not is_slam and h_is_slam:
+                    tg = tg / 1.58
+                
                 games_list.append(tg)
     
     total = len(games_list)

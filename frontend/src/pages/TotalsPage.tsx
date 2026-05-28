@@ -116,6 +116,14 @@ export function TotalsPage() {
         const processedMatches = (activeData || []).map(match => {
             const surface = guessSurfaceFromTournament(match.tournament);
             
+            const guessIsSlam = (tourName: string) => {
+                if (!tourName) return false;
+                const t = tourName.toLowerCase();
+                return t.includes('wimbledon') || t.includes('us open') || t.includes('roland garros') || t.includes('french open') || t.includes('australian open');
+            };
+
+            const isSlam = match.games_prediction?.is_grand_slam || guessIsSlam(match.tournament);
+
             const getPlayerAvg = (playerName: string) => {
                 if (!playerName) return null;
                 const searchName = playerName.toLowerCase().split(' ').pop() || playerName.toLowerCase();
@@ -131,8 +139,16 @@ export function TotalsPage() {
                 let validCount = 0;
 
                 matches.forEach(m => {
-                    const games = calculateTotalGames(m.score);
+                    let games = calculateTotalGames(m.score);
                     if (games) {
+                        const isHistSlam = guessIsSlam(m.tournament);
+                        if (isSlam && !isHistSlam) {
+                            // Scale Bo3 match up to Bo5 equivalent
+                            games = games * 1.58;
+                        } else if (!isSlam && isHistSlam) {
+                            // Scale Bo5 match down to Bo3 equivalent
+                            games = games / 1.58;
+                        }
                         totalGames += games;
                         validCount++;
                     }
