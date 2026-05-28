@@ -2046,6 +2046,14 @@ async def run_pipeline():
                 _best_of = 3
                 if _is_slam and not _is_wta:
                     _best_of = 5
+                
+                # 🚀 SOTA: Dynamic Bookmaker Line Override (Foolproof Syndicate Approach)
+                _bookie_ou = m.get('actual_ou_line')
+                if _bookie_ou and isinstance(_bookie_ou, (int, float)):
+                    if _bookie_ou >= 30.0:
+                        _best_of = 5
+                    else:
+                        _best_of = 3
 
                 weather_data = await fetch_weather_data(city_for_weather)
 
@@ -2139,14 +2147,20 @@ async def run_pipeline():
 
                     sim_result = QuantumGamesSimulator.run_simulation(s1, s2, bsi, surf, actual_ou_line=m.get('actual_ou_line'), empirical_ou=empirical_ou, best_of=_best_of)
                     
-                    # 🚀 SOTA: Pure Data Markov Chain
-                    # 🎾 Grand Slam detection for Bo5
                     _slam_kw = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
                     _is_slam = any(kw in matched_tour_name.lower() for kw in _slam_kw)
                     _is_wta = (p1_obj and p1_obj.get('tour') == 'WTA') or "wta" in matched_tour_name.lower() or "women" in matched_tour_name.lower()
                     _best_of = 3
                     if _is_slam and not _is_wta:
                         _best_of = 5
+
+                    # 🚀 SOTA: Dynamic Bookmaker Line Override (Foolproof Syndicate Approach)
+                    _bookie_ou = m.get('actual_ou_line')
+                    if _bookie_ou and isinstance(_bookie_ou, (int, float)):
+                        if _bookie_ou >= 30.0:
+                            _best_of = 5
+                        else:
+                            _best_of = 3
 
                     mc_results = MarkovChainEngine.run_simulation(
                         s1=s1, s2=s2,
