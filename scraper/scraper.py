@@ -2042,7 +2042,10 @@ async def run_pipeline():
                 
                 _slam_kw = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
                 _is_slam = any(kw in matched_tour_name.lower() for kw in _slam_kw)
-                _best_of = 5 if _is_slam else 3
+                _is_wta = (p1_obj and p1_obj.get('tour') == 'WTA') or "wta" in matched_tour_name.lower() or "women" in matched_tour_name.lower()
+                _best_of = 3
+                if _is_slam and not _is_wta:
+                    _best_of = 5
 
                 weather_data = await fetch_weather_data(city_for_weather)
 
@@ -2129,7 +2132,7 @@ async def run_pipeline():
                     except Exception as update_err:
                         log(f"⚠️ Failed to update live player ratings: {update_err}")
 
-                    empirical_ou = calculate_empirical_ou(p1_history, p2_history, is_slam=_is_slam)
+                    empirical_ou = calculate_empirical_ou(p1_history, p2_history, is_slam=(_best_of == 5))
 
                     sackmannA = s1.get('sackmann_metrics', {})
                     sackmannB = s2.get('sackmann_metrics', {})
@@ -2140,7 +2143,10 @@ async def run_pipeline():
                     # 🎾 Grand Slam detection for Bo5
                     _slam_kw = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
                     _is_slam = any(kw in matched_tour_name.lower() for kw in _slam_kw)
-                    _best_of = 5 if _is_slam else 3
+                    _is_wta = (p1_obj and p1_obj.get('tour') == 'WTA') or "wta" in matched_tour_name.lower() or "women" in matched_tour_name.lower()
+                    _best_of = 3
+                    if _is_slam and not _is_wta:
+                        _best_of = 5
 
                     mc_results = MarkovChainEngine.run_simulation(
                         s1=s1, s2=s2,
