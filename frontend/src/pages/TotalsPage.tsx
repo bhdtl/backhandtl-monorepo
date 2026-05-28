@@ -398,7 +398,7 @@ export function TotalsPage() {
                                     <div className="p-5 relative z-10 flex-grow">
                                         <div className="flex flex-col gap-3 mb-6">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-black text-white">{match.player1_name}</span>
+                                                <span className="text-sm font-black text-white truncate max-w-[140px] xs:max-w-[180px] md:max-w-none" title={match.player1_name}>{match.player1_name}</span>
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">L10 Avg</span>
                                                     <span className="text-xs font-mono font-bold text-gray-300">
@@ -408,7 +408,7 @@ export function TotalsPage() {
                                             </div>
                                             <div className="w-full h-px bg-white/5"></div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-black text-white">{match.player2_name}</span>
+                                                <span className="text-sm font-black text-white truncate max-w-[140px] xs:max-w-[180px] md:max-w-none" title={match.player2_name}>{match.player2_name}</span>
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">L10 Avg</span>
                                                     <span className="text-xs font-mono font-bold text-gray-300">

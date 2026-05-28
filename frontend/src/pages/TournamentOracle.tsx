@@ -452,7 +452,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[120px] md:max-w-[160px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] md:max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
@@ -480,7 +480,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[120px] md:max-w-[160px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] md:max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (

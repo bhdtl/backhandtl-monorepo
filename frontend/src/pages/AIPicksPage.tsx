@@ -612,7 +612,7 @@ export function AIPicksPage() {
                                                      </span>
                                                  )}
                                              </div>
-                                            <span className="text-xs md:text-sm font-black text-white truncate max-w-[160px]" title={val.pickName}>
+                                            <span className="text-xs md:text-sm font-black text-white truncate max-w-[180px] xs:max-w-[220px] sm:max-w-[280px] md:max-w-none" title={val.pickName}>
                                                 {displayPickName(val.pickName)}
                                             </span>
                                         </div>

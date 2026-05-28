@@ -871,15 +871,15 @@ export function ValueScanner() {
                     {/* --- CONTENT --- */}
                     <div className={`transition-opacity duration-500 ${isFinished ? 'opacity-40 blur-[1px] grayscale' : ''}`}>
                         <div className="flex items-center justify-between mb-5 cursor-pointer" onClick={() => handleMatchClick(match)}>
-                              <div className="flex flex-col w-[35%]">
-                                  <div className={`text-sm font-black uppercase leading-none truncate mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                              <div className="flex flex-col w-[32%]">
+                                  <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                       {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
                                   </div>
                                   <div className="text-[10px] font-mono font-medium text-gray-500">Best: <span className="text-white">{(match.marketOddsA || 0).toFixed(2)}</span></div>
                               </div>
 
-                              <div className="flex flex-col items-center justify-center w-[30%]">
-                                  <div className="bg-black/40 px-2 md:px-3 py-1.5 rounded-lg border border-white/5 flex flex-col items-center shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+                              <div className="flex flex-col items-center justify-center w-[36%]">
+                                  <div className="bg-black/40 px-2 md:px-3 py-1.5 rounded-lg border border-white/5 flex flex-col items-center shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-full">
                                       <span className="text-[6px] md:text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
                                       <div className="flex flex-col md:flex-row items-center gap-0 md:gap-2 font-mono text-[10px] md:text-[11px] font-bold leading-tight">
                                           <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
@@ -889,8 +889,8 @@ export function ValueScanner() {
                                   </div>
                               </div>
 
-                              <div className="flex flex-col items-end text-right w-[35%]">
-                                  <div className={`text-sm font-black uppercase leading-none truncate mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                              <div className="flex flex-col items-end text-right w-[32%]">
+                                  <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                       {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
                                   </div>
                                   <div className="text-[10px] font-mono font-medium text-gray-500">Best: <span className="text-white">{(match.marketOddsB || 0).toFixed(2)}</span></div>
@@ -943,9 +943,9 @@ export function ValueScanner() {
                                     </div>
                                 </div>
 
-                                {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
-                                <div className="bg-gradient-to-r from-white/[0.05] to-transparent rounded-lg px-3 py-2 flex justify-between items-center border border-white/10 border-l-2 border-l-tennis-lime shadow-lg">
-                                     <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3">
+                                 {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
+                                <div className="bg-gradient-to-r from-white/[0.05] to-transparent rounded-lg px-3 py-2.5 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:items-center border border-white/10 border-l-2 border-l-tennis-lime shadow-lg">
+                                     <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                                          <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">
                                              Pick: <span className="text-white font-black">{formatLastName(safePickName)}</span>
                                          </span>
@@ -957,7 +957,7 @@ export function ValueScanner() {
                                          )}
                                      </div>
 
-                                     <div className="flex items-center gap-3">
+                                     <div className="flex flex-wrap items-center gap-3 sm:justify-end">
                                          {hasMovement && (
                                             <div className={`flex items-center gap-0.5 text-[8px] font-mono font-black ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} bg-black/40 px-1.5 py-0.5 rounded border border-white/5`} title={`Opening Line: ${activePickOpenOdds.toFixed(2)}`}>
                                                 {isSharpDumping ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
@@ -976,7 +976,7 @@ export function ValueScanner() {
                                              FAIR: <span className="text-white font-bold">{safeFairOdds.toFixed(2)}</span>
                                          </div>
                                          <div className={`flex items-center gap-1 text-[10px] font-black ${edgeColorClass}`}>
-                                             <Zap size={12} />
+                                              <Zap size={12} />
                                              {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
                                          </div>
                                      </div>
@@ -985,12 +985,12 @@ export function ValueScanner() {
                                 {/* ALT PLAYS */}
                                 {altPlays.map((play, i) => (
                                     <div key={i} className={`${play.bg} rounded-lg px-3 py-2 flex justify-between items-center border ${play.border} shadow-inner`}>
-                                        <div className="flex items-center gap-1.5 w-[30%]">
+                                        <div className="flex items-center gap-1.5 w-[32%]">
                                             <play.icon size={10} className={play.color} />
                                             <span className={`text-[8px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
                                         </div>
-                                        <span className="text-[9px] font-bold text-white uppercase text-center w-[40%]">{play.label}</span>
-                                        <div className="flex flex-col items-end w-[30%]">
+                                        <span className="text-[9px] font-bold text-white uppercase text-center w-[36%]">{play.label}</span>
+                                        <div className="flex flex-col items-end w-[32%]">
                                             {play.isTarget ? (
                                                 <>
                                                     <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.targetValue}</span>
