@@ -1,0 +1,1140 @@
+NEO.BET Match API Documentation
+Changelog
+Date
+Changes
+2018-03-14
+First Version
+2018-04-17
+Sport, region, league and team labels for internationalization added
+2018-07-04
+Changed API-Urls
+2018-07-25
+Changed Response JSON structure
+2018-10-15
+Removed URL prefix and added affiliateId
+2019-04-24
+Linking added
+2020-01-07
+Link Tool added
+2021-03-16
+New sports added
+2021-12-06
+Changed Response JSON structure
+Added Parameter API
+Updated deep linking
+2023-12-13
+New deeplink format
+2025-01-07
+Additional Query Parameter for Matches and general clean up
+
+
+API: Matches
+Request
+Query Parameters
+Available Sports
+Response
+JSON Structure
+ContestStatus
+TradingTypes
+Betmarket
+Odds
+Scores
+API: Sports / Regions / Leagues / Teams
+Request
+Request
+Response
+JSON Structure
+API: In Action
+Ad-hoc requests
+Import stream
+Node.js Example
+Linking (outdated -> will be updated soon)
+Structure
+Deep Links to betslip
+AffiliateId
+Link Tool
+
+API: Matches
+NEO.BET provides an API to request data of matches for your own banners.
+In response to a request, the API always returns a list of matches.
+These matches will be sorted by their popularity by default.
+Request
+The NEO.BET API is requested with a GET request.
+Request parameters are sent as URL encoded query parameters.
+
+Request without parameters
+https://neo.bet/.sportsbet/program/matches
+Request with parameters
+https://neo.bet/.sportsbet/program/matches?sport=Football&region=ENG&league=Premier%20League
+Query Parameters
+The query parameters allow the request to be specified more precisely
+
+Query Parameter
+Example value
+Default value
+Description
+sport
+Football
+-
+Specifies the sport of the matches.
+Needs to be one of Sports
+region
+ENG
+-
+Specifies the region of the matches.
+Needs to fit a ISO Region or one of our custom regions. It only works in combination with a sport.
+league
+Premier League
+-
+Needs to have sport and region set
+team
+Stoke City
+-
+Needs to be a valid team name and sport has to be set
+matchCount
+30
+50
+Number of matches to be returned. If not all matches fit the search criteria the list will be filled with maches that fit less query parameters.
+50 is the hard maximum, a higher matchCount will result in 50 matches.
+language
+DE
+EN
+Language for the response Data to be translated in.
+EN will be used for non supported languages
+sortBy
+begin
+popularity
+Specifies the sorting of the matches
+autoFill
+false
+true
+If true (default) requests to sports without enough matches are fulfilled with other popular matches from other sports.
+updatedAfter
+1520996275861
+-
+Only matches that were updated after this timestamp will be sent. If set the matches will be sorted by the lastUpdated value, not the stake distribution. See the Import stream section on how to use this feature to constantly import and update our complete list of matches. 
+market
+handicap
+matchwin, oddsboost, overunder,
+spread, handicap
+Needs to be any amount of markets.
+contestId
+RBP|BB-407364
+-
+Needs to be a valid Id. Takes only the first Id if multiple are set.
+beginBefore
+1520996275861
+-
+Only matches that begin before this timestamp will be sent.
+teamFilter
+and
+or
+Chains together all set teams with the set filter.
+license
+Germany
+Malta
+One of Malta, Germany, Netherlands, Canada_Ontario, South_Africa or Unknown.
+Available Sports
+
+Sport
+Football
+AmericanFootball
+AquaticSports
+Athletics
+AustralianRules
+Badminton
+Bandy
+Baseball
+Basketball
+BeachSoccer
+BeachVolleyball
+BoatRacing
+CallOfDuty
+Combatsport
+CounterstrikeGO
+Cricket
+Curling
+Cycling
+Darts
+DefenseOfTheAncient
+Equestrian
+Floorball
+Futsal
+Golf
+Gymnastics
+Handball
+Hockey
+HonorOfKings
+IceHockey
+Kabddi
+Lacrosse
+LeagueOfLegends
+Motorsport
+Overwatch
+RainbowSixSiege
+RocketLeague
+Rugby
+Snooker
+Squash
+Starcraft2
+Surfing
+TabelTennis
+Tennis
+Valorant
+Volleyball
+Waterpolo
+Wintersports
+Available Markets
+If not stated otherwise it provides only the most balanced market odd-wise. For example when there are multiple PlayerToScore Markets only the one with the smallest difference between the odds is provided.
+
+Market Name
+Notes
+Full
+Requires a ContestId, provides every market for that game. If no Id is provided it will use the other provided markets/the default markets. When you use full type the json response has a slightly different structure.
+All
+Provides every market below.
+MatchWin
+
+HeadToHead
+
+DoubleChance
+
+Spread
+
+OverUnder
+
+OverUnders
+Provides all Over Under Markets. Will be ignored when OverUnder is provided.
+Handicap
+
+Handicaps
+Provides all Handicap Markets. Will be ignored when Handicap is provided.
+AsianHandicaps
+
+CorrectScore
+
+PlayerToScore
+
+FirstPlayerToScore
+
+Place
+
+TopBatsman
+
+TopBowler
+
+OddsBoost
+
+BothTeamsToScore
+
+Custom Regions
+Region
+Code
+World
+INT
+Africa
+AFR
+America
+AME
+Asia
+ASI
+Europe
+EUR
+Oceania
+OCE
+England
+ENG
+Wales
+WAL
+North Ireland
+NIR
+Scotland
+SCO
+Rest of the World
+ROW
+USA & Canada
+USCA
+Online
+ONL
+Hongkong
+HK
+North Macedonia
+MK
+Eswatini
+SZ
+Kosovo
+XK
+Democratic Republic of the Congo
+CD
+Saint Vincent and the Grenadines
+VC
+Bonaire
+BQ
+Normal Response
+The response of the API always contains a list of matches with the requested matchCount. Example:
+
+[{
+   "id":"RBP|FB-12345",
+   "tradingType":"Live",
+   "begin":"2018-03-15T20:05:00Z",
+   "lastUpdated":1520996676290,
+   "sport":"Football",
+   "region":"Europe",
+   "league":"UEFA Europa League",
+   "home":"Red Bull Salzburg",
+   "away":"Borussia Dortmund",
+   "betmarkets":[
+      {
+         "bettingType":"matchWin",
+         "odds":[
+            {
+               "outcome":"Home",
+               "odds":3.1
+            },
+            {
+               "outcome":"Draw",
+               "odds":3.6
+            },
+            {
+               "outcome":"Away",
+               "odds":2.2
+            }
+         ]
+      },
+      {
+         "bettingType":"overUnder",
+         "odds":[
+            {
+               "outcome":"Under",
+               "odds":2.3
+            },
+            {
+               "outcome":"Over",
+               "odds":1.65
+            }
+         ],
+         "boundary":2.5
+      }
+   ],
+   "scores":[
+      {
+         "name":"Match",
+         "score":[
+            "0",
+            "0"
+         ]
+      }
+   ]
+}]
+JSON Structure
+Field
+Value
+Description
+id
+RBP|FB-12345
+ID of the match
+tradingType
+Live
+One of the TradingTypes
+begin
+2018-03-15T20:05:00Z
+Date and time of the scheduled begin
+lastUpdated
+1520996676290
+Last update of a match in Milliseconds after 1970-01-01
+sport
+Football
+Of type Sports
+region
+EUR
+Region ID of the match
+league
+UEFA Europa League
+League of the match
+home
+Red Bull Salzburg
+Home team name
+away
+Borussia Dortmund
+Away team name
+sportLabel
+Fußball / if request language is de
+Only if different from sport. Label with the translation of sport in the requested language
+regionLabel
+Europe
+Label with the translation of the region in the requested language
+leagueLabel
+not set / not different from league
+Only if different from league. Label with the translation of league in the requested language
+homeLabel
+not set / not different from home
+Only if different from home. Label with the translation of home team in the requested language
+awayLabel
+not set / not different from away
+Only if different from away. Label with the translation of away team in the requested language
+betmarkets
+Betmarket List
+List of Betmarkets
+scores
+Scores List
+List of Scores
+contestStatus
+{
+   section: ‘HT1’,
+   playingTime: {
+      current: 85 * 60,
+      expected: 90 * 60,
+      ticking: false
+   }
+}
+section: Code of the last active section
+
+playingTime: Depends on sport and status
+
+end: Timestamp of the end of the last section
+
+ContestStatus
+Value
+Description
+Pregame
+Before match is started
+Running
+If the match is running
+section is always set
+playingTime depends on the sport
+Aborted
+Match is aborted (during a match)
+section of the abandonment
+Canceled
+Match is canceled
+Ended
+Match is ended
+end: Timestamp of the match end
+Playing Time
+Sport
+Rules
+Football
+current: total current playing time (summed up)
+expected: total expected playingTime (summed up)
+ticking: true if section is running, false if halftime
+Icehockey
+Basketball
+current: current playing time in section (decremental)
+expected: 0
+ticking: true if section is running, false if time is stopped or section break
+Other
+current: current playing time in section
+total: expected playing time in section
+TradingTypes
+Value
+Description
+Live
+Traded live
+PreMatch
+Traded until start of a match
+Outright
+Traded as longterm bet. This applies to season bets
+Betmarket
+Field
+Value
+Description
+key
+Goal_RT_HC3W(0.0)
+Deeplink key [BETTING_TYPE_KEY], for more information see Betmarket Keys
+bettingType
+matchWin
+Possible values: matchWin, handicap, overUnder
+odds
+List of Odds
+List of Odds for this bettingType
+Odds
+Field
+Value
+Description
+key
+1
+Deeplink key [OUTCOME_KEY], for more information see Odds Keys and Outcomes
+outcome
+Home
+Possible values: Home, Draw, Away, Over, Under;
+for more information see Odds Keys and Outcomes
+odds
+2.2
+Odds for this outcome
+Scores
+Field
+Value
+Description
+name
+Match
+Type of score Match or for Tennis the SET1 - SETX or CurrentGame
+score
+[“0”, “0”]
+List of score values first=home, second=away
+
+Full-Response
+When the requested market types contains full this is what the json will generally look like:
+[
+    {
+        "id": "NEO|FB-1985021",
+        "tradingType": "Live",
+        "begin": "2025-02-07T19:30:00Z",
+        "lastUpdated": 1738849055147,
+        "sport": "Football",
+        "region": "DE",
+        "league": "Bundesliga",
+        "home": "FC Bayern München",
+        "away": "Werder Bremen",
+        "regionLabel": "Germany",
+        "contestStatus": {
+            "name": "Pregame",
+            "section": "HT1"
+        },
+        "betmarkets": [
+            {
+                "key": "Goal_RT_PlayerOU(Raphaël Guerreiro,Home,2.5)",
+                "bettingType": "",
+                "odds": [
+                    {
+                        "key": "-",
+                        "outcome": "Under",
+                        "odds": 1.01
+                    },
+                    {
+                        "key": "+",
+                        "outcome": "Over",
+                        "odds": 300.0
+                    }
+                ]
+            },
+            ...
+        ],
+        "scores": [
+            {
+                "name": "Match",
+                "score": [
+                    "0",
+                    "0"
+                ]
+            }
+        ],
+        "metadata": {},
+        "atMode": false
+    }
+]
+
+It’s almost identical to the normal json except the way each betmarket is named. In this case the field bettingType is empty and the whole betmarket description can be found in key.
+
+Betmarket Keys
+Betmarket Keys usually contain 3 pieces of information: the point type, a section and the short name of the betting type, separated by underscore. The betting type may contain additional parameters in brackets like player, score, team (home/away), handicap, …. 
+
+
+Shortname
+Betmarket
+Notes
+Additional Parameters
+AHC
+Asian Handicap
+
+handicap (Double)
+BothTeamsToScore
+Both teams score at least once in the given point type
+
+atLeast (Integer), baseScore (Integer:Integer)
+CorrectScore
+Correct score
+
+
+CorrectScoreAfter
+Correct score after a given section
+
+section (String)
+EvenScore
+Sum of a score is even in a given section
+
+
+FightEnds
+Fight Ends
+Only for Boxing
+
+HC2W
+2-way Handicap for the given point type and section
+
+handicap (Double)
+HC3W
+3-way Handicap for the given point type and section
+
+handicap (Double)
+HC3WAtMinute
+3-way Handicap at the given minute in a given section
+
+handicap (Double), minute (Integer)
+HC3WInTime
+3-way Handicap in time
+
+handicap (Double), interval (Integer, Integer)
+HigherScoringSection
+Higher scoring section
+Sections are the odd’s keys
+
+LeadAfter
+Which team leads after a given amount of points where scored
+
+index (Integer)
+NthPoint
+Which team will score the nth Point
+Last score is -1
+index (Integer)
+NthPoint2w
+2-way nth Point
+
+index (Integer)
+NthPointBeforeAfter
+Will the nth point be scored before, after or not be scored around a given minute
+
+index (Integer), minute (Integer)
+NthPointInRange
+In which time interval the nth goal will be scored
+
+index (Integer)
+NumberOfPoints
+Number of points
+
+
+NumberOfPoints3W
+3-way number of points
+
+interval (Integer, Integer)
+NumberOfTeamsToScore
+The number of teams that will score
+
+
+OU
+Over Under
+
+boundary (Double)
+OU3W
+3-way Over Under 
+
+boundary (Integer)
+OUAtMinute
+Over Under at minute
+
+boundary (Double), minute (Integer)
+OUInTime
+Over Under in time
+
+boundary (Double), interval (Integer, Integer)
+PlayerOU
+Player Over Under
+
+player (String), optional team (String), boundary (Double)
+PM2W
+2-way player matchup 
+
+handicap (Double), first player (String), optional team (String), second player (String), optional team (String)
+PM3W
+3-way player matchup
+
+handicap (Double), first player (String), optional team (String), second player (String), optional team (String)
+PTSEachSection
+Will a player score in each section
+
+player (String), optional team (String)
+PTSInTime
+Will a player score within the given time interval
+
+player (String), optional team (String), interval (Integer, Integer)
+PTSNthPoint
+Player to score the nth point for the team
+
+index (Integer), optional team (String)
+RaceTo
+Which team reaches the amount of points first
+
+index (Integer)
+RaceTo2w
+Which team reaches the amount of points first
+
+index (Integer)
+SectionNthPointIn
+section the nth point will be scored in
+
+index (Integer)
+TeamEvenScore
+Is the team score even
+
+team (String)
+TeamNthPointBeforeAfter
+Will a given team score its nth point before, after or never around a given minute
+
+index (Integer), minute (Integer), team (String)
+TeamNthPointInRange
+In which time interval the given team scores its nth goal
+
+index (Integer), team (String)
+TeamNumberOfPoints
+Team number of points
+
+team (String)
+TeamNumberOfPoints3w
+3 -way team number of points 
+
+interval (Integer, Integer), team (String)
+TeamOU
+Is the team score over or under a score
+
+boundary (Double), team (String)
+TeamOUInTime
+Team Over Under in time
+
+boundary (Double), team (String), interval (Integer, Integer)
+TeamScoringMethod
+What will be the next scoring method of the given team
+
+team (String)
+TeamSectionNthPoint
+Team to score nth point in section
+
+index (Integer), team (String)
+TeamToScoreEachSection
+Team to score each section
+
+team (String)
+TeamToScoreInTime
+Team to score in time
+
+team (String), interval (Integer, Integer)
+TeamToWinBothHalves
+Which team wins both halves
+
+team (String)
+TeamToWinTolNil
+Which team will win without the enemy scoring
+
+team (String)
+TeamWinningMargin
+Team winnig with an amount of margin
+
+team (String)
+ToQualify
+Who qualifies for next round
+
+
+ToScoreEachSection
+To score each section
+
+
+ToScoreInTime
+To score in time
+
+interval (Integer, Integer)
+WinningMargin
+Which team will win with a given margin
+positive values for home, negativ values for away
+
+
+Additional Notes:
+intervals aren’t technically just two integers separated by comma. The actual value is for example Ranged(0, 3).
+Odds Keys and Outcomes
+
+Key
+Example
+Outcome
+Example
+Notes
+Ranged(open, Int)
+Ranged(open, 3)
+LeftOpenRangedOutcome
+
+Ranges are inclusive
+Ranged(Int, open)
+Ranged(3, open)
+RightOpenRangedOutcome
+
+Ranges are inclusive
+Ranged(Int, Int)
+Ranged(3, 4)
+ClosedRangedOutcome
+
+Ranges are inclusive
+1
+
+Home
+
+
+X
+
+Draw
+
+
+2
+
+Away
+
+
++
+
+Over
+
+
+E
+
+Exactly
+
+
+-
+
+Under
+
+
+Before
+
+Before
+
+
+After
+
+After
+
+
+Y
+
+Yes
+
+
+N
+
+No
+
+
+One
+
+One
+
+
+Two
+
+Two
+
+
+ThreePlus
+
+ThreePlus
+
+
+Neither
+
+NeitherSection
+
+
+NeitherSection
+
+NeitherSection
+
+
+Section(section)
+Section(HT1)
+SectionOutcome
+
+
+other
+
+OtherResultOutcome
+
+
+other-home
+
+OtherHomeWinsOutcome
+
+
+other-away
+
+OtherAwayWinsOutcome
+
+
+NotScored
+
+NotScored
+
+
+Result(score)
+Result(1:0)
+score
+1:0
+
+Multiple(list(outcome))
+
+MultipleOutcome
+
+
+MultipleWinning(
+list(outcome))
+
+MultipleWinningOutcome
+
+
+Point(point)
+Point(Goal)
+PointOutcome
+
+
+Team(team)
+Team(Home)
+TeamOutcome
+
+
+PlayerIndex(index, index)
+PlayerIndex(1, 5)
+PlayerIndexOutcome
+
+The first index is for the team, second is for the player
+OtherPlayer(team)
+OtherPlayer(Home)
+OtherPlayer
+
+
+Player(team, name)
+Player(Home, Raphaël Guerreiro)
+name
+Raphaël Guerreiro
+
+API: Sports / Regions / Leagues / Teams
+Request
+NEO.BET provides an API to request data of sports / regions / leagues / teams to create your own requests to the above described match API.
+In response to a request, the API always returns lists of filtered sports / regions / leagues / teams with their corresponding count in the current betable program.
+
+Request without parameters
+https://neo.bet/.sportsbet/program/parameter
+Request with parameters
+https://neo.bet/.sportsbet/program/parameter?sport=Football&region=DE&language=de 
+Response
+The response contains lists of filtered sports / regions / leagues / teams.
+Example:
+
+{
+    "sports": [
+        {
+            "id": "AmericanFootball",
+            "label": "American Football",
+            "count": 38
+        },
+        {
+            "id": "Bandy",
+            "label": "Bandy",
+            "count": 5
+        },
+        ...
+    ],
+    "regions": [
+        {
+            "id": "AO",
+            "label": "Angola",
+            "count": 1
+        },
+        {
+            "id": "AR",
+            "label": "Argentinien",
+            "count": 4
+        },
+        ...
+    ],
+    "leagues": [
+        {
+            "id": "2. Bundesliga",
+            "label": "2. Bundesliga",
+            "count": 9
+        },
+        {
+            "id": "3. Liga",
+            "label": "3. Liga",
+            "count": 11
+        },
+        {
+            "id": "Bundesliga",
+            "label": "Bundesliga",
+            "count": 18
+        },
+       …
+    ],
+    "teams": [
+        {
+            "id": "1. FC Heidenheim",
+            "label": "1. FC Heidenheim",
+            "count": 1
+        },
+        {
+            "id": "1. FC Kaiserslautern",
+            "label": "1. FC Kaiserslautern",
+            "count": 1
+        },
+        ...
+    ]
+}
+
+JSON Structure
+Field
+Value
+Description
+sports
+[{
+  "id":"Football",
+  "label":"Football",
+  "count": 38
+}, ...]
+List of sports (always unfiltered)
+The id is used for follow up API requests
+regions
+[{
+  "id":"DE",
+  "label":"Germany",
+  "count": 10
+}, ...]
+List of regions for the selected sport.
+The id is used for follow up API requests
+leagues
+[{
+  "id":"Bundesliga",
+  "label":"Bundesliga",
+  "count": 10
+}, ...]
+List of leagues for the selected sport and region.
+The id is used for follow up API requests
+teams
+[{
+  "id":"Borussia Dortmund",
+  "label":"Borussia Dortmund",
+  "count": 10
+}, ...]
+List of teams for the selected sport, region (optional) and league (optional).
+
+The id is used for follow up API requests
+
+
+Requesting a full match
+There are two ways to get full matches. You should choose the first way if you only need some specific full games and the second is if you really need every game.
+Specific full
+To request a full match you need to take some steps.
+You have to start with our program API. You can find all the sports currently offered at https://neo.bet/.sportsbet/program/parameter
+With this list you can request all regions for these sports at https://neo.bet/.sportsbet/program/parameter?sport=Football
+You can use the sports and regions to request the leagues at https://neo.bet/.sportsbet/program/parameter?sport=Football&region=DE
+With these 3 pieces of information you can request all games in this league at https://neo.bet/.sportsbet/program/matches?sport=Football&league=Bundesliga&region=DE&language=en This list already contains information on some markets, but in this case it is only needed to find the contest ids. The information about the markets can also be found in the final request.
+Request the whole match at https://neo.bet/.sportsbet/program/matches?market=full&contestId=NEO|FB-1965757
+
+General full
+You can also use an import stream and pick every contest id from there. You can then proceed to step 5 from the steps above and request the full market for each contest id.
+API: In Action
+You can see the above described API in action in our banner configurator.
+https://banner.neo.bet/
+
+Feel free to create your custom banners for your website.
+Don’t forget to add your affiliate id by adding a custom parameter.
+
+Ad-hoc requests
+Ad-hoc requests can be used to immediately get a list of currently bettable matches in a specific sport, region or just the highlights that NEO.BET offers.
+
+Example 1: German Bundesliga 
+https://neo.bet/.sportsbet/program/matches?sport=Football&league=Bundesliga&region=DE&language=de&matchCount=10
+
+Example 2: Top 10 Football matches
+https://neo.bet/.sportsbet/program/matches?matchCount=10&sport=Football
+
+Example 3: Recently updated Premier League matches
+https://neo.bet/.sportsbet/program/matches?sport=Football&region=ENG&league=Premier%20League&team=Stoke%20City&matchCount=30&language=DE&updatedAfter=1520947417661
+Import stream
+To constantly import all matches or for example all matches of a specific sport into your system you can use our API with the updatedAfter parameter. Per default (without the matchCount Parameter) you would get them in chunks of 50 Matches beginning with the one that was updated the longest time ago. Repeating the requests you will always get the latest updates once you reach them. The next chunk can be requested by requesting it with the Parameter updatedAfter=<LATEST_TIMESTAMP_IN_PREVIOUS_UPDATE>
+
+See the following Javascript Example which can easily be adopted to other languages.
+Node.js Example
+var request = require('request');
+
+var REQUEST_URL = "https://neo.bet/.sportsbet/program/matches?updatedAfter="
+
+function fetchMatches(updatedAfter) {
+    request(REQUEST_URL + updatedAfter, function (error, response, body) {
+        var lastUpdatedAfter = updatedAfter;
+        if (response.statusCode === 200) {
+            try {
+                var matchList = JSON.parse(body);
+                matchList.forEach(function (match) {
+                    console.log(match);
+                    // create or update the match in your database
+                    // INSERT YOUR METHOD HERE
+                    if (match.lastUpdated > lastUpdatedAfter)
+                        lastUpdatedAfter = match.lastUpdated;
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            console.log(error);
+        }
+
+        // get the next chunk or update 1 second later
+        // be aware that 1 request per second is the maximum we allow
+        setTimeout(function () { fetchMatches(lastUpdatedAfter) }, 1000);
+    });
+}
+
+fetchMatches(0);
+Linking
+Linking to NEO.bet is quite easy. The base link goes to https://neo.bet and will be redirected to https://neo.bet/en/Sportsbets if your browser language is english. Sportsbets means there are all bets of all sports sorted by popularity.
+Structure
+The easiest way to link to a match is to use the id from the feed
+https://neo.bet/?contestId=[ID]
+e.g.
+https://neo.bet/?contestId=RBP|123456
+
+The full link structure to link is
+https://neo.bet[/LANGUAGE][/CATEGORY][/FILTER][/SPORT][/REGION][/LEAGUE][/MATCH]
+
+where the parameters are
+
+param
+de
+en
+LANGUAGE
+de
+en
+CATEGORY
+SportwettenEsports
+SportbetsEsports
+Live
+Live
+GleichHeute
+MorgenErgebnisse
+Live
+SoonToday
+TomorrowResults
+SPORT
+FussballTennis...
+FootballTennis...
+REGION
+Deutschland
+...
+Germany...
+LEAGUE
+Bundesliga...
+Bundesliga...
+MATCH
+YYYY-MM-DD-Team1-vs-Team2-Ide.g. 2019-04-21-Hertha-Berlin-vs-Hannover-96-33145
+
+Deep Links to betslip
+We recommend to use the contestId url to open the match detail:
+https://neo.bet/?contestId=[CONTEST_ID]
+
+You can also add bets directly to the betslip via several url parameters.
+Format: ?betslip=compact&se=[CONTEST_ID]![BETTING_TYPE_KEY]![OUTCOME_KEY]
+
+The parameter se (selection) can be added multiple times to add multiple bets.
+
+Example:
+https://neo.bet/de/Sportwetten/Fussball?betslip=compact&se=NEO|FB-2316997!Goal_RT_HC3W(0.0)!1&se=NEO|FB-2316994!Goal_RT_HC3W(0.0)!1
+
+AffiliateId
+You need to add an affiliateId to track users coming from your site. The affiliateId is a query parameter that has to be added to every url linking to neo.bet. 
+Example: https://neo.bet/?affiliateId=yourId
+Link Tool
+Besides the link patterns described above you can also easily go to the https://neo.bet itself and use the link tool at the bottom of the site to create static links to where you are and the bets that you put into the betslip
+
+

@@ -492,7 +492,6 @@ export function AIPicksPage() {
                         return (
                             <motion.div 
                                 key={pick.id}
-                                layout
                                 variants={itemVariants}
                                 initial="hidden"
                                 animate="show"

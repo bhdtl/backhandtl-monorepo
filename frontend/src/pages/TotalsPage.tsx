@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
-  Hash, Activity, Flame, Snowflake, Target, Shield, ArrowRight, Zap, MapPin, Clock, Scale, Calendar, AlertTriangle
+  Hash, Activity, Flame, Snowflake, Target, Shield, ArrowRight, Zap, MapPin, Clock, Scale, Calendar, AlertTriangle, Lock
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
@@ -111,28 +111,40 @@ export function TotalsPage() {
         if (histError) throw histError;
 
         setHistoricalData(histData || []);
+
+        // Pre-compute lowercased names, surfaces, and slam statuses once to avoid expensive calculations in nested loops
+        const guessIsSlam = (tourName: string) => {
+            if (!tourName) return false;
+            const t = tourName.toLowerCase();
+            return t.includes('wimbledon') || t.includes('us open') || t.includes('roland garros') || t.includes('french open') || t.includes('australian open');
+        };
+
+        const enrichedHist = (histData || []).map(m => {
+            const p1Lower = m.player1_name ? m.player1_name.toLowerCase() : '';
+            const p2Lower = m.player2_name ? m.player2_name.toLowerCase() : '';
+            const surface = guessSurfaceFromTournament(m.tournament);
+            const isHistSlam = guessIsSlam(m.tournament);
+            return {
+                ...m,
+                p1Lower,
+                p2Lower,
+                surface,
+                isHistSlam
+            };
+        });
         
         // 3. Process Projections instantly
         const processedMatches = (activeData || []).map(match => {
             const surface = guessSurfaceFromTournament(match.tournament);
-            
-            const guessIsSlam = (tourName: string) => {
-                if (!tourName) return false;
-                const t = tourName.toLowerCase();
-                return t.includes('wimbledon') || t.includes('us open') || t.includes('roland garros') || t.includes('french open') || t.includes('australian open');
-            };
-
             const isSlam = match.games_prediction?.is_grand_slam || guessIsSlam(match.tournament);
 
             const getPlayerAvg = (playerName: string) => {
                 if (!playerName) return null;
                 const searchName = playerName.toLowerCase().split(' ').pop() || playerName.toLowerCase();
                 
-                const matches = (histData || []).filter(m => {
-                    if (!m.player1_name || !m.player2_name) return false;
-                    const isPlayer = m.player1_name.toLowerCase().includes(searchName) || m.player2_name.toLowerCase().includes(searchName);
-                    const matchSurface = guessSurfaceFromTournament(m.tournament);
-                    return isPlayer && matchSurface === surface;
+                const matches = enrichedHist.filter(m => {
+                    const isPlayer = m.p1Lower.includes(searchName) || m.p2Lower.includes(searchName);
+                    return isPlayer && m.surface === surface;
                 }).slice(0, 10); // L10 on this surface
 
                 let totalGames = 0;
@@ -141,11 +153,10 @@ export function TotalsPage() {
                 matches.forEach(m => {
                     let games = calculateTotalGames(m.score);
                     if (games) {
-                        const isHistSlam = guessIsSlam(m.tournament);
-                        if (isSlam && !isHistSlam) {
+                        if (isSlam && !m.isHistSlam) {
                             // Scale Bo3 match up to Bo5 equivalent
                             games = games * 1.58;
-                        } else if (!isSlam && isHistSlam) {
+                        } else if (!isSlam && m.isHistSlam) {
                             // Scale Bo5 match down to Bo3 equivalent
                             games = games / 1.58;
                         }
