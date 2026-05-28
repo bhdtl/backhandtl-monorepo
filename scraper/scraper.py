@@ -1724,19 +1724,28 @@ class QuantumGamesSimulator:
                 else: return (2, 13)
 
     @staticmethod
-    def run_simulation(p1_skills: Dict, p2_skills: Dict, bsi: float, surface: str, actual_ou_line: float = None, iterations: int = 1000, empirical_ou: Dict[str, float] = None) -> Dict[str, Any]:
+    def run_simulation(p1_skills: Dict, p2_skills: Dict, bsi: float, surface: str, actual_ou_line: float = None, iterations: int = 1000, empirical_ou: Dict[str, float] = None, best_of: int = 3) -> Dict[str, Any]:
         p1_hold_prob = QuantumGamesSimulator.derive_hold_probability(p1_skills, p2_skills, bsi, surface)
         p2_hold_prob = QuantumGamesSimulator.derive_hold_probability(p2_skills, p1_skills, bsi, surface)
         total_games_log = []
+        sets_to_win = 3 if best_of == 5 else 2
         for _ in range(iterations):
-            winner_s1, games_s1 = QuantumGamesSimulator.simulate_set(p1_hold_prob, p2_hold_prob)
-            p1_hold_s2 = p1_hold_prob + (0.02 if winner_s1 == 1 else -0.01)
-            p2_hold_s2 = p2_hold_prob + (0.02 if winner_s1 == 2 else -0.01)
-            winner_s2, games_s2 = QuantumGamesSimulator.simulate_set(p1_hold_s2, p2_hold_s2)
-            total = games_s1 + games_s2
-            if winner_s1 != winner_s2:
-                winner_s3, games_s3 = QuantumGamesSimulator.simulate_set(p1_hold_prob, p2_hold_prob)
-                total += games_s3
+            sets_A, sets_B = 0, 0
+            total = 0
+            # SOTA dynamic stamina decay on subsequent sets
+            p1_hold_curr = p1_hold_prob
+            p2_hold_curr = p2_hold_prob
+            while sets_A < sets_to_win and sets_B < sets_to_win:
+                winner_set, games_set = QuantumGamesSimulator.simulate_set(p1_hold_curr, p2_hold_curr)
+                total += games_set
+                if winner_set == 1:
+                    sets_A += 1
+                    p1_hold_curr += 0.015
+                    p2_hold_curr -= 0.01
+                else:
+                    sets_B += 1
+                    p2_hold_curr += 0.015
+                    p1_hold_curr -= 0.01
             total_games_log.append(total)
             
         total_games_log.sort()
@@ -1745,15 +1754,24 @@ class QuantumGamesSimulator:
         derivative_edge = None
 
         if empirical_ou is None:
-            empirical_ou = {"over_20_5": 0.5, "over_21_5": 0.5, "over_22_5": 0.5, "over_23_5": 0.5}
+            if best_of == 5:
+                empirical_ou = {"over_33_5": 0.5, "over_35_5": 0.5, "over_37_5": 0.5, "over_39_5": 0.5}
+            else:
+                empirical_ou = {"over_20_5": 0.5, "over_21_5": 0.5, "over_22_5": 0.5, "over_23_5": 0.5}
 
         if actual_ou_line:
             mc_prob = sum(1 for x in total_games_log if x > actual_ou_line) / iterations
             emp_val = 0.5
-            if actual_ou_line <= 21.0: emp_val = empirical_ou.get("over_20_5", 0.5)
-            elif actual_ou_line <= 22.0: emp_val = empirical_ou.get("over_21_5", 0.5)
-            elif actual_ou_line <= 23.0: emp_val = empirical_ou.get("over_22_5", 0.5)
-            else: emp_val = empirical_ou.get("over_23_5", 0.5)
+            if best_of == 5:
+                if actual_ou_line <= 34.0: emp_val = empirical_ou.get("over_33_5", 0.5)
+                elif actual_ou_line <= 36.0: emp_val = empirical_ou.get("over_35_5", 0.5)
+                elif actual_ou_line <= 38.0: emp_val = empirical_ou.get("over_37_5", 0.5)
+                else: emp_val = empirical_ou.get("over_39_5", 0.5)
+            else:
+                if actual_ou_line <= 21.0: emp_val = empirical_ou.get("over_20_5", 0.5)
+                elif actual_ou_line <= 22.0: emp_val = empirical_ou.get("over_21_5", 0.5)
+                elif actual_ou_line <= 23.0: emp_val = empirical_ou.get("over_22_5", 0.5)
+                else: emp_val = empirical_ou.get("over_23_5", 0.5)
             blended_prob = (mc_prob * 0.65) + (emp_val * 0.35)
             probs[f"over_{actual_ou_line}"] = blended_prob
             if blended_prob > 0.60:
@@ -1761,12 +1779,20 @@ class QuantumGamesSimulator:
             elif blended_prob < 0.40:
                 derivative_edge = f"🔥 MASSIVE UNDER EDGE: Model & History project {round(sum(total_games_log) / len(total_games_log), 1)} games against bookmaker line {actual_ou_line}."
         else:
-            probs = {
-                "over_20_5": (sum(1 for x in total_games_log if x > 20.5) / iterations) * 0.65 + (empirical_ou.get("over_20_5", 0.5) * 0.35),
-                "over_21_5": (sum(1 for x in total_games_log if x > 21.5) / iterations) * 0.65 + (empirical_ou.get("over_21_5", 0.5) * 0.35),
-                "over_22_5": (sum(1 for x in total_games_log if x > 22.5) / iterations) * 0.65 + (empirical_ou.get("over_22_5", 0.5) * 0.35),
-                "over_23_5": (sum(1 for x in total_games_log if x > 23.5) / iterations) * 0.65 + (empirical_ou.get("over_23_5", 0.5) * 0.35)
-            }
+            if best_of == 5:
+                probs = {
+                    "over_33_5": (sum(1 for x in total_games_log if x > 33.5) / iterations) * 0.65 + (empirical_ou.get("over_33_5", 0.5) * 0.35),
+                    "over_35_5": (sum(1 for x in total_games_log if x > 35.5) / iterations) * 0.65 + (empirical_ou.get("over_35_5", 0.5) * 0.35),
+                    "over_37_5": (sum(1 for x in total_games_log if x > 37.5) / iterations) * 0.65 + (empirical_ou.get("over_37_5", 0.5) * 0.35),
+                    "over_39_5": (sum(1 for x in total_games_log if x > 39.5) / iterations) * 0.65 + (empirical_ou.get("over_39_5", 0.5) * 0.35)
+                }
+            else:
+                probs = {
+                    "over_20_5": (sum(1 for x in total_games_log if x > 20.5) / iterations) * 0.65 + (empirical_ou.get("over_20_5", 0.5) * 0.35),
+                    "over_21_5": (sum(1 for x in total_games_log if x > 21.5) / iterations) * 0.65 + (empirical_ou.get("over_21_5", 0.5) * 0.35),
+                    "over_22_5": (sum(1 for x in total_games_log if x > 22.5) / iterations) * 0.65 + (empirical_ou.get("over_22_5", 0.5) * 0.35),
+                    "over_23_5": (sum(1 for x in total_games_log if x > 23.5) / iterations) * 0.65 + (empirical_ou.get("over_23_5", 0.5) * 0.35)
+                }
             
         return {
             "predicted_line": round(sum(total_games_log) / len(total_games_log), 1),
@@ -2108,7 +2134,7 @@ async def run_pipeline():
                     sackmannA = s1.get('sackmann_metrics', {})
                     sackmannB = s2.get('sackmann_metrics', {})
 
-                    sim_result = QuantumGamesSimulator.run_simulation(s1, s2, bsi, surf, actual_ou_line=m.get('actual_ou_line'), empirical_ou=empirical_ou)
+                    sim_result = QuantumGamesSimulator.run_simulation(s1, s2, bsi, surf, actual_ou_line=m.get('actual_ou_line'), empirical_ou=empirical_ou, best_of=_best_of)
                     
                     # 🚀 SOTA: Pure Data Markov Chain
                     # 🎾 Grand Slam detection for Bo5
