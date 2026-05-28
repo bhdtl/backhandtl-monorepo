@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 */8 * * *'  # Runs every 8 hours
   workflow_dispatch:
+  repository_dispatch:      # Ermöglicht verzögerungsfreies Triggern über Webhook
+    types: [trigger-oracle]
 
 jobs:
   run-oracle:

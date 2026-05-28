@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '*/30 * * * *'  # Alle 30 Minuten
   workflow_dispatch:        # Manueller Trigger erlaubt
+  repository_dispatch:      # Ermöglicht verzögerungsfreies Triggern über Webhook
+    types: [trigger-scraper]
 
 permissions:
   contents: read
