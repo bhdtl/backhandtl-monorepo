@@ -2,7 +2,7 @@ name: 🔮 Tournament Oracle Scraper
 
 on:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 */8 * * *'  # Runs every 8 hours
   workflow_dispatch:
 
 jobs:

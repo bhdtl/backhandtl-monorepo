@@ -626,6 +626,8 @@ class SurfaceIntelligence:
 
     @staticmethod
     def compute_player_surface_profile(elo_metrics: Dict, sackmann_metrics: Dict) -> Dict[str, Any]:
+        if not elo_metrics: elo_metrics = {}
+        if not sackmann_metrics: sackmann_metrics = {}
         profile = {}
         def get_rating_info(elo_val: float):
             if elo_val >= 1850: return 9.5, "🔥 SPECIALIST", "#FF00FF"
@@ -1320,9 +1322,9 @@ async def get_db_data():
                         'stamina': to_float(entry.get('stamina')),
                         'mental': to_float(entry.get('mental')),
                         'overall_rating': to_float(entry.get('overall_rating', 50)),
-                        'elo_metrics': entry.get('elo_metrics', {}),
-                        'advanced_stats': entry.get('advanced_stats', {}),
-                        'sackmann_metrics': entry.get('sackmann_metrics', {})
+                        'elo_metrics': entry.get('elo_metrics') or {},
+                        'advanced_stats': entry.get('advanced_stats') or {},
+                        'sackmann_metrics': entry.get('sackmann_metrics') or {}
                     }
                     
         return players or [], clean_skills, reports or [], tournaments or []
