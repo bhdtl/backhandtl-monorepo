@@ -63,6 +63,18 @@ WEATHER_CACHE: Dict[str, Any] = {}
 GLOBAL_SURFACE_MAP: Dict[str, str] = {} 
 TML_MATCH_CACHE: List[Dict] = [] 
 
+_PATTERN_CACHE = {}
+try:
+    _pc_path = os.path.join(os.path.dirname(__file__), "pattern_cache.json")
+    if os.path.exists(_pc_path):
+        with open(_pc_path, "r", encoding="utf-8") as f:
+            _PATTERN_CACHE = json.load(f)
+        log(f"✅ Loaded pattern_cache.json with {len(_PATTERN_CACHE.get('player_ou_profiles', {}))} player profiles.")
+    else:
+        log("⚠️ pattern_cache.json not found in scraper directory.")
+except Exception as _pc_err:
+    log(f"⚠️ Error loading pattern_cache.json: {_pc_err}")
+
 DYNAMIC_WEIGHTS = {
     "ATP": {"SKILL": 0.50, "FORM": 0.35, "SURFACE": 0.15, "MC_VARIANCE": 1.20},
     "WTA": {"SKILL": 0.50, "FORM": 0.35, "SURFACE": 0.15, "MC_VARIANCE": 1.20}
@@ -1084,12 +1096,25 @@ def get_total_games(score_str: str) -> int:
     except:
         return 0
 
-def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: bool = False) -> Dict[str, float]:
+def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: bool = False, surface: str = "") -> Dict[str, float]:
     """
-    Calculates empirical Over/Under rates from player history.
+    Calculates empirical Over/Under rates from player history,
+    blending it with the global baseline from pattern_cache.
     Bo3 (regular): lines 20.5, 21.5, 22.5, 23.5
     Bo5 (Grand Slam): lines 33.5, 35.5, 37.5, 39.5
     """
+    surf = (surface or '').lower()
+    if 'clay' in surf: surf = 'clay'
+    elif 'grass' in surf: surf = 'grass'
+    else: surf = 'hard'
+    
+    fmt = 'bo5' if is_slam else 'bo3'
+    key = f"{surf}_{fmt}"
+    
+    prior = {}
+    if _PATTERN_CACHE and "ou_base_rates" in _PATTERN_CACHE:
+        prior = _PATTERN_CACHE["ou_base_rates"].get(key, {})
+        
     games_list = []
     min_games = 20 if is_slam else 12  # Bo5 matches have >20 games min
     for h in history1[:15] + history2[:15]:
@@ -1099,26 +1124,32 @@ def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: 
             if tg > min_games:
                 games_list.append(tg)
     
+    total = len(games_list)
+    
     if is_slam:
-        if not games_list:
-            return {"over_33_5": 0.5, "over_35_5": 0.5, "over_37_5": 0.5, "over_39_5": 0.5}
-        total = len(games_list)
-        return {
-            "over_33_5": sum(1 for x in games_list if x > 33.5) / total,
-            "over_35_5": sum(1 for x in games_list if x > 35.5) / total,
-            "over_37_5": sum(1 for x in games_list if x > 37.5) / total,
-            "over_39_5": sum(1 for x in games_list if x > 39.5) / total
-        }
+        lines = [33.5, 35.5, 37.5, 39.5]
+        res = {}
+        for line in lines:
+            label = f"over_{str(line).replace('.', '_')}"
+            player_rate = sum(1 for x in games_list if x > line) / total if total > 0 else 0.5
+            prior_rate = prior.get(label, 0.5)
+            if total >= 5:
+                res[label] = (player_rate * 0.6) + (prior_rate * 0.4)
+            else:
+                res[label] = prior_rate
+        return res
     else:
-        if not games_list:
-            return {"over_20_5": 0.5, "over_21_5": 0.5, "over_22_5": 0.5, "over_23_5": 0.5}
-        total = len(games_list)
-        return {
-            "over_20_5": sum(1 for x in games_list if x > 20.5) / total,
-            "over_21_5": sum(1 for x in games_list if x > 21.5) / total,
-            "over_22_5": sum(1 for x in games_list if x > 22.5) / total,
-            "over_23_5": sum(1 for x in games_list if x > 23.5) / total
-        }
+        lines = [20.5, 21.5, 22.5, 23.5]
+        res = {}
+        for line in lines:
+            label = f"over_{str(line).replace('.', '_')}"
+            player_rate = sum(1 for x in games_list if x > line) / total if total > 0 else 0.5
+            prior_rate = prior.get(label, 0.5)
+            if total >= 5:
+                res[label] = (player_rate * 0.6) + (prior_rate * 0.4)
+            else:
+                res[label] = prior_rate
+        return res
 
 async def get_advanced_load_analysis(matches: List[Dict]) -> str:
     try:
@@ -1291,21 +1322,45 @@ def normal_cdf_prob(elo_diff: float, sigma: float = 280.0) -> float:
     z = elo_diff / (sigma * math.sqrt(2))
     return 0.5 * (1 + math.erf(z))
 
-def calculate_value_metrics(fair_prob: float, market_odds: float, tour_name: str = "", ai_conviction_multiplier: float = 1.0) -> Dict[str, Any]:
+def calculate_value_metrics(
+    fair_prob: float, 
+    market_odds: float, 
+    tour_name: str = "", 
+    ai_conviction_multiplier: float = 1.0,
+    surface: str = "",
+    is_favorite: bool = True,
+    is_slam: bool = False
+) -> Dict[str, Any]:
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
-        return {"type": "NONE", "edge_percent": 0.0, "is_value": False, "kelly_stake": 0.0}
+        return {
+            "type": "NONE", 
+            "edge_percent": 0.0, 
+            "is_value": False, 
+            "kelly_stake": 0.0,
+            "pattern_multiplier": 1.0,
+            "pattern_warning": None,
+            "pattern_boost": None
+        }
         
     actual_edge_decimal = (fair_prob * market_odds) - 1.0
     edge_percent = round(actual_edge_decimal * 100, 1)
     
     # Rauschen filtern
     if actual_edge_decimal <= 0.01: 
-        return {"type": "NO EDGE", "edge_percent": edge_percent, "is_value": False, "kelly_stake": 0.0}
+        return {
+            "type": "NO EDGE", 
+            "edge_percent": edge_percent, 
+            "is_value": False, 
+            "kelly_stake": 0.0,
+            "pattern_multiplier": 1.0,
+            "pattern_warning": None,
+            "pattern_boost": None
+        }
         
     b = market_odds - 1.0
     full_kelly = actual_edge_decimal / b
     
-        # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-3 Unit Scale)
+    # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-3 Unit Scale)
     # Wir dämpfen das Risiko massiv ab und setzen ein Hard-Cap bei 3.0 Units.
     if market_odds < 2.00:
         kelly_fraction = 0.15      # 15% Kelly für solide Favoriten
@@ -1320,8 +1375,62 @@ def calculate_value_metrics(fair_prob: float, market_odds: float, tour_name: str
         kelly_fraction = 0.02      # Lotto-Tickets (Longshots)
         max_allowed_stake = 0.5    # Max 0.5u
         
+    # ═══════════════════════════════════════════════════════════════════════════
+    # HISTORICAL PATTERN EDGE INGESTION
+    # ═══════════════════════════════════════════════════════════════════════════
+    pattern_multiplier = 1.0
+    pattern_warning = None
+    pattern_boost = None
+
+    surf = (surface or '').lower()
+    if 'clay' in surf: surf = 'clay'
+    elif 'grass' in surf: surf = 'grass'
+    elif 'hard' in surf: surf = 'hard'
+    else: surf = ''
+
+    if surf and _PATTERN_CACHE:
+        # 1. Surface Category Bias (e.g. clay_slam, grass_regular)
+        cat_key = f"{surf}_{'slam' if is_slam else 'regular'}"
+        cat_data = _PATTERN_CACHE.get("surface_category_bias", {}).get(cat_key)
+        
+        # 2. Specific Underdog Bracket (e.g. clay_200_250)
+        bracket_key = None
+        if not is_favorite:
+            if market_odds < 1.30: bkt = "sub130"
+            elif market_odds < 1.50: bkt = "130_150"
+            elif market_odds < 1.70: bkt = "150_170"
+            elif market_odds < 2.00: bkt = "170_200"
+            elif market_odds < 2.50: bkt = "200_250"
+            elif market_odds < 3.00: bkt = "250_300"
+            elif market_odds < 5.00: bkt = "300_500"
+            else: bkt = "500plus"
+            bracket_key = f"{surf}_{bkt}"
+
+        if cat_data:
+            roi_val = cat_data.get("favorite_roi" if is_favorite else "underdog_roi", 0.0)
+            if roi_val < -0.05:
+                # e.g., -19.6% ROI -> multiplier *= 0.804
+                pattern_multiplier *= (1.0 + roi_val)
+                pattern_warning = f"⚠️ Clay/Grass Underdog Bias: {surf.upper()} {'Slam' if is_slam else 'Regular'} underdogs have a historical ROI of {roi_val:+.1%}."
+            elif roi_val > 0.01:
+                pattern_multiplier *= (1.0 + roi_val)
+                pattern_boost = f"🚀 Historical ROI for {surf.upper()} {'Slam' if is_slam else 'Regular'} {'Favorites' if is_favorite else 'Underdogs'} is positive ({roi_val:+.1%})."
+
+        if bracket_key:
+            bkt_data = _PATTERN_CACHE.get("underdog_bracket_roi", {}).get(bracket_key)
+            if bkt_data:
+                bkt_roi = bkt_data.get("underdog_roi", 0.0)
+                if bkt_roi < -0.10:
+                    pattern_multiplier *= (1.0 + bkt_roi)
+                    pattern_warning = f"⚠️ High-risk underdog bracket: {surf.upper()} dogs at odds {market_odds:.2f} bleed with {bkt_roi:+.1%} ROI."
+                elif bkt_roi > 0.02:
+                    pattern_multiplier *= (1.0 + bkt_roi)
+                    pattern_boost = f"🚀 High-value underdog bracket: {surf.upper()} dogs at odds {market_odds:.2f} yield positive {bkt_roi:+.1%} ROI."
+
+    pattern_multiplier = max(0.1, min(1.5, pattern_multiplier))
+
     raw_stake = (full_kelly * 100) * kelly_fraction
-    adjusted_stake = raw_stake * ai_conviction_multiplier
+    adjusted_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
     
     # Die Stake wird streng zwischen 0.1 und der neuen 3.0 Max-Grenze eingesperrt
     optimal_stake = round(min(max_allowed_stake, max(0.1, adjusted_stake)), 1)
@@ -1329,7 +1438,15 @@ def calculate_value_metrics(fair_prob: float, market_odds: float, tour_name: str
     # Intelligentes Labeling angepasst an die 3-Unit Skala
     if ai_conviction_multiplier <= 0.2:
         label = "🛑 AI VETO (BAD MATCHUP)"
-        return {"type": label, "edge_percent": edge_percent, "is_value": False, "kelly_stake": 0.0}
+        return {
+            "type": label, 
+            "edge_percent": edge_percent, 
+            "is_value": False, 
+            "kelly_stake": 0.0,
+            "pattern_multiplier": round(pattern_multiplier, 2),
+            "pattern_warning": pattern_warning,
+            "pattern_boost": pattern_boost
+        }
     elif optimal_stake >= 2.5:     # 2.5u - 3.0u ist jetzt die Max Bomb
         label = "🔥 MAX BOMB (QUANT + SCOUT)"
     elif optimal_stake >= 1.5:     # 1.5u - 2.4u ist High Conviction
@@ -1339,7 +1456,15 @@ def calculate_value_metrics(fair_prob: float, market_odds: float, tour_name: str
     else:
         label = "🔬 MICRO EDGE"
 
-    return {"type": label, "edge_percent": edge_percent, "is_value": True, "kelly_stake": optimal_stake}
+    return {
+        "type": label, 
+        "edge_percent": edge_percent, 
+        "is_value": True, 
+        "kelly_stake": optimal_stake,
+        "pattern_multiplier": round(pattern_multiplier, 2),
+        "pattern_warning": pattern_warning,
+        "pattern_boost": pattern_boost
+    }
 
 def calculate_physics_fair_odds(p1_name, p2_name, s1, s2, surface, mc_prob_a):
     elo_surf = SurfaceIntelligence.normalize_surface_key(surface)
@@ -1871,6 +1996,11 @@ async def run_pipeline():
                     }
                 
                 surf, bsi, notes, city_for_weather, matched_tour_name = await find_best_court_match_smart(m['tour'], all_tournaments, full_n1, full_n2, p1_obj.get('country', 'Unknown'), p2_obj.get('country', 'Unknown'), match_date=datetime.now())
+                
+                _slam_kw = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
+                _is_slam = any(kw in matched_tour_name.lower() for kw in _slam_kw)
+                _best_of = 5 if _is_slam else 3
+
                 weather_data = await fetch_weather_data(city_for_weather)
 
                 s1 = all_skills.get(p1_obj['id'], {})
@@ -1900,8 +2030,8 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam)
                     
                     value_tag = ""
                     if val_p1["is_value"]: 
@@ -2041,8 +2171,8 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'])
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'])
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam)
 
                     candidate_picks = []
 
@@ -2082,8 +2212,8 @@ async def run_pipeline():
                         fair_home_sp = round(1/p_home_sp, 2) if p_home_sp > 0.01 else 99
                         fair_away_sp = round(1/p_away_sp, 2) if p_away_sp > 0.01 else 99
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp, sp["odds1"], matched_tour_name, ai['conviction_multiplier'])
-                        val_away_sp = calculate_value_metrics(p_away_sp, sp["odds2"], matched_tour_name, ai['conviction_multiplier'])
+                        val_home_sp = calculate_value_metrics(p_home_sp, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam)
+                        val_away_sp = calculate_value_metrics(p_away_sp, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam)
                         
                         sign1 = "+" if hc > 0 else ""
                         sign2 = "+" if -hc > 0 else ""
@@ -2138,8 +2268,8 @@ async def run_pipeline():
                         fair_over = round(1/p_over_blended, 2) if p_over_blended > 0.01 else 99
                         fair_under = round(1/p_under_blended, 2) if p_under_blended > 0.01 else 99
                         
-                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'])
-                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'])
+                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam)
+                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam)
                         
                         candidate_picks.append({
                             "market_type": "TOTALS",
@@ -2197,6 +2327,11 @@ async def run_pipeline():
                         }
                         sim_result["neo_betslip"] = best_betslip
                         sim_result["main_bet_type"] = "WINNER"
+
+                    # Save pattern warnings / boosts / multipliers in games_prediction (sim_result)
+                    sim_result["pattern_warning"] = val_p1.get("pattern_warning") or val_p2.get("pattern_warning")
+                    sim_result["pattern_boost"] = val_p1.get("pattern_boost") or val_p2.get("pattern_boost")
+                    sim_result["pattern_multiplier"] = val_p1.get("pattern_multiplier") or val_p2.get("pattern_multiplier")
 
                     derivative_note = f"\n[{sim_result['derivative_edge']}]" if sim_result.get('derivative_edge') else ""
                     ai_text_final = f"{ai['ai_text']} {value_tag}{derivative_note}\n[🎲 SIM: {sim_result['predicted_line']} Games]"

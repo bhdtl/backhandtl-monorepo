@@ -907,6 +907,26 @@ export function ValueScanner() {
                             </div>
                         )}
 
+                        {match.games_prediction?.pattern_warning && !isFinished && (
+                            <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
+                                <div>
+                                    <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Historical Pattern Risk</div>
+                                    <div className="text-xs text-red-100 font-medium leading-snug">{match.games_prediction.pattern_warning}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {match.games_prediction?.pattern_boost && !isFinished && (
+                            <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/30 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
+                                <div>
+                                    <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">Historical Pattern Edge</div>
+                                    <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{match.games_prediction.pattern_boost}</div>
+                                </div>
+                            </div>
+                        )}
+
                         {match.games_prediction && !isFinished && !match.derivativeAlert && (
                             <div className="mb-4">
                                 <QuantumGamesBadge prediction={match.games_prediction} />
@@ -930,6 +950,11 @@ export function ValueScanner() {
                                              Pick: <span className="text-white font-black">{formatLastName(safePickName)}</span>
                                          </span>
                                          {renderTypeBadge(analysis.type)}
+                                         {match.games_prediction?.is_grand_slam && (
+                                             <div className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.2)] flex items-center gap-1 shrink-0">
+                                                 <span>🎾</span> Slam (Bo5)
+                                             </div>
+                                         )}
                                      </div>
 
                                      <div className="flex items-center gap-3">

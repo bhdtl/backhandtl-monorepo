@@ -558,6 +558,30 @@ export function AIPicksPage() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {pick.games_prediction?.pattern_warning && (
+                                         <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
+                                             <div>
+                                                 <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
+                                                 <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                     {pick.games_prediction.pattern_warning}
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     )}
+
+                                     {pick.games_prediction?.pattern_boost && (
+                                         <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
+                                             <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                             <div>
+                                                 <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
+                                                 <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                     {pick.games_prediction.pattern_boost}
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     )}
                                     
                                     {/* Line Movement Alert */}
                                     {pick.movement.hasMovement && !pick.derivativeAlert && (
@@ -578,10 +602,17 @@ export function AIPicksPage() {
 
                                     <div className="flex items-center justify-between mb-4 relative z-10">
                                         <div className="flex flex-col">
-                                            {/* Dynamic Type Tag */}
-                                            <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max mb-1.5 border ${tagClasses}`}>
-                                                {val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}
-                                            </span>
+                                             {/* Dynamic Type Tag */}
+                                             <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                                 <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border ${tagClasses}`}>
+                                                     {val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}
+                                                 </span>
+                                                 {pick.games_prediction?.is_grand_slam && (
+                                                     <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
+                                                         🎾 Slam (Bo5)
+                                                     </span>
+                                                 )}
+                                             </div>
                                             <span className="text-xs md:text-sm font-black text-white truncate max-w-[160px]" title={val.pickName}>
                                                 {displayPickName(val.pickName)}
                                             </span>
