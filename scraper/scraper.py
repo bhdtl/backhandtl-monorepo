@@ -665,7 +665,8 @@ class MarkovChainEngine:
     def run_simulation(s1: Dict, s2: Dict, formA: float, formB: float, 
                        bsi: float, surface: str, 
                        sackmannA: Dict, sackmannB: Dict,
-                       iterations: int = 2500) -> Dict[str, Any]:
+                       iterations: int = 2500,
+                       best_of: int = 3) -> Dict[str, Any]:
         
         surf_key = SurfaceIntelligence.normalize_surface_key(surface)
         
@@ -748,8 +749,13 @@ class MarkovChainEngine:
                 if games_A >= 6 and games_A - games_B >= 2: return True, games_A, games_B
                 if games_B >= 6 and games_B - games_A >= 2: return False, games_A, games_B
 
+        sets_to_win = 3 if best_of == 5 else 2
         match_wins_A, match_wins_B = 0, 0
-        scores_log = {"2:0": 0, "2:1": 0, "0:2": 0, "1:2": 0}
+        # Dynamic score keys based on format
+        if best_of == 5:
+            scores_log = {"3:0": 0, "3:1": 0, "3:2": 0, "0:3": 0, "1:3": 0, "2:3": 0}
+        else:
+            scores_log = {"2:0": 0, "2:1": 0, "0:2": 0, "1:2": 0}
         total_game_diff_A = 0
         game_diffs = []
         total_games_list = []
@@ -758,21 +764,19 @@ class MarkovChainEngine:
             sets_A, sets_B = 0, 0
             games_A_match, games_B_match = 0, 0
             
-            while sets_A < 2 and sets_B < 2:
+            while sets_A < sets_to_win and sets_B < sets_to_win:
                 a_won_set, gA, gB = simulate_set()
                 games_A_match += gA
                 games_B_match += gB
                 if a_won_set: sets_A += 1
                 else: sets_B += 1
                 
-            if sets_A == 2: 
+            if sets_A == sets_to_win:
                 match_wins_A += 1
-                if sets_B == 0: scores_log["2:0"] += 1
-                else: scores_log["2:1"] += 1
-            else: 
+                scores_log[f"{sets_A}:{sets_B}"] = scores_log.get(f"{sets_A}:{sets_B}", 0) + 1
+            else:
                 match_wins_B += 1
-                if sets_A == 0: scores_log["0:2"] += 1
-                else: scores_log["1:2"] += 1
+                scores_log[f"{sets_A}:{sets_B}"] = scores_log.get(f"{sets_A}:{sets_B}", 0) + 1
                 
             total_game_diff_A += (games_A_match - games_B_match)
             game_diffs.append(games_A_match - games_B_match)
@@ -781,12 +785,7 @@ class MarkovChainEngine:
         prob_A = (match_wins_A / iterations) * 100
         prob_B = (match_wins_B / iterations) * 100
         
-        set_betting_probs = {
-            "2:0": round((scores_log["2:0"] / iterations) * 100, 1),
-            "2:1": round((scores_log["2:1"] / iterations) * 100, 1),
-            "0:2": round((scores_log["0:2"] / iterations) * 100, 1),
-            "1:2": round((scores_log["1:2"] / iterations) * 100, 1)
-        }
+        set_betting_probs = {k: round((v / iterations) * 100, 1) for k, v in scores_log.items()}
         
         avg_handicap_A = total_game_diff_A / iterations
 
@@ -796,7 +795,8 @@ class MarkovChainEngine:
             "set_betting_probs": set_betting_probs,
             "projected_handicap_A": round(avg_handicap_A, 1),
             "game_differentials": game_diffs,
-            "total_games_list": total_games_list
+            "total_games_list": total_games_list,
+            "best_of": best_of
         }
 
 # =================================================================
@@ -1084,25 +1084,41 @@ def get_total_games(score_str: str) -> int:
     except:
         return 0
 
-def calculate_empirical_ou(history1: List[Dict], history2: List[Dict]) -> Dict[str, float]:
+def calculate_empirical_ou(history1: List[Dict], history2: List[Dict], is_slam: bool = False) -> Dict[str, float]:
+    """
+    Calculates empirical Over/Under rates from player history.
+    Bo3 (regular): lines 20.5, 21.5, 22.5, 23.5
+    Bo5 (Grand Slam): lines 33.5, 35.5, 37.5, 39.5
+    """
     games_list = []
+    min_games = 20 if is_slam else 12  # Bo5 matches have >20 games min
     for h in history1[:15] + history2[:15]:
         score_str = str(h.get('score', ''))
         if score_str and len(score_str) > 2:
             tg = get_total_games(score_str)
-            if tg > 12: 
+            if tg > min_games:
                 games_list.append(tg)
     
-    if not games_list:
-        return {"over_20_5": 0.5, "over_21_5": 0.5, "over_22_5": 0.5, "over_23_5": 0.5}
-        
-    total = len(games_list)
-    return {
-        "over_20_5": sum(1 for x in games_list if x > 20.5) / total,
-        "over_21_5": sum(1 for x in games_list if x > 21.5) / total,
-        "over_22_5": sum(1 for x in games_list if x > 22.5) / total,
-        "over_23_5": sum(1 for x in games_list if x > 23.5) / total
-    }
+    if is_slam:
+        if not games_list:
+            return {"over_33_5": 0.5, "over_35_5": 0.5, "over_37_5": 0.5, "over_39_5": 0.5}
+        total = len(games_list)
+        return {
+            "over_33_5": sum(1 for x in games_list if x > 33.5) / total,
+            "over_35_5": sum(1 for x in games_list if x > 35.5) / total,
+            "over_37_5": sum(1 for x in games_list if x > 37.5) / total,
+            "over_39_5": sum(1 for x in games_list if x > 39.5) / total
+        }
+    else:
+        if not games_list:
+            return {"over_20_5": 0.5, "over_21_5": 0.5, "over_22_5": 0.5, "over_23_5": 0.5}
+        total = len(games_list)
+        return {
+            "over_20_5": sum(1 for x in games_list if x > 20.5) / total,
+            "over_21_5": sum(1 for x in games_list if x > 21.5) / total,
+            "over_22_5": sum(1 for x in games_list if x > 22.5) / total,
+            "over_23_5": sum(1 for x in games_list if x > 23.5) / total
+        }
 
 async def get_advanced_load_analysis(matches: List[Dict]) -> str:
     try:
@@ -1940,7 +1956,7 @@ async def run_pipeline():
                     except Exception as update_err:
                         log(f"⚠️ Failed to update live player ratings: {update_err}")
 
-                    empirical_ou = calculate_empirical_ou(p1_history, p2_history)
+                    empirical_ou = calculate_empirical_ou(p1_history, p2_history, is_slam=_is_slam)
 
                     sackmannA = s1.get('sackmann_metrics', {})
                     sackmannB = s2.get('sackmann_metrics', {})
@@ -1948,12 +1964,18 @@ async def run_pipeline():
                     sim_result = QuantumGamesSimulator.run_simulation(s1, s2, bsi, surf, actual_ou_line=m.get('actual_ou_line'), empirical_ou=empirical_ou)
                     
                     # 🚀 SOTA: Pure Data Markov Chain
+                    # 🎾 Grand Slam detection for Bo5
+                    _slam_kw = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
+                    _is_slam = any(kw in matched_tour_name.lower() for kw in _slam_kw)
+                    _best_of = 5 if _is_slam else 3
+
                     mc_results = MarkovChainEngine.run_simulation(
                         s1=s1, s2=s2,
                         formA=p1_form_v2['score'], formB=p2_form_v2['score'],
                         bsi=bsi, surface=surf,
                         sackmannA=sackmannA, sackmannB=sackmannB,
-                        iterations=2500
+                        iterations=2500,
+                        best_of=_best_of
                     )
                     
                     h2h_record = "0 - 0"
@@ -1996,15 +2018,26 @@ async def run_pipeline():
                     p1_set_prob = math.pow(prob, 0.65)
                     p2_set_prob = math.pow(1.0 - prob, 0.65)
                     
-                    sim_result['set_probs'] = {
-                        "2:0": round((p1_set_prob * p1_set_prob) * 100, 1),
-                        "2:1": round((prob - (p1_set_prob * p1_set_prob)) * 100, 1),
-                        "0:2": round((p2_set_prob * p2_set_prob) * 100, 1),
-                        "1:2": round(((1.0 - prob) - (p2_set_prob * p2_set_prob)) * 100, 1)
-                    }
-                    
+                    # 🎾 Set score probs — format-aware (Bo3 vs Bo5)
+                    if _is_slam:
+                        # Bo5: use MC simulation set_betting_probs directly (already computed correctly)
+                        sim_result['set_probs'] = mc_results.get('set_betting_probs', {
+                            "3:0": 0.0, "3:1": 0.0, "3:2": 0.0,
+                            "0:3": 0.0, "1:3": 0.0, "2:3": 0.0
+                        })
+                    else:
+                        sim_result['set_probs'] = {
+                            "2:0": round((p1_set_prob * p1_set_prob) * 100, 1),
+                            "2:1": round((prob - (p1_set_prob * p1_set_prob)) * 100, 1),
+                            "0:2": round((p2_set_prob * p2_set_prob) * 100, 1),
+                            "1:2": round(((1.0 - prob) - (p2_set_prob * p2_set_prob)) * 100, 1)
+                        }
+
                     sim_result['projected_handicap'] = round((prob - 0.50) * 100 * 0.14, 2)
                     sim_result['bookmaker_set_odds'] = m.get('bookie_set_odds', {})
+                    sim_result['is_grand_slam'] = _is_slam
+                    sim_result['best_of'] = _best_of
+
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
@@ -2087,10 +2120,18 @@ async def run_pipeline():
                         p_over = sum(1 for tg in total_games_list if tg > boundary) / len(total_games_list) if total_games_list else 0.5
                         
                         emp_val = 0.5
-                        if boundary <= 21.0: emp_val = empirical_ou.get("over_20_5", 0.5)
-                        elif boundary <= 22.0: emp_val = empirical_ou.get("over_21_5", 0.5)
-                        elif boundary <= 23.0: emp_val = empirical_ou.get("over_22_5", 0.5)
-                        else: emp_val = empirical_ou.get("over_23_5", 0.5)
+                        if _is_slam:
+                            # Bo5 empirical lines: 33.5, 35.5, 37.5, 39.5
+                            if boundary <= 34.0:   emp_val = empirical_ou.get("over_33_5", 0.5)
+                            elif boundary <= 36.0: emp_val = empirical_ou.get("over_35_5", 0.5)
+                            elif boundary <= 38.0: emp_val = empirical_ou.get("over_37_5", 0.5)
+                            else:                  emp_val = empirical_ou.get("over_39_5", 0.5)
+                        else:
+                            # Bo3 empirical lines: 20.5, 21.5, 22.5, 23.5
+                            if boundary <= 21.0:   emp_val = empirical_ou.get("over_20_5", 0.5)
+                            elif boundary <= 22.0: emp_val = empirical_ou.get("over_21_5", 0.5)
+                            elif boundary <= 23.0: emp_val = empirical_ou.get("over_22_5", 0.5)
+                            else:                  emp_val = empirical_ou.get("over_23_5", 0.5)
                         p_over_blended = (p_over * 0.65) + (emp_val * 0.35)
                         p_under_blended = 1.0 - p_over_blended
                         
