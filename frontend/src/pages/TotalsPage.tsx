@@ -136,7 +136,7 @@ export function TotalsPage() {
         // 3. Process Projections instantly
         const processedMatches = (activeData || []).map(match => {
             const surface = guessSurfaceFromTournament(match.tournament);
-            const isSlam = match.games_prediction?.is_grand_slam || guessIsSlam(match.tournament);
+            const isBo5 = match.games_prediction?.best_of === 5 || (guessIsSlam(match.tournament) && !match.tournament.toLowerCase().includes("wta") && !match.tournament.toLowerCase().includes("women"));
 
             const getPlayerAvg = (playerName: string) => {
                 if (!playerName) return null;
@@ -153,10 +153,10 @@ export function TotalsPage() {
                 matches.forEach(m => {
                     let games = calculateTotalGames(m.score);
                     if (games) {
-                        if (isSlam && !m.isHistSlam) {
+                        if (isBo5 && !m.isHistSlam) {
                             // Scale Bo3 match up to Bo5 equivalent
                             games = games * 1.58;
-                        } else if (!isSlam && m.isHistSlam) {
+                        } else if (!isBo5 && m.isHistSlam) {
                             // Scale Bo5 match down to Bo3 equivalent
                             games = games / 1.58;
                         }
