@@ -81,6 +81,34 @@ DYNAMIC_WEIGHTS = {
 }
 SYSTEM_ACCURACY = {"ATP": 65.0, "WTA": 65.0}
 
+def strip_overround_log(o1: float, o2: float) -> tuple[float, float]:
+    """
+    Strips the bookmaker's overround using Joseph Buchdahl's Logarithmic
+    Overround Stripper model, solving for alpha such that (1/o1)^alpha + (1/o2)^alpha = 1.0.
+    """
+    if o1 <= 1.01 or o2 <= 1.01:
+        return 0.5, 0.5
+    inv_o1 = 1.0 / o1
+    inv_o2 = 1.0 / o2
+    
+    # Simple binary search to solve for alpha
+    low, high = 0.5, 3.0
+    for _ in range(20):
+        mid = (low + high) / 2.0
+        val = (inv_o1 ** mid) + (inv_o2 ** mid)
+        if val > 1.0:
+            low = mid
+        else:
+            high = mid
+            
+    alpha = (low + high) / 2.0
+    p1 = inv_o1 ** alpha
+    p2 = inv_o2 ** alpha
+    
+    # Normalize to ensure sum is exactly 1.0
+    tot = p1 + p2
+    return p1 / tot, p2 / tot
+
 CITY_TO_DB_STRING = {
     "Perth": "RAC Arena", "Sydney": "Ken Rosewall Arena",
     "Brisbane": "Pat Rafter Arena", "Adelaide": "Memorial Drive Tennis Centre",
@@ -1428,11 +1456,6 @@ async def get_db_data():
         return players or [], clean_skills, reports or [], tournaments or []
     except Exception as e:
         log(f"❌ DB Load Error: {e}")
-        return [], {}, [], []
-
-# =================================================================
-# 8. MATH CORE (PURE KELLY / NO CUTOFFS)
-# =================================================================
 def normal_cdf_prob(elo_diff: float, sigma: float = 280.0) -> float:
     z = elo_diff / (sigma * math.sqrt(2))
     return 0.5 * (1 + math.erf(z))
@@ -1445,7 +1468,8 @@ def calculate_value_metrics(
     surface: str = "",
     is_favorite: bool = True,
     is_slam: bool = False,
-    trading_type: str = "PreMatch"
+    trading_type: str = "PreMatch",
+    player_name: str = ""
 ) -> Dict[str, Any]:
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
         return {
@@ -1461,8 +1485,8 @@ def calculate_value_metrics(
     actual_edge_decimal = (fair_prob * market_odds) - 1.0
     edge_percent = round(actual_edge_decimal * 100, 1)
     
-    # Rauschen filtern
-    if actual_edge_decimal <= 0.01: 
+    # 🚀 SOTA: Strict Syndicate Filtering (Minimum +3.0% calibrated edge)
+    if actual_edge_decimal < 0.03: 
         return {
             "type": "NO EDGE", 
             "edge_percent": edge_percent, 
@@ -1477,10 +1501,9 @@ def calculate_value_metrics(
     full_kelly = actual_edge_decimal / b
     
     # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-3 Unit Scale)
-    # Wir dämpfen das Risiko massiv ab und setzen ein Hard-Cap bei 3.0 Units.
     if market_odds < 2.00:
         kelly_fraction = 0.15      # 15% Kelly für solide Favoriten
-        max_allowed_stake = 3.0    # NEUE OBERGRENZE (Max Bomb = 3.0u)
+        max_allowed_stake = 3.0    # Max 3.0u
     elif market_odds < 3.00:
         kelly_fraction = 0.10      # Reduzierter Hebel für Underdogs
         max_allowed_stake = 2.0    # Max 2.0u
@@ -1492,11 +1515,13 @@ def calculate_value_metrics(
         max_allowed_stake = 0.5    # Max 0.5u
         
     # ═══════════════════════════════════════════════════════════════════════════
-    # HISTORICAL PATTERN EDGE INGESTION
+    # PLAYER-SPECIFIC SURFACE & COURT ANALYSIS (BUCHDAHL-CALIBRATED)
     # ═══════════════════════════════════════════════════════════════════════════
     pattern_multiplier = 1.0
     pattern_warning = None
     pattern_boost = None
+    veto_bet = False
+    veto_reason = None
 
     surf = (surface or '').lower()
     if 'clay' in surf: surf = 'clay'
@@ -1505,56 +1530,75 @@ def calculate_value_metrics(
     else: surf = ''
 
     if surf and _PATTERN_CACHE:
-        # 1. Surface Category Bias (e.g. clay_slam, grass_regular)
-        cat_key = f"{surf}_{'slam' if is_slam else 'regular'}"
-        cat_data = _PATTERN_CACHE.get("surface_category_bias", {}).get(cat_key)
+        clean_player = player_name.lower().strip()
+        p_wr = _PATTERN_CACHE.get("player_surface_winrates", {}).get(clean_player, {})
+        surf_data = p_wr.get(surf, {})
+        wins = surf_data.get("wins", 0)
+        losses = surf_data.get("losses", 0)
+        win_rate = surf_data.get("win_rate")
         
-        # 2. Specific Underdog Bracket (e.g. clay_200_250)
-        bracket_key = None
-        if not is_favorite:
-            if market_odds < 1.30: bkt = "sub130"
-            elif market_odds < 1.50: bkt = "130_150"
-            elif market_odds < 1.70: bkt = "150_170"
-            elif market_odds < 2.00: bkt = "170_200"
-            elif market_odds < 2.50: bkt = "200_250"
-            elif market_odds < 3.00: bkt = "250_300"
-            elif market_odds < 5.00: bkt = "300_500"
-            else: bkt = "500plus"
-            bracket_key = f"{surf}_{bkt}"
+        # 1. Evaluate specific player history
+        if win_rate is not None:
+            total_matches = wins + losses
+            if total_matches >= 4:
+                if win_rate < 0.35:
+                    veto_bet = True
+                    veto_reason = f"🛑 SYNDICATE VETO (SURFACE FAILURE): {player_name} has a historical win rate of only {win_rate:.1%} ({wins}W-{losses}L) on {surf.upper()}."
+                elif win_rate >= 0.65:
+                    pattern_multiplier *= 1.15
+                    pattern_boost = f"🚀 Player Surface Strength: {player_name} has a strong win rate of {win_rate:.1%} ({wins}W-{losses}L) on {surf.upper()}."
+                else:
+                    pattern_boost = f"🎾 Player Surface Profile: {player_name} has a win rate of {win_rate:.1%} ({wins}W-{losses}L) on {surf.upper()}."
+            else:
+                pattern_multiplier *= 0.70
+                pattern_warning = f"⚠️ Low Data Warning: {player_name} has sparse historical data on {surf.upper()} ({wins}W-{losses}L), scaling down stake by 30%."
+        elif player_name:
+            pattern_multiplier *= 0.70
+            pattern_warning = f"⚠️ Low Data Warning: {player_name} has no historical profile on {surf.upper()}, scaling down stake by 30%."
 
-        if cat_data:
-            roi_val = cat_data.get("favorite_roi" if is_favorite else "underdog_roi", 0.0)
-            if roi_val < -0.05:
-                # e.g., -19.6% ROI -> multiplier *= 0.804
-                pattern_multiplier *= (1.0 + roi_val)
-                pattern_warning = f"⚠️ Clay/Grass Underdog Bias: {surf.upper()} {'Slam' if is_slam else 'Regular'} underdogs have a historical ROI of {roi_val:+.1%}."
-            elif roi_val > 0.01:
-                pattern_multiplier *= (1.0 + roi_val)
-                pattern_boost = f"🚀 Historical ROI for {surf.upper()} {'Slam' if is_slam else 'Regular'} {'Favorites' if is_favorite else 'Underdogs'} is positive ({roi_val:+.1%})."
+        # 2. Fallback to generic category bias
+        if not veto_bet:
+            cat_key = f"{surf}_{'slam' if is_slam else 'regular'}"
+            cat_data = _PATTERN_CACHE.get("surface_category_bias", {}).get(cat_key)
+            if cat_data:
+                roi_val = cat_data.get("favorite_roi" if is_favorite else "underdog_roi", 0.0)
+                if roi_val < -0.10:
+                    pattern_multiplier *= (1.0 + roi_val)
+                    if not pattern_warning:
+                        pattern_warning = f"⚠️ Clay/Grass Underdog Bias: {surf.upper()} {'Slam' if is_slam else 'Regular'} underdogs have a historical ROI of {roi_val:+.1%}."
+                elif roi_val > 0.01 and not pattern_boost:
+                    pattern_multiplier *= (1.0 + roi_val)
+                    pattern_boost = f"🚀 Historical ROI for {surf.upper()} {'Favorites' if is_favorite else 'Underdogs'} is positive ({roi_val:+.1%})."
 
-        if bracket_key:
-            bkt_data = _PATTERN_CACHE.get("underdog_bracket_roi", {}).get(bracket_key)
-            if bkt_data:
-                bkt_roi = bkt_data.get("underdog_roi", 0.0)
-                if bkt_roi < -0.10:
-                    pattern_multiplier *= (1.0 + bkt_roi)
-                    pattern_warning = f"⚠️ High-risk underdog bracket: {surf.upper()} dogs at odds {market_odds:.2f} bleed with {bkt_roi:+.1%} ROI."
-                elif bkt_roi > 0.02:
-                    pattern_multiplier *= (1.0 + bkt_roi)
-                    pattern_boost = f"🚀 High-value underdog bracket: {surf.upper()} dogs at odds {market_odds:.2f} yield positive {bkt_roi:+.1%} ROI."
+            # 3. Challenger Underdog Veto
+            is_challenger = "challenger" in tour_name.lower() or "itf" in tour_name.lower()
+            if is_challenger and not is_favorite and not veto_bet:
+                if win_rate is None or win_rate < 0.40:
+                    veto_bet = True
+                    veto_reason = f"🛑 SYNDICATE VETO (CHALLENGER DOG TRAP): Challenger underdog {player_name} has sparse surface data or a winrate below 40.0%."
 
-    pattern_multiplier = max(0.1, min(1.5, pattern_multiplier))
+    pattern_multiplier = max(0.0, min(1.5, pattern_multiplier))
+    if veto_bet:
+        pattern_multiplier = 0.0
 
     raw_stake = (full_kelly * 100) * kelly_fraction
     adjusted_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
-    
-    # Die Stake wird streng zwischen 0.1 und der neuen 3.0 Max-Grenze eingesperrt
     optimal_stake = round(min(max_allowed_stake, max(0.1, adjusted_stake)), 1)
     
-    if ai_conviction_multiplier <= 0.2:
-        label = "🛑 AI VETO (BAD MATCHUP)"
+    if veto_bet or optimal_stake <= 0.0:
         return {
-            "type": label, 
+            "type": veto_reason or "🛑 SYNDICATE VETO (RISK BARRIER)", 
+            "edge_percent": edge_percent, 
+            "is_value": False, 
+            "kelly_stake": 0.0,
+            "pattern_multiplier": 0.0,
+            "pattern_warning": veto_reason or pattern_warning,
+            "pattern_boost": None
+        }
+    
+    if ai_conviction_multiplier <= 0.2:
+        return {
+            "type": "🛑 AI VETO (BAD MATCHUP)", 
             "edge_percent": edge_percent, 
             "is_value": False, 
             "kelly_stake": 0.0,
@@ -1562,9 +1606,9 @@ def calculate_value_metrics(
             "pattern_warning": pattern_warning,
             "pattern_boost": pattern_boost
         }
-    elif optimal_stake >= 2.5:     # 2.5u - 3.0u ist jetzt die Max Bomb
+    elif optimal_stake >= 2.5:
         label = "🔥 MAX BOMB (QUANT + SCOUT)"
-    elif optimal_stake >= 1.5:     # 1.5u - 2.4u ist High Conviction
+    elif optimal_stake >= 1.5:
         label = "✨ HIGH CONVICTION"
     elif optimal_stake >= 0.5:
         label = "🛡️ CORE VALUE"
@@ -2183,8 +2227,8 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
                     
                     value_tag = ""
                     if val_p1["is_value"]: 
@@ -2304,11 +2348,26 @@ async def run_pipeline():
                     
                     prob = calculate_physics_fair_odds(full_n1, full_n2, s1, s2, surf, ai['mc_prob_a'])
                     
-                    fair1 = round(1/prob, 2) if prob > 0.01 else 99
-                    fair2 = round(1/(1-prob), 2) if prob < 0.99 else 99
+                    # 🚀 SOTA: BAYESIAN SHRINKAGE & WISDOM OF THE CROWD REGULARIZER
+                    is_challenger = "challenger" in matched_tour_name.lower() or "itf" in matched_tour_name.lower()
+                    if _is_slam:
+                        shrinkage_factor = 0.45  # 45% shrinkage for Grand Slams
+                    elif is_challenger:
+                        shrinkage_factor = 0.65  # 65% shrinkage for Challenger/ITF matches
+                    else:
+                        shrinkage_factor = 0.50  # 50% shrinkage for ATP/WTA Tour level
+                        
+                    # Strip bookmaker juice using the Logarithmic Overround Stripper
+                    p_market1, p_market2 = strip_overround_log(m['odds1'], m['odds2'])
                     
-                    p1_set_prob = math.pow(prob, 0.65)
-                    p2_set_prob = math.pow(1.0 - prob, 0.65)
+                    # Blend the simulated probability with stripped market consensus
+                    prob_calibrated = (1.0 - shrinkage_factor) * prob + shrinkage_factor * p_market1
+                    
+                    fair1 = round(1/prob_calibrated, 2) if prob_calibrated > 0.01 else 99
+                    fair2 = round(1/(1.0 - prob_calibrated), 2) if prob_calibrated < 0.99 else 99
+                    
+                    p1_set_prob = math.pow(prob_calibrated, 0.65)
+                    p2_set_prob = math.pow(1.0 - prob_calibrated, 0.65)
                     
                     # 🎾 Set score probs — format-aware (Bo3 vs Bo5)
                     if _is_slam:
@@ -2333,8 +2392,8 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
 
                     candidate_picks = []
 
@@ -2391,8 +2450,8 @@ async def run_pipeline():
                         fair_home_sp = round(1/p_home_sp_final, 2) if p_home_sp_final > 0.01 else 99
                         fair_away_sp = round(1/p_away_sp_final, 2) if p_away_sp_final > 0.01 else 99
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
-                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
+                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
                         
                         sign1 = "+" if hc > 0 else ""
                         sign2 = "+" if -hc > 0 else ""
