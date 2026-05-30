@@ -504,6 +504,123 @@ function OverlappingRadar({ skillsA, skillsB }: { skillsA: any, skillsB: any }) 
     ); 
 }
 
+// --- NEU: HEAD-TO-HEAD COMPARISON HUD (APPLE-STYLE SOTA) ---
+function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { playerAData: any, playerBData: any, surface: string }) {
+    if (!playerAData || !playerBData) return null;
+
+    const getPlayerElo = (skills: any, surf: string) => {
+        if (!skills || !skills.elo_metrics) return 1500;
+        try {
+            const eloObj = typeof skills.elo_metrics === 'string' ? JSON.parse(skills.elo_metrics) : skills.elo_metrics;
+            const surfLower = (surf || 'hard').toLowerCase();
+            if (surfLower.includes('clay')) return eloObj.clay || 1500;
+            if (surfLower.includes('grass')) return eloObj.grass || 1500;
+            return eloObj.hard || 1500;
+        } catch {
+            return 1500;
+        }
+    };
+
+    const safeParse = (str: any) => {
+        if (!str) return null;
+        if (typeof str === 'object') return str;
+        try { return JSON.parse(str); } catch { return null; }
+    };
+
+    const eloA = getPlayerElo(playerAData.skills, surface);
+    const eloB = getPlayerElo(playerBData.skills, surface);
+    
+    const formAObj = safeParse(playerAData.player?.form_rating);
+    const formBObj = safeParse(playerBData.player?.form_rating);
+    const formA = formAObj?.score ? parseFloat(formAObj.score) : 5.0;
+    const formB = formBObj?.score ? parseFloat(formBObj.score) : 5.0;
+
+    const eloDiff = Math.abs(eloA - eloB);
+    const formDiff = Math.abs(formA - formB).toFixed(1);
+
+    const isClay = surface.toLowerCase().includes('clay');
+    const isGrass = surface.toLowerCase().includes('grass');
+    const surfLabel = isClay ? 'Clay' : isGrass ? 'Grass' : 'Hard';
+
+    // Calculate normalized bars
+    const eloTotal = eloA + eloB || 1;
+    const eloPercentA = Math.round((eloA / eloTotal) * 100);
+
+    const formTotal = formA + formB || 1;
+    const formPercentA = Math.round((formA / formTotal) * 100);
+
+    return (
+        <div className="w-full max-w-[640px] mx-auto mb-10 md:mb-14 p-6 rounded-3xl bg-[#1a1d26] border border-white/5 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+            <div className="absolute top-0 right-0 h-32 w-32 bg-tennis-lime/5 rounded-full blur-[50px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 h-32 w-32 bg-blue-500/5 rounded-full blur-[50px] pointer-events-none" />
+            
+            <div className="flex w-full items-center gap-2 border-b border-white/5 pb-3 mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+                <Swords size={12} className="text-tennis-lime" /> Neural Telemetry Comparison
+            </div>
+
+            <div className="space-y-6">
+                {/* 1. SURFACE ELO DUEL */}
+                <div className="group">
+                    <div className="flex justify-between items-end text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mb-2.5">
+                        <span className={eloA >= eloB ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
+                            {eloA} {playerAData.player.last_name}
+                        </span>
+                        <span className="text-gray-500 font-black tracking-widest text-[9px]">
+                            {surfLabel} ELO {eloDiff > 0 ? `(Δ ${eloDiff})` : ''}
+                        </span>
+                        <span className={eloB >= eloA ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
+                            {playerBData.player.last_name} {eloB}
+                        </span>
+                    </div>
+                    <div className="flex h-2.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
+                        <div style={{ width: `${eloPercentA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(132,204,22,0.3)]" />
+                        <div style={{ width: `${100-eloPercentA}%` }} className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
+                    </div>
+                </div>
+
+                {/* 2. HOT FORM CLASH */}
+                <div className="group">
+                    <div className="flex justify-between items-end text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mb-2.5">
+                        <span className={formA >= formB ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
+                            {formA.toFixed(1)} Form
+                        </span>
+                        <span className="text-gray-500 font-black tracking-widest text-[9px]">
+                            Current Form {parseFloat(formDiff) > 0 ? `(Δ ${formDiff})` : ''}
+                        </span>
+                        <span className={formB >= formA ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
+                            Form {formB.toFixed(1)}
+                        </span>
+                    </div>
+                    <div className="flex h-2.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
+                        <div style={{ width: `${formPercentA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(132,204,22,0.3)]" />
+                        <div style={{ width: `${100-formPercentA}%` }} className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. TACTICAL COMBAT PROFILE (SIDE-BY-SIDE INLINE CARDS) */}
+            <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/5">
+                <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
+                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> Dominant Style</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{playerAData.player.play_style?.split(',')[0] || 'All-Rounder'}</div>
+                    <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
+                        {playerAData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
+                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> Dominant Style</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{playerBData.player.play_style?.split(',')[0] || 'All-Rounder'}</div>
+                    <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
+                        {playerBData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const BsiInput = ({ value, onChange, label }: { value: number | string, onChange: (v: string) => void, label: string }) => {
     const { t } = useTranslation();
     return (
@@ -1102,6 +1219,9 @@ export function MatchupAnalyzer() {
                       </div>
                   </div>
               </div>
+
+              {/* DIRECT HEAD-TO-HEAD INTEL & ELO COMPARISON HUD */}
+              <HeadToHeadComparisonHUD playerAData={playerAData} playerBData={playerBData} surface={finalSurface} />
               
               {/* ACTION AREA */}
               {!analysisResult && (
