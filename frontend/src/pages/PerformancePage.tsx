@@ -972,34 +972,6 @@ export function PerformancePage() {
                   ? 'Modell-Effizienz nach Überzeugung (Einsatzhöhe)' 
                   : 'Model Efficiency by Conviction (Stake Size)'
               }</h4>
-              <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 mb-6">
-                  <MiniInsightCard 
-                      title="Micro/Small (< 1.0U)" colorClass="text-blue-400"
-                      value1={`${stats.brackets.fav.count > 0 ? '+' : ''}${(stats.brackets.fav.count > 0 ? stats.brackets.fav.clvSum / stats.brackets.fav.count : 0).toFixed(1)}%`} label1="AVG CLV"
-                      value2={`${stats.brackets.fav.units > 0 ? '+' : ''}${stats.brackets.fav.units.toFixed(1)}u`} label2={`${stats.brackets.fav.count} Bets`}
-                  />
-                  <MiniInsightCard 
-                      title="Core (1.0 - 1.4U)" colorClass="text-emerald-400"
-                      value1={`${stats.brackets.core.count > 0 ? '+' : ''}${(stats.brackets.core.count > 0 ? stats.brackets.core.clvSum / stats.brackets.core.count : 0).toFixed(1)}%`} label1="AVG CLV"
-                      value2={`${stats.brackets.core.units > 0 ? '+' : ''}${stats.brackets.core.units.toFixed(1)}u`} label2={`${stats.brackets.core.count} Bets`}
-                  />
-                  <MiniInsightCard 
-                      title="High (1.5 - 2.4U)" colorClass="text-yellow-400"
-                      value1={`${stats.brackets.dog.count > 0 ? '+' : ''}${(stats.brackets.dog.count > 0 ? stats.brackets.dog.clvSum / stats.brackets.dog.count : 0).toFixed(1)}%`} label1="AVG CLV"
-                      value2={`${stats.brackets.dog.units > 0 ? '+' : ''}${stats.brackets.dog.units.toFixed(1)}u`} label2={`${stats.brackets.dog.count} Bets`}
-                  />
-                  <MiniInsightCard 
-                      title="Max Bomb (2.5U+)" colorClass="text-purple-400"
-                      value1={`${stats.brackets.long.count > 0 ? '+' : ''}${(stats.brackets.long.count > 0 ? stats.brackets.long.clvSum / stats.brackets.long.count : 0).toFixed(1)}%`} label1="AVG CLV"
-                      value2={`${stats.brackets.long.units > 0 ? '+' : ''}${stats.brackets.long.units.toFixed(1)}u`} label2={`${stats.brackets.long.count} Bets`}
-                  />
-              </div>
-
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">{
-                i18n.language.startsWith('de') 
-                  ? 'Modell-Effizienz nach Überzeugung (Einsatzhöhe)' 
-                  : 'Model Efficiency by Conviction (Stake Size)'
-              }</h4>
               <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-4">
                   <MiniInsightCard 
                       title="Micro/Small (< 1.0u)" colorClass="text-blue-400"
