@@ -36,6 +36,83 @@ const checkWinnerResult = (pickName: string, actualWinner: string | null) => {
     return false;
 };
 
+const checkPlayResult = (pickName: string, match: any): boolean => {
+    if (!pickName || !match) return false;
+    const pick = pickName.trim();
+    const actualWinner = match.actual_winner_name;
+    const score = match.score;
+    const p1 = match.player1_name;
+    const p2 = match.player2_name;
+    const lowerPick = pick.toLowerCase();
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        if (!score) return false;
+        const cleanScore = score.replace(/:/g, '-').replace(/[^0-9\-\s]/g, '');
+        const sets = cleanScore.split(/\s+/);
+        let totalGames = 0;
+        let validSets = 0;
+        for (const s of sets) {
+            const parts = s.split('-');
+            if (parts.length === 2) {
+                const g1 = parseInt(parts[0], 10);
+                const g2 = parseInt(parts[1], 10);
+                if (!isNaN(g1) && !isNaN(g2)) {
+                    totalGames += g1 + g2;
+                    validSets++;
+                }
+            }
+        }
+        if (validSets === 0) return false;
+        const matchNum = pick.match(/[\d.]+/);
+        if (!matchNum) return false;
+        const boundary = parseFloat(matchNum[0]);
+        if (lowerPick.includes("over")) {
+            return totalGames > boundary;
+        } else if (lowerPick.includes("under")) {
+            return totalGames < boundary;
+        }
+        return false;
+    }
+    
+    // 2. HANDICAP GAMES
+    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+        if (!score || !p1 || !p2) return false;
+        const cleanScore = score.replace(/:/g, '-').replace(/[^0-9\-\s]/g, '');
+        const sets = cleanScore.split(/\s+/);
+        let p1Games = 0;
+        let p2Games = 0;
+        let validSets = 0;
+        for (const s of sets) {
+            const parts = s.split('-');
+            if (parts.length === 2) {
+                const g1 = parseInt(parts[0], 10);
+                const g2 = parseInt(parts[1], 10);
+                if (!isNaN(g1) && !isNaN(g2)) {
+                    p1Games += g1;
+                    p2Games += g2;
+                    validSets++;
+                }
+            }
+        }
+        if (validSets === 0) return false;
+        const isP1 = isPlayer1Target(pick, p1);
+        const isP2 = isPlayer1Target(pick, p2);
+        const matchSignNum = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!matchSignNum) return false;
+        const handicap = parseFloat(matchSignNum[1].replace(/\s+/g, ''));
+        if (isP1) {
+            return p1Games + handicap > p2Games;
+        } else if (isP2) {
+            return p2Games + handicap > p1Games;
+        }
+        return false;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    return checkWinnerResult(pick, actualWinner);
+};
+
 const parseValueFromText = (text: string | undefined) => {
     if (!text) {
         return { hasValue: false, pickName: '', edge: 0, fairOdds: 0, marketOdds: 0, type: '', stake: 0 };
@@ -299,7 +376,7 @@ export function PerformancePage() {
             .select('*')
             .neq('actual_winner_name', null)
             .neq('actual_winner_name', '')
-            .gte('created_at', STATS_RESET_DATE) 
+            .gt('created_at', STATS_RESET_DATE) 
             .order('created_at', { ascending: true })
             .range(offset, offset + limit - 1);
 
@@ -404,13 +481,24 @@ export function PerformancePage() {
       // Filter out absolute Noise and Vetoes completely
       if (valInfo.stake <= 0 || valInfo.type.includes('VETO') || valInfo.type.includes('NO EDGE') || valInfo.type.includes('NOISE')) return;
 
+      // 🛑 SOTA: Fractional Kelly & Buchdahl Efficiency Purge (Absolute Sync with HomePage)
+      if (valInfo.type === 'LEGACY') {
+           // Historischer Purge: Löscht den alten ineffizienten "Core-Graveyard" aus der KPI Berechnung.
+           if (valInfo.marketOdds < 2.0 && valInfo.stake < 2.0) return; 
+           if (valInfo.marketOdds >= 1.50 && valInfo.marketOdds < 2.00 && valInfo.edge < 8.0) return;
+      } else {
+           // Safety Check für das neue Modell (Filtert Noise heraus)
+           if (valInfo.marketOdds >= 3.0 && valInfo.stake < 0.5) return;
+           if (valInfo.marketOdds >= 2.0 && valInfo.marketOdds < 3.0 && valInfo.stake < 1.0) return;
+      }
+
       const { pickName, marketOdds, edge, stake, type, fairOdds } = valInfo;
 
       // 🚀 Absolute Safety Check: Skip any live/in-play signals
       const isLive = type.toLowerCase().includes('live');
       if (isLive) return;
 
-      const isWin = checkWinnerResult(pickName, match.actual_winner_name);
+      const isWin = checkPlayResult(pickName, match);
       
       if (fairOdds > 0) {
           const predProb = 1 / fairOdds;

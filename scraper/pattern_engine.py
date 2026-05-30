@@ -63,7 +63,7 @@ def fetch_all(table, cols, extra_filters=None):
     """Keyset pagination with retry on connection drop (WinError 10054)."""
     import time, httpx
     rows = []
-    PAGE = 500       # smaller page to reduce connection stress
+    PAGE = 1000       # Optimized page size to respect Supabase ceiling and ensure pagination
     last_id = None
     fetch_cols = cols if "id" in cols else "id," + cols
     consecutive_errors = 0
@@ -98,7 +98,7 @@ def fetch_all(table, cols, extra_filters=None):
         print(f"  [{table}] {len(rows):,} rows...", end='\r')
         if len(batch.data) < PAGE:
             break
-        time.sleep(0.3)   # gentle pacing between pages
+        time.sleep(0.02)   # 20ms gentle spacing between pages
 
     print(f"  [{table}] Fetched {len(rows):,} total.          ")
     return rows
@@ -279,7 +279,8 @@ print("\n" + "=" * 70)
 print("PLAYER SURFACE WIN RATES (top 200 by volume)")
 print("=" * 70)
 surf_wr_out = {}
-top = sorted(player_surf, key=lambda p: sum(player_surf[p][s][0]+player_surf[p][s][1] for s in player_surf[p]), reverse=True)[:300]
+# Save surface winrates for ALL players in player_surf
+top = list(player_surf.keys())
 SHOWN2 = 0
 for player in top:
     sd = player_surf[player]

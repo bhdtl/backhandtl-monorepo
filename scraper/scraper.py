@@ -20,7 +20,7 @@ import numpy as np
 
 import httpx
 from supabase import create_client, Client
-from neobet_client import NeoBetAPI
+from neobet_client import NeoBetAPI, reorder_player_name
 
 # =================================================================
 # 1. CONFIGURATION & LOGGING
@@ -228,6 +228,18 @@ def is_same_player(target_name: str, db_name: str) -> bool:
         return t_first[0] == d_first[0]
         
     return True
+
+def find_pattern_cache_player(player_name: str, cache_dict: dict) -> Optional[str]:
+    if not player_name or not cache_dict:
+        return None
+    clean = player_name.lower().strip()
+    if clean in cache_dict:
+        return clean
+    for key in cache_dict.keys():
+        if is_same_player(clean, key):
+            return key
+    return None
+
 
 def get_similarity(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, a, b).ratio()
@@ -972,13 +984,62 @@ async def call_openrouter(prompt: str, model: str = MODEL_NAME, temp: float = 0.
 # 7. DATA FETCHING & ORACLE (API INTEGRATED + DATA LAKE)
 # =================================================================
 async def fetch_player_history_extended(player_last_name: str, limit: int = 20) -> List[Dict]:
+    live = []
     try:
-        res_live = supabase.table("market_odds").select("player1_name, player2_name, odds1, odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text").or_(f"player1_name.ilike.%{player_last_name}%,player2_name.ilike.%{player_last_name}%").not_.is_("actual_winner_name", "null").order("created_at", desc=True).limit(limit).execute()
+        # Fast exact-match query first for live table
+        res_live = supabase.table("market_odds")\
+            .select("player1_name, player2_name, odds1, odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text")\
+            .or_(f"player1_name.eq.{player_last_name},player2_name.eq.{player_last_name}")\
+            .not_.is_("actual_winner_name", "null")\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .execute()
         live = res_live.data or []
+    except Exception as e:
+        log(f"⚠️ Live Fetch Exact Error for {player_last_name}: {e}")
+        
+    if not live:
+        try:
+            # Fallback to slower wildcard search for live table
+            res_live_fb = supabase.table("market_odds")\
+                .select("player1_name, player2_name, odds1, odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text")\
+                .or_(f"player1_name.ilike.%{player_last_name}%,player2_name.ilike.%{player_last_name}%")\
+                .not_.is_("actual_winner_name", "null")\
+                .order("created_at", desc=True)\
+                .limit(limit)\
+                .execute()
+            live = res_live_fb.data or []
+        except Exception as e2:
+            log(f"⚠️ Live Fetch Fallback Error for {player_last_name}: {e2}")
 
-        res_hist = supabase.table("historical_matches").select("winner_name, loser_name, match_date, score, tourney_name, surface, best_of").or_(f"winner_name.ilike.%{player_last_name}%,loser_name.ilike.%{player_last_name}%").order("match_date", desc=True).limit(limit).execute()
+    hist = []
+    try:
+        # Fast exact-match query first for historical table (highly indexed & fast)
+        res_hist = supabase.table("historical_matches")\
+            .select("winner_name, loser_name, match_date, score, tourney_name, surface, best_of")\
+            .or_(f"winner_name.eq.{player_last_name},loser_name.eq.{player_last_name}")\
+            .order("match_date", desc=True)\
+            .limit(limit)\
+            .execute()
         hist = res_hist.data or []
+    except Exception as e:
+        log(f"⚠️ Hist Exact Fetch Error for {player_last_name}: {e}")
+        
+    if not hist:
+        try:
+            last_word = player_last_name.strip().split()[-1] if " " in player_last_name else player_last_name
+            # Fallback to slower wildcard search only if exact match is empty
+            res_hist_fb = supabase.table("historical_matches")\
+                .select("winner_name, loser_name, match_date, score, tourney_name, surface, best_of")\
+                .or_(f"winner_name.ilike.%{last_word}%,loser_name.ilike.%{last_word}%")\
+                .order("match_date", desc=True)\
+                .limit(limit)\
+                .execute()
+            hist = res_hist_fb.data or []
+        except Exception as e:
+            log(f"⚠️ Hist Fallback Fetch Error for {player_last_name} (bypassing): {e}")
 
+    try:
         combined = []
         for m in live:
             combined.append({
@@ -1021,12 +1082,12 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
                 deduped.append(m)
 
         return deduped[:limit]
-    except Exception as e:
-        log(f"History Fetch Error: {e}")
+    except Exception as process_err:
+        log(f"⚠️ Process History Error for {player_last_name}: {process_err}")
         return []
 
 async def update_past_results_api(api: NeoBetAPI, players: List[Dict]):
-    # 🚀 FIX: Limit query to last 7 days and select only needed columns to prevent 57014 statement timeout
+    # 🚀 FIX: Limit query to last 7 days to prevent timeouts
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%SZ')
     try:
         pending_result = supabase.table("market_odds")\
@@ -1038,88 +1099,131 @@ async def update_past_results_api(api: NeoBetAPI, players: List[Dict]):
     except Exception as e:
         log(f"⚠️ update_past_results: Could not fetch pending matches: {e}")
         return
+        
     if not pending or not isinstance(pending, list): 
         return
-    safe_to_check = list(pending)
-
-    for day_off in range(0, 3): 
-        t_date = (datetime.now(timezone.utc) - timedelta(days=day_off)).strftime('%Y-%m-%d')
-        fixtures = await api.get_fixtures(t_date, include_ended=True)
         
-        for fix in fixtures:
-            if fix.get("event_status") not in ["Ended", "EndedRetired", "Finished"]: continue
+    log(f"🔍 Starting settlement check for {len(pending)} pending matches...")
+    
+    for pm in pending:
+        await asyncio.sleep(0.1)
+        contest_id = pm.get("api_match_key")
+        if not contest_id or not contest_id.startswith("NEO|"):
+            continue
             
-            p1_api = fix.get("event_first_player", "")
-            p2_api = fix.get("event_second_player", "")
-            if not p1_api or not p2_api: continue
-            
-            matched_pm = None
-            
-            for pm in list(safe_to_check):
-                if pm.get('api_match_key') and str(pm['api_match_key']) == str(fix.get('event_key')):
-                    matched_pm = pm
-                    break
-
-                if (is_same_player(pm['player1_name'], p1_api) and is_same_player(pm['player2_name'], p2_api)) or \
-                   (is_same_player(pm['player1_name'], p2_api) and is_same_player(pm['player2_name'], p1_api)):
-                    matched_pm = pm
-                    break
-
-            if matched_pm:
-                api_winner = fix.get("event_winner")
-                winner = None
+        try:
+            # Query the specific contestId directly from NEO.bet matches API
+            params = {
+                "license": "Germany",
+                "language": "de",
+                "market": "full",
+                "contestId": contest_id
+            }
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res_api = await client.get(api.base_url, params=params)
                 
-                if api_winner == "First Player":
-                    winner = matched_pm['player1_name'] if is_same_player(matched_pm['player1_name'], p1_api) else matched_pm['player2_name']
-                elif api_winner == "Second Player":
-                    winner = matched_pm['player1_name'] if is_same_player(matched_pm['player1_name'], p2_api) else matched_pm['player2_name']
+            if res_api.status_code != 200:
+                continue
+                
+            data = res_api.json()
+            if not data or not isinstance(data, list):
+                continue
+                
+            match = data[0]
+            status_info = match.get("contestStatus", {})
+            status_name = status_info.get("name", "Pregame")
+            
+            # NEO.bet indicates ended matches via Final, Ended, EndedRetired, Canceled, Aborted
+            if status_name in ["Final", "Ended", "EndedRetired", "Canceled", "Aborted"]:
+                scores_list = match.get("scores", [])
+                final_score = ""
+                event_winner = None
+                constructed_scores = []
+                
+                if isinstance(scores_list, list):
+                    # Match score
+                    match_score_obj = next((s for s in scores_list if isinstance(s, dict) and s.get("name") == "Match"), None)
+                    if match_score_obj and isinstance(match_score_obj.get("score"), list) and len(match_score_obj["score"]) == 2:
+                        try:
+                            h_score = int(match_score_obj["score"][0])
+                            a_score = int(match_score_obj["score"][1])
+                            final_score = f"{h_score}-{a_score}"
+                            if h_score > a_score:
+                                event_winner = "First Player"
+                            elif a_score > h_score:
+                                event_winner = "Second Player"
+                        except:
+                            pass
                     
-                scores_array = fix.get("scores", [])
-                if scores_array and isinstance(scores_array, list):
-                    constructed_score = []
+                    # Set scores mapping
+                    for s in scores_list:
+                        if not isinstance(s, dict):
+                            continue
+                        s_name = s.get("name", "")
+                        if s_name.startswith("SET") or s_name.startswith("Set"):
+                            s_score = s.get("score", [])
+                            if isinstance(s_score, list) and len(s_score) == 2:
+                                try:
+                                    set_num = s_name.replace("SET", "").replace("Set", "").strip()
+                                    constructed_scores.append({
+                                        "score_set": set_num,
+                                        "score_first": s_score[0],
+                                        "score_second": s_score[1]
+                                    })
+                                except:
+                                    pass
+                                    
+                if constructed_scores:
                     try:
-                        scores_array = sorted(scores_array, key=lambda x: int(x.get("score_set", 0)))
+                        constructed_scores = sorted(constructed_scores, key=lambda x: int(x["score_set"]))
                     except: pass
-                    
-                    for s in scores_array:
-                        sf = s.get("score_first")
-                        ss = s.get("score_second")
+                    set_strs = []
+                    for cs in constructed_scores:
+                        sf = cs["score_first"]
+                        ss = cs["score_second"]
                         if sf is not None and ss is not None and str(sf).strip() != "" and str(ss).strip() != "":
-                            constructed_score.append(f"{sf}-{ss}")
-                    
-                    if constructed_score:
-                        final_score = " ".join(constructed_score)
-                    else:
-                        final_score = str(fix.get("event_final_result", ""))
-                else:
-                    final_score = str(fix.get("event_final_result", ""))
+                            set_strs.append(f"{sf}-{ss}")
+                    if set_strs:
+                        final_score = " ".join(set_strs)
+                        
+                winner = None
+                p1_api = reorder_player_name(match.get("home", ""))
+                p2_api = reorder_player_name(match.get("away", ""))
                 
+                if event_winner == "First Player":
+                    winner = pm['player1_name'] if is_same_player(pm['player1_name'], p1_api) else pm['player2_name']
+                elif event_winner == "Second Player":
+                    winner = pm['player1_name'] if is_same_player(pm['player1_name'], p2_api) else pm['player2_name']
+                    
                 if winner:
                     supabase.table("market_odds").update({
                         "actual_winner_name": winner,
                         "score": final_score
-                    }).eq("id", matched_pm['id']).execute()
-
-                p1_name = matched_pm['player1_name']
-                p2_name = matched_pm['player2_name']
-                
-                p1_id = next((p['id'] for p in players if is_same_player(p1_name, p.get('last_name', ''))), None)
-                p2_id = next((p['id'] for p in players if is_same_player(p2_name, p.get('last_name', ''))), None)
-
-                for p_name_hook in [matched_pm['player1_name'], matched_pm['player2_name']]:
-                    p_exists = next((p for p in players if is_same_player(p_name_hook, p.get('last_name', ''))), None)
-                    if not p_exists: continue
+                    }).eq("id", pm['id']).execute()
+                    log(f"💾 Settled finished match: {pm['player1_name']} vs {pm['player2_name']} -> Winner: {winner} | Score: {final_score}")
                     
-                    p_hist = await fetch_player_history_extended(p_name_hook, limit=20)
-                    p_form = MomentumV2Engine.calculate_rating(p_hist, p_name_hook)
+                    p1_name = pm['player1_name']
+                    p2_name = pm['player2_name']
                     
-                    target_p_id = p1_id if is_same_player(p_name_hook, matched_pm['player1_name']) else p2_id
-                    if target_p_id:
-                        supabase.table('players').update({
-                            'form_rating': p_form 
-                        }).eq('id', target_p_id).execute()
+                    p1_id = next((p['id'] for p in players if is_same_player(p1_name, p.get('last_name', ''))), None)
+                    p2_id = next((p['id'] for p in players if is_same_player(p2_name, p.get('last_name', ''))), None)
+                    
+                    for p_name_hook in [p1_name, p2_name]:
+                        p_exists = next((p for p in players if is_same_player(p_name_hook, p.get('last_name', ''))), None)
+                        if not p_exists: continue
+                        
+                        p_hist = await fetch_player_history_extended(p_name_hook, limit=20)
+                        p_form = MomentumV2Engine.calculate_rating(p_hist, p_name_hook)
+                        
+                        target_p_id = p1_id if is_same_player(p_name_hook, p1_name) else p2_id
+                        if target_p_id:
+                            supabase.table('players').update({
+                                'form_rating': p_form 
+                            }).eq('id', target_p_id).execute()
+                            
+        except Exception as settle_err:
+            log(f"⚠️ Settlement Error for {pm['player1_name']} vs {pm['player2_name']}: {settle_err}")
 
-                safe_to_check = [x for x in safe_to_check if x['id'] != matched_pm['id']]
 
 def get_total_games(score_str: str) -> int:
     if not isinstance(score_str, str): return 0
@@ -1460,6 +1564,81 @@ def normal_cdf_prob(elo_diff: float, sigma: float = 280.0) -> float:
     z = elo_diff / (sigma * math.sqrt(2))
     return 0.5 * (1 + math.erf(z))
 
+def parse_score_margin(score: str, player_won: bool) -> int:
+    try:
+        sets = re.findall(r'(\d+)-(\d+)', score)
+        if not sets:
+            return 0
+        w_games = sum(int(s[0]) for s in sets)
+        l_games = sum(int(s[1]) for s in sets)
+        margin = w_games - l_games
+        return margin if player_won else -margin
+    except:
+        return 0
+
+def calculate_caliber_performance(
+    player_name: str,
+    target_opponent_elo: float,
+    surf: str,
+    player_history: List[Dict],
+    players_list: List[Dict],
+    all_skills: Dict[str, Dict]
+) -> Dict[str, Any]:
+    if not player_history or not surf or not target_opponent_elo:
+        return {"n": 0, "wins": 0, "losses": 0, "win_rate": 0.0, "avg_margin": 0.0}
+        
+    matches_in_bracket = []
+    
+    for m in player_history:
+        m_surf = (m.get("surface") or "").lower()
+        if not m_surf and m.get("tournament"):
+            t_name = clean_tournament_name(m.get("tournament") or "")
+            m_surf = GLOBAL_SURFACE_MAP.get(t_name.lower(), "hard")
+        else:
+            m_surf = (m_surf or '').lower()
+            if 'clay' in m_surf: m_surf = 'clay'
+            elif 'grass' in m_surf: m_surf = 'grass'
+            else: m_surf = 'hard'
+            
+        if m_surf != surf:
+            continue
+            
+        is_p1 = player_name.lower() in m["player1_name"].lower()
+        opp_name = m["player2_name"] if is_p1 else m["player1_name"]
+        
+        opp_obj = find_player_smart(opp_name, players_list)
+        if not opp_obj:
+            continue
+            
+        opp_skills = all_skills.get(opp_obj["id"], {})
+        opp_elo = opp_skills.get("elo_metrics", {}).get(surf, 1500)
+        
+        if abs(opp_elo - target_opponent_elo) <= 150:
+            winner = (m.get("actual_winner_name") or "").lower()
+            p_won = player_name.lower() in winner or winner in player_name.lower()
+            margin = parse_score_margin(m.get("score") or "", p_won)
+            matches_in_bracket.append({
+                "won": p_won,
+                "margin": margin
+            })
+            
+    n = len(matches_in_bracket)
+    if n == 0:
+        return {"n": 0, "wins": 0, "losses": 0, "win_rate": 0.0, "avg_margin": 0.0}
+        
+    wins = sum(1 for m in matches_in_bracket if m["won"])
+    losses = n - wins
+    win_rate = wins / n
+    avg_margin = sum(m["margin"] for m in matches_in_bracket) / n
+    
+    return {
+        "n": n,
+        "wins": wins,
+        "losses": losses,
+        "win_rate": win_rate,
+        "avg_margin": avg_margin
+    }
+
 def calculate_value_metrics(
     fair_prob: float, 
     market_odds: float, 
@@ -1469,7 +1648,13 @@ def calculate_value_metrics(
     is_favorite: bool = True,
     is_slam: bool = False,
     trading_type: str = "PreMatch",
-    player_name: str = ""
+    player_name: str = "",
+    opponent_name: str = "",
+    player_elo: float = None,
+    opponent_elo: float = None,
+    player_history: List[Dict] = None,
+    players_list: List[Dict] = None,
+    all_skills: Dict[str, Dict] = None
 ) -> Dict[str, Any]:
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
         return {
@@ -1485,8 +1670,9 @@ def calculate_value_metrics(
     actual_edge_decimal = (fair_prob * market_odds) - 1.0
     edge_percent = round(actual_edge_decimal * 100, 1)
     
-    # 🚀 SOTA: Strict Syndicate Filtering (Minimum +3.0% calibrated edge)
-    if actual_edge_decimal < 0.03: 
+    # 🚀 SOTA: Dynamic Edge Thresholds (Favorites < 1.80 -> +1.5% edge; Underdogs >= 1.80 -> +4.0% edge)
+    min_edge = 0.015 if market_odds < 1.80 else 0.040
+    if actual_edge_decimal < min_edge: 
         return {
             "type": "NO EDGE", 
             "edge_percent": edge_percent, 
@@ -1502,16 +1688,16 @@ def calculate_value_metrics(
     
     # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-3 Unit Scale)
     if market_odds < 2.00:
-        kelly_fraction = 0.15      # 15% Kelly für solide Favoriten
+        kelly_fraction = 0.15      # 15% Kelly for solid favorites
         max_allowed_stake = 3.0    # Max 3.0u
     elif market_odds < 3.00:
-        kelly_fraction = 0.10      # Reduzierter Hebel für Underdogs
+        kelly_fraction = 0.10      # Reduced leverage for regular underdogs
         max_allowed_stake = 2.0    # Max 2.0u
     elif market_odds < 5.00:
-        kelly_fraction = 0.05      # Extreme Dämpfung für hohe Varianz
+        kelly_fraction = 0.05      # High variance dampening
         max_allowed_stake = 1.0    # Max 1.0u
     else:
-        kelly_fraction = 0.02      # Lotto-Tickets (Longshots)
+        kelly_fraction = 0.02      # Longshot extreme dampening
         max_allowed_stake = 0.5    # Max 0.5u
         
     # ═══════════════════════════════════════════════════════════════════════════
@@ -1530,8 +1716,11 @@ def calculate_value_metrics(
     else: surf = ''
 
     if surf and _PATTERN_CACHE:
-        clean_player = player_name.lower().strip()
-        p_wr = _PATTERN_CACHE.get("player_surface_winrates", {}).get(clean_player, {})
+        # Smart spelling case-insensitive matching
+        cache_winrates = _PATTERN_CACHE.get("player_surface_winrates", {})
+        clean_player = find_pattern_cache_player(player_name, cache_winrates)
+        
+        p_wr = cache_winrates.get(clean_player, {}) if clean_player else {}
         surf_data = p_wr.get(surf, {})
         wins = surf_data.get("wins", 0)
         losses = surf_data.get("losses", 0)
@@ -1556,7 +1745,29 @@ def calculate_value_metrics(
             pattern_multiplier *= 0.70
             pattern_warning = f"⚠️ Low Data Warning: {player_name} has no historical profile on {surf.upper()}, scaling down stake by 30%."
 
-        # 2. Fallback to generic category bias
+        # 2. ELO caliber-bracketed performance check (within opponent ELO +/- 150 points)
+        if not veto_bet and opponent_elo and player_history and players_list and all_skills:
+            cal_perf = calculate_caliber_performance(
+                player_name=player_name,
+                target_opponent_elo=opponent_elo,
+                surf=surf,
+                player_history=player_history,
+                players_list=players_list,
+                all_skills=all_skills
+            )
+            if cal_perf["n"] >= 3:
+                c_wr = cal_perf["win_rate"]
+                c_margin = cal_perf["avg_margin"]
+                c_wins = cal_perf["wins"]
+                c_losses = cal_perf["losses"]
+                if c_wr >= 0.60:
+                    pattern_multiplier *= 1.10
+                    pattern_boost = f"🚀 Caliber Matchup Strength: {player_name} has won {c_wr:.0%} ({c_wins}W-{c_losses}L) against similarly rated ELO opponents ({int(opponent_elo-150)}-{int(opponent_elo+150)}) on {surf.upper()}, covering by {c_margin:+.1f} games."
+                elif c_wr < 0.40:
+                    pattern_multiplier *= 0.80
+                    pattern_warning = f"⚠️ Caliber Matchup Warning: {player_name} struggles against similarly rated ELO opponents on {surf.upper()} with a {c_wr:.0%} win rate ({c_wins}W-{c_losses}L) and margin of {c_margin:+.1f} games."
+
+        # 3. Fallback to generic category bias (Quantitative only, no warning/boost strings!)
         if not veto_bet:
             cat_key = f"{surf}_{'slam' if is_slam else 'regular'}"
             cat_data = _PATTERN_CACHE.get("surface_category_bias", {}).get(cat_key)
@@ -1564,13 +1775,10 @@ def calculate_value_metrics(
                 roi_val = cat_data.get("favorite_roi" if is_favorite else "underdog_roi", 0.0)
                 if roi_val < -0.10:
                     pattern_multiplier *= (1.0 + roi_val)
-                    if not pattern_warning:
-                        pattern_warning = f"⚠️ Clay/Grass Underdog Bias: {surf.upper()} {'Slam' if is_slam else 'Regular'} underdogs have a historical ROI of {roi_val:+.1%}."
-                elif roi_val > 0.01 and not pattern_boost:
+                elif roi_val > 0.01:
                     pattern_multiplier *= (1.0 + roi_val)
-                    pattern_boost = f"🚀 Historical ROI for {surf.upper()} {'Favorites' if is_favorite else 'Underdogs'} is positive ({roi_val:+.1%})."
 
-            # 3. Challenger Underdog Veto
+            # 4. Challenger Underdog Veto
             is_challenger = "challenger" in tour_name.lower() or "itf" in tour_name.lower()
             if is_challenger and not is_favorite and not veto_bet:
                 if win_rate is None or win_rate < 0.40:
@@ -2211,6 +2419,9 @@ async def run_pipeline():
                 
                 p1_form_v2 = MomentumV2Engine.calculate_rating(p1_history[:20], full_n1)
                 p2_form_v2 = MomentumV2Engine.calculate_rating(p2_history[:20], full_n2)
+                elo_surf = SurfaceIntelligence.normalize_surface_key(surf)
+                elo1 = s1.get('elo_metrics', {}).get(elo_surf, 1500)
+                elo2 = s2.get('elo_metrics', {}).get(elo_surf, 1500)
 
                 should_run_ai = True
                 if db_match_id and cached_ai:
@@ -2227,8 +2438,9 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+
                     
                     value_tag = ""
                     if val_p1["is_value"]: 
@@ -2392,8 +2604,9 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+
 
                     candidate_picks = []
 
@@ -2450,8 +2663,9 @@ async def run_pipeline():
                         fair_home_sp = round(1/p_home_sp_final, 2) if p_home_sp_final > 0.01 else 99
                         fair_away_sp = round(1/p_away_sp_final, 2) if p_away_sp_final > 0.01 else 99
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1)
-                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2)
+                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
+                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+
                         
                         sign1 = "+" if hc > 0 else ""
                         sign2 = "+" if -hc > 0 else ""

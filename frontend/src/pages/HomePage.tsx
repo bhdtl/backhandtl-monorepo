@@ -34,6 +34,83 @@ const checkWinnerResult = (pickName: string, actualWinner: string | null) => {
     return false;
 };
 
+const checkPlayResult = (pickName: string, match: any): boolean => {
+    if (!pickName || !match) return false;
+    const pick = pickName.trim();
+    const actualWinner = match.actual_winner_name;
+    const score = match.score;
+    const p1 = match.player1_name;
+    const p2 = match.player2_name;
+    const lowerPick = pick.toLowerCase();
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        if (!score) return false;
+        const cleanScore = score.replace(/:/g, '-').replace(/[^0-9\-\s]/g, '');
+        const sets = cleanScore.split(/\s+/);
+        let totalGames = 0;
+        let validSets = 0;
+        for (const s of sets) {
+            const parts = s.split('-');
+            if (parts.length === 2) {
+                const g1 = parseInt(parts[0], 10);
+                const g2 = parseInt(parts[1], 10);
+                if (!isNaN(g1) && !isNaN(g2)) {
+                    totalGames += g1 + g2;
+                    validSets++;
+                }
+            }
+        }
+        if (validSets === 0) return false;
+        const matchNum = pick.match(/[\d.]+/);
+        if (!matchNum) return false;
+        const boundary = parseFloat(matchNum[0]);
+        if (lowerPick.includes("over")) {
+            return totalGames > boundary;
+        } else if (lowerPick.includes("under")) {
+            return totalGames < boundary;
+        }
+        return false;
+    }
+    
+    // 2. HANDICAP GAMES
+    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+        if (!score || !p1 || !p2) return false;
+        const cleanScore = score.replace(/:/g, '-').replace(/[^0-9\-\s]/g, '');
+        const sets = cleanScore.split(/\s+/);
+        let p1Games = 0;
+        let p2Games = 0;
+        let validSets = 0;
+        for (const s of sets) {
+            const parts = s.split('-');
+            if (parts.length === 2) {
+                const g1 = parseInt(parts[0], 10);
+                const g2 = parseInt(parts[1], 10);
+                if (!isNaN(g1) && !isNaN(g2)) {
+                    p1Games += g1;
+                    p2Games += g2;
+                    validSets++;
+                }
+            }
+        }
+        if (validSets === 0) return false;
+        const isP1 = isPlayer1Target(pick, p1);
+        const isP2 = isPlayer1Target(pick, p2);
+        const matchSignNum = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!matchSignNum) return false;
+        const handicap = parseFloat(matchSignNum[1].replace(/\s+/g, ''));
+        if (isP1) {
+            return p1Games + handicap > p2Games;
+        } else if (isP2) {
+            return p2Games + handicap > p1Games;
+        }
+        return false;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    return checkWinnerResult(pick, actualWinner);
+};
+
 // 🚀 SOTA FIX: Sync with Performance Page to include 'type' and 'fairOdds'
 const parseValueFromText = (text: string | undefined) => {
     if (!text) {
@@ -98,25 +175,42 @@ const AIStatsHero = () => {
   useEffect(() => {
     const fetchPerformance = async () => {
       try {
-          // 🚀 SOTA FIX: Absolute Sync mit PerformancePage (created_at ASC + 50,000 Limit)
-          const { data, error } = await supabase
-            .from('market_odds')
-            .select('*') 
-            .neq('actual_winner_name', null)
-            .neq('actual_winner_name', '')
-            .gt('created_at', STATS_RESET_DATE)
-            .order('created_at', { ascending: true }) 
-            .limit(50000); 
+          // 🚀 SOTA FIX: range pagination absolute Sync mit PerformancePage (umgeht 1000-row Limit)
+          let allData: any[] = [];
+          let offset = 0;
+          const limit = 1000;
+          let keepFetching = true;
 
-          if (error) throw error;
+          while (keepFetching) {
+              const { data, error } = await supabase
+                  .from('market_odds')
+                  .select('*')
+                  .neq('actual_winner_name', null)
+                  .neq('actual_winner_name', '')
+                  .gt('created_at', STATS_RESET_DATE)
+                  .order('created_at', { ascending: true })
+                  .range(offset, offset + limit - 1);
 
-          if (data && data.length > 0) {
+              if (error) throw error;
+
+              if (data && data.length > 0) {
+                  allData = [...allData, ...data];
+                  offset += limit;
+                  if (data.length < limit) {
+                      keepFetching = false;
+                  }
+              } else {
+                  keepFetching = false;
+              }
+          }
+
+          if (allData && allData.length > 0) {
             let sumClv = 0;
             let cumulativeUnits = 0;
             let totalUnitsStaked = 0;
             let validSignals = 0;
 
-            data.forEach(match => {
+            allData.forEach(match => {
               let valInfo = parseValueFromText(match.ai_analysis_text);
               
               if (!valInfo.hasValue && match.ai_fair_odds1 && match.ai_fair_odds2) {
@@ -143,7 +237,7 @@ const AIStatsHero = () => {
                   if (valInfo.marketOdds >= 2.0 && valInfo.marketOdds < 3.0 && valInfo.stake < 1.0) return;
               }
 
-              const isWin = checkWinnerResult(valInfo.pickName, match.actual_winner_name);
+              const isWin = checkPlayResult(valInfo.pickName, match);
               const actualStake = valInfo.stake; 
               const unitProfit = isWin ? (actualStake * (valInfo.marketOdds - 1)) : -actualStake;
               
