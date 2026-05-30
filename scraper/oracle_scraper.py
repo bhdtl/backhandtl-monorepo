@@ -31,7 +31,7 @@ log("🔮 Initializing Oracle Pre-Warmer (V155.3 SOTA - State Synchronization Mo
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-FUNCTION_URL = os.environ.get("SUPABASE_FUNCTION_URL")
+FUNCTION_URL = os.environ.get("SUPABASE_FUNCTION_URL") or (f"{SUPABASE_URL.rstrip('/')}/functions/v1/smart-api" if SUPABASE_URL else None)
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY") 
 API_TENNIS_KEY = os.environ.get("API_TENNIS_KEY") # 🚀 Externe API für historische Ground Truth
 
