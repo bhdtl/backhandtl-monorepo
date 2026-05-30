@@ -30,7 +30,7 @@ def log(msg: str):
 log("🔮 Initializing Oracle Pre-Warmer (V155.3 SOTA - State Synchronization Mode)...")
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 FUNCTION_URL = os.environ.get("SUPABASE_FUNCTION_URL") or (f"{SUPABASE_URL.rstrip('/')}/functions/v1/smart-api" if SUPABASE_URL else None)
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY") 
 API_TENNIS_KEY = os.environ.get("API_TENNIS_KEY") # 🚀 Externe API für historische Ground Truth
@@ -527,153 +527,156 @@ async def execute_synergy_analysis():
         log("⚠️ OPENROUTER_API_KEY missing, skipping Synergy Pipeline.")
         return
         
-    api_player_map = await build_api_tennis_player_map()
-
-    # 1. Hole alle aktuellen Oracle Draws (Turniere & Spieler)
-    draws_res = supabase.table('tournament_oracle_draws').select('tournament_name, player_a_name, player_b_name').execute()
-    draws = draws_res.data if draws_res else []
-    
-    # --- 🚀 STATE SYNC FIX: Wir merken uns die aktiven Turniere ---
-    active_tournament_names = set()
-    tournaments = {}
-    for draw in draws:
-        t_name = draw.get('tournament_name', '').strip()
-        if not t_name: continue
-        active_tournament_names.add(t_name) # Für die spätere Bereinigung
-        if t_name not in tournaments: tournaments[t_name] = set()
-        if draw.get('player_a_name'): tournaments[t_name].add(draw['player_a_name'].strip())
-        if draw.get('player_b_name'): tournaments[t_name].add(draw['player_b_name'].strip())
-
-    # 2. Hole Turnier-Details (BSI, Notes)
-    tour_details = supabase.table('tournaments').select('name, surface, bsi_rating, notes').execute().data
-    tour_map = {t['name'].strip().lower(): t for t in (tour_details or [])}
-
-    # 3. Hole Spieler & Scout-Reports
-    players = supabase.table('players').select('id, last_name, play_style, first_name').execute().data
-    reports = supabase.table('scouting_reports').select('player_id, strengths, weaknesses').execute().data
-    
-    report_map = {r['player_id']: r for r in (reports or [])}
-    player_map = {p['last_name'].strip().lower(): p for p in (players or [])}
-
-    # 4. Hole bereits berechnete Synergies
-    existing = supabase.table('tournament_court_synergy').select('tournament_name, player_name').execute().data
-    existing_set = {f"{e['tournament_name']}_{e['player_name']}" for e in (existing or [])}
-
-    for t_name, player_set in tournaments.items():
-        t_info = tour_map.get(t_name.lower())
-        if not t_info: continue
-        
-        t_surface = t_info.get('surface', 'Hard')
-        t_bsi = t_info.get('bsi_rating', 5.0)
-        t_bucket = get_bsi_bucket(t_surface, t_bsi)
-
-        for p_name in player_set:
-            if f"{t_name}_{p_name}" in existing_set:
-                continue # Schon berechnet
-
-            last_name_part = p_name.split(' ')[-1].lower()
-            p_info = player_map.get(last_name_part) 
-            if not p_info: continue
-            
-            p_report = report_map.get(p_info['id'])
-            
-            api_key_discovered = api_player_map.get(last_name_part)
-            macro_win_rate = await fetch_macro_surface_winrate(api_key_discovered, last_name_part, t_surface)
-
-            # 🚀 DATA PURITY FIX FOR ROI BERECHNUNG: Same Logic as Frontend
-            roi, total_matches = 0.0, 0
-            try:
-                res = supabase.table('market_odds').select('player1_name, player2_name, odds1, odds2, actual_winner_name, tournament, ai_analysis_text').or_(f"player1_name.ilike.%{last_name_part}%,player2_name.ilike.%{last_name_part}%").neq('actual_winner_name', 'None').limit(300).execute()
-                matches = res.data or []
-                
-                wins, losses, profit = 0, 0, 0
-                for m in matches:
-                    m_tour = str(m.get('tournament', '')).lower().strip()
-                    m_info = tour_map.get(m_tour)
-                    
-                    m_surf = m_info['surface'] if m_info else 'Hard'
-                    m_bsi = m_info.get('bsi_rating') if m_info else None
-                    
-                    if not m_info:
-                        text_search = f"{m.get('tournament', '')} {m.get('ai_analysis_text', '')}".lower()
-                        if 'clay' in text_search or 'roland garros' in text_search: m_surf = 'Clay'
-                        elif 'grass' in text_search or 'wimbledon' in text_search: m_surf = 'Grass'
-                        elif 'indoor' in text_search or 'carpet' in text_search: m_surf = 'Indoor Hard'
-                    
-                    # 🚀 Default BSI fix für saubere Brackets (Exakt wie Frontend)
-                    if m_bsi is None:
-                        if m_surf == 'Clay': m_bsi = 3.5
-                        elif m_surf == 'Grass': m_bsi = 8.0
-                        elif m_surf == 'Indoor Hard': m_bsi = 8.0
-                        else: m_bsi = 6.0
-                        
-                    m_bucket = get_bsi_bucket(m_surf, m_bsi)
-                    if m_bucket == t_bucket:
-                        is_p1 = last_name_part in str(m.get('player1_name', '')).lower()
-                        my_odds = float(m.get('odds1') or 0) if is_p1 else float(m.get('odds2') or 0)
-                        if my_odds > 1.01:
-                            is_win = last_name_part in str(m.get('actual_winner_name', '')).lower()
-                            if is_win:
-                                wins += 1
-                                profit += (my_odds - 1.0)
-                            else:
-                                losses += 1
-                                profit -= 1.0
-                
-                total_matches = wins + losses
-                roi = (profit / total_matches * 100) if total_matches > 0 else 0.0
-            except Exception as e:
-                log(f"    ⚠️ ROI Calc error for {p_name}: {e}")
-            
-            log(f"🤖 Quant Synergy Analysis for {p_name} @ {t_name} | Form: {macro_win_rate} | BSI ROI: {roi:.1f}%")
-            try:
-                ai_data = await generate_synergy_for_player(
-                    p_name, t_name, 
-                    t_surface, 
-                    t_bsi, 
-                    t_info.get('notes', ''),
-                    p_report['strengths'] if p_report and p_report.get('strengths') else 'Solid baseline game',
-                    p_report['weaknesses'] if p_report and p_report.get('weaknesses') else 'Struggles with heavy spin',
-                    p_info.get('play_style') or 'All-Rounder',
-                    roi,
-                    total_matches,
-                    macro_win_rate
-                )
-                
-                # In Supabase abspeichern
-                supabase.table('tournament_court_synergy').upsert({
-                    'tournament_name': t_name,
-                    'player_name': p_name,
-                    'surface': t_surface,
-                    'bsi_rating': t_bsi,
-                    'synergy_score': ai_data.get('synergy_score', 5.0),
-                    'verdict': ai_data.get('verdict', 'Neutral'),
-                    'tactical_bullets': ai_data.get('tactical_bullets', [])
-                }, on_conflict="tournament_name,player_name").execute()
-                log(f"  ✅ Saved Synergy Matrix for {p_name}!")
-                await asyncio.sleep(1) # Schutz gegen API-Rate-Limits
-            except Exception as e:
-                log(f"  ❌ Failed Synergy Generation for {p_name}: {e}")
-
-    # --- 🚀 STATE SYNC FIX: BEREINIGUNG (PURGE) ---
-    log("🧹 Starting Synergy Cleanup (Purging inactive tournaments)...")
     try:
-        # Holen wir uns alle Turniere, die aktuell in der Synergy-Tabelle stehen
-        synergy_res = supabase.table('tournament_court_synergy').select('tournament_name').execute()
-        synergy_tours = {s['tournament_name'] for s in synergy_res.data} if synergy_res.data else set()
+        api_player_map = await build_api_tennis_player_map()
 
-        # Turniere finden, die nicht mehr in den Oracle Draws existieren
-        tours_to_delete = synergy_tours - active_tournament_names
+        # 1. Hole alle aktuellen Oracle Draws (Turniere & Spieler)
+        draws_res = supabase.table('tournament_oracle_draws').select('tournament_name, player_a_name, player_b_name').execute()
+        draws = draws_res.data if draws_res else []
+        
+        # --- 🚀 STATE SYNC FIX: Wir merken uns die aktiven Turniere ---
+        active_tournament_names = set()
+        tournaments = {}
+        for draw in draws:
+            t_name = draw.get('tournament_name', '').strip()
+            if not t_name: continue
+            active_tournament_names.add(t_name) # Für die spätere Bereinigung
+            if t_name not in tournaments: tournaments[t_name] = set()
+            if draw.get('player_a_name'): tournaments[t_name].add(draw['player_a_name'].strip())
+            if draw.get('player_b_name'): tournaments[t_name].add(draw['player_b_name'].strip())
 
-        if tours_to_delete:
-            log(f"🗑️ Found {len(tours_to_delete)} expired tournaments. Deleting...")
-            for t_to_del in tours_to_delete:
-                supabase.table('tournament_court_synergy').delete().eq('tournament_name', t_to_del).execute()
-                log(f"   - Deleted: {t_to_del}")
-        else:
-            log("✨ No old synergy data to purge.")
+        # 2. Hole Turnier-Details (BSI, Notes)
+        tour_details = supabase.table('tournaments').select('name, surface, bsi_rating, notes').execute().data
+        tour_map = {t['name'].strip().lower(): t for t in (tour_details or [])}
+
+        # 3. Hole Spieler & Scout-Reports
+        players = supabase.table('players').select('id, last_name, play_style, first_name').execute().data
+        reports = supabase.table('scouting_reports').select('player_id, strengths, weaknesses').execute().data
+        
+        report_map = {r['player_id']: r for r in (reports or [])}
+        player_map = {p['last_name'].strip().lower(): p for p in (players or [])}
+
+        # 4. Hole bereits berechnete Synergies
+        existing = supabase.table('tournament_court_synergy').select('tournament_name, player_name').execute().data
+        existing_set = {f"{e['tournament_name']}_{e['player_name']}" for e in (existing or [])}
+
+        for t_name, player_set in tournaments.items():
+            t_info = tour_map.get(t_name.lower())
+            if not t_info: continue
+            
+            t_surface = t_info.get('surface', 'Hard')
+            t_bsi = t_info.get('bsi_rating', 5.0)
+            t_bucket = get_bsi_bucket(t_surface, t_bsi)
+
+            for p_name in player_set:
+                if f"{t_name}_{p_name}" in existing_set:
+                    continue # Schon berechnet
+
+                last_name_part = p_name.split(' ')[-1].lower()
+                p_info = player_map.get(last_name_part) 
+                if not p_info: continue
+                
+                p_report = report_map.get(p_info['id'])
+                
+                api_key_discovered = api_player_map.get(last_name_part)
+                macro_win_rate = await fetch_macro_surface_winrate(api_key_discovered, last_name_part, t_surface)
+
+                # 🚀 DATA PURITY FIX FOR ROI BERECHNUNG: Same Logic as Frontend
+                roi, total_matches = 0.0, 0
+                try:
+                    res = supabase.table('market_odds').select('player1_name, player2_name, odds1, odds2, actual_winner_name, tournament, ai_analysis_text').or_(f"player1_name.ilike.%{last_name_part}%,player2_name.ilike.%{last_name_part}%").neq('actual_winner_name', 'None').limit(300).execute()
+                    matches = res.data or []
+                    
+                    wins, losses, profit = 0, 0, 0
+                    for m in matches:
+                        m_tour = str(m.get('tournament', '')).lower().strip()
+                        m_info = tour_map.get(m_tour)
+                        
+                        m_surf = m_info['surface'] if m_info else 'Hard'
+                        m_bsi = m_info.get('bsi_rating') if m_info else None
+                        
+                        if not m_info:
+                            text_search = f"{m.get('tournament', '')} {m.get('ai_analysis_text', '')}".lower()
+                            if 'clay' in text_search or 'roland garros' in text_search: m_surf = 'Clay'
+                            elif 'grass' in text_search or 'wimbledon' in text_search: m_surf = 'Grass'
+                            elif 'indoor' in text_search or 'carpet' in text_search: m_surf = 'Indoor Hard'
+                        
+                        # 🚀 Default BSI fix für saubere Brackets (Exakt wie Frontend)
+                        if m_bsi is None:
+                            if m_surf == 'Clay': m_bsi = 3.5
+                            elif m_surf == 'Grass': m_bsi = 8.0
+                            elif m_surf == 'Indoor Hard': m_bsi = 8.0
+                            else: m_bsi = 6.0
+                            
+                        m_bucket = get_bsi_bucket(m_surf, m_bsi)
+                        if m_bucket == t_bucket:
+                            is_p1 = last_name_part in str(m.get('player1_name', '')).lower()
+                            my_odds = float(m.get('odds1') or 0) if is_p1 else float(m.get('odds2') or 0)
+                            if my_odds > 1.01:
+                                is_win = last_name_part in str(m.get('actual_winner_name', '')).lower()
+                                if is_win:
+                                    wins += 1
+                                    profit += (my_odds - 1.0)
+                                else:
+                                    losses += 1
+                                    profit -= 1.0
+                    
+                    total_matches = wins + losses
+                    roi = (profit / total_matches * 100) if total_matches > 0 else 0.0
+                except Exception as e:
+                    log(f"    ⚠️ ROI Calc error for {p_name}: {e}")
+                
+                log(f"🤖 Quant Synergy Analysis for {p_name} @ {t_name} | Form: {macro_win_rate} | BSI ROI: {roi:.1f}%")
+                try:
+                    ai_data = await generate_synergy_for_player(
+                        p_name, t_name, 
+                        t_surface, 
+                        t_bsi, 
+                        t_info.get('notes', ''),
+                        p_report['strengths'] if p_report and p_report.get('strengths') else 'Solid baseline game',
+                        p_report['weaknesses'] if p_report and p_report.get('weaknesses') else 'Struggles with heavy spin',
+                        p_info.get('play_style') or 'All-Rounder',
+                        roi,
+                        total_matches,
+                        macro_win_rate
+                    )
+                    
+                    # In Supabase abspeichern
+                    supabase.table('tournament_court_synergy').upsert({
+                        'tournament_name': t_name,
+                        'player_name': p_name,
+                        'surface': t_surface,
+                        'bsi_rating': t_bsi,
+                        'synergy_score': ai_data.get('synergy_score', 5.0),
+                        'verdict': ai_data.get('verdict', 'Neutral'),
+                        'tactical_bullets': ai_data.get('tactical_bullets', [])
+                    }, on_conflict="tournament_name,player_name").execute()
+                    log(f"  ✅ Saved Synergy Matrix for {p_name}!")
+                    await asyncio.sleep(1) # Schutz gegen API-Rate-Limits
+                except Exception as e:
+                    log(f"  ❌ Failed Synergy Generation for {p_name}: {e}")
+
+        # --- 🚀 STATE SYNC FIX: BEREINIGUNG (PURGE) ---
+        log("🧹 Starting Synergy Cleanup (Purging inactive tournaments)...")
+        try:
+            # Holen wir uns alle Turniere, die aktuell in der Synergy-Tabelle stehen
+            synergy_res = supabase.table('tournament_court_synergy').select('tournament_name').execute()
+            synergy_tours = {s['tournament_name'] for s in synergy_res.data} if synergy_res.data else set()
+
+            # Turniere finden, die nicht mehr in den Oracle Draws existieren
+            tours_to_delete = synergy_tours - active_tournament_names
+
+            if tours_to_delete:
+                log(f"🗑️ Found {len(tours_to_delete)} expired tournaments. Deleting...")
+                for t_to_del in tours_to_delete:
+                    supabase.table('tournament_court_synergy').delete().eq('tournament_name', t_to_del).execute()
+                    log(f"   - Deleted: {t_to_del}")
+            else:
+                log("✨ No old synergy data to purge.")
+        except Exception as e:
+            log(f"⚠️ Cleanup failed: {e}")
     except Exception as e:
-        log(f"⚠️ Cleanup failed: {e}")
+        log(f"⚠️ Synergy Pipeline failed: {e}")
 
 # =================================================================
 # 4. ORACLE SCRAPER & PIPELINE
