@@ -235,6 +235,16 @@ def find_pattern_cache_player(player_name: str, cache_dict: dict) -> Optional[st
     clean = player_name.lower().strip()
     if clean in cache_dict:
         return clean
+        
+    if "," in player_name:
+        parts = player_name.split(",")
+        reversed_name = f"{parts[1].strip()} {parts[0].strip()}".lower()
+        if reversed_name in cache_dict:
+            return reversed_name
+        for key in cache_dict.keys():
+            if is_same_player(reversed_name, key):
+                return key
+
     for key in cache_dict.keys():
         if is_same_player(clean, key):
             return key
