@@ -4,13 +4,13 @@ import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   ArrowLeft, CheckCircle2, XCircle, TrendingUp, BarChart3, Target, Zap, History, ArrowUpRight, ArrowDownRight,
   ChevronLeft, ChevronRight, Percent, TrendingDown, Scale, Shield, Crown, Activity, Wallet, PieChart, Calendar, Swords,
-  Download
+  Download, HelpCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date
@@ -111,6 +111,58 @@ const checkPlayResult = (pickName: string, match: any): boolean => {
     
     // 3. MONEYLINE / MATCH WINNER
     return checkWinnerResult(pick, actualWinner);
+};
+
+const getClosingOddsForPlay = (pickName: string, match: any): number => {
+    if (!pickName || !match) return 0;
+    const pick = pickName.trim();
+    const lowerPick = pick.toLowerCase();
+    const p1 = match.player1_name || "";
+    const p2 = match.player2_name || "";
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        const boundaryMatch = pick.match(/[\d.]+/);
+        if (!boundaryMatch) return 0;
+        const boundary = parseFloat(boundaryMatch[0]);
+        const ouList = match.neobet_over_unders;
+        if (Array.isArray(ouList)) {
+            const ouObj = ouList.find(ou => ou && Math.abs((parseFloat(ou.boundary) || 0) - boundary) < 0.01);
+            if (ouObj) {
+                if (lowerPick.includes("over")) {
+                    return parseFloat(ouObj.over) || 0;
+                } else if (lowerPick.includes("under")) {
+                    return parseFloat(ouObj.under) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 2. HANDICAP GAMES
+    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+        const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!signNumMatch) return 0;
+        const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
+        const isP1 = isPlayer1Target(pick, p1);
+        const spList = match.neobet_spreads;
+        if (Array.isArray(spList)) {
+            const targetHandicap = isP1 ? handicap : -handicap;
+            const spObj = spList.find(sp => sp && Math.abs((parseFloat(sp.handicap) || 0) - targetHandicap) < 0.01);
+            if (spObj) {
+                if (isP1) {
+                    return parseFloat(spObj.odds1) || 0;
+                } else {
+                    return parseFloat(spObj.odds2) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    const isP1 = isPlayer1Target(pick, p1);
+    return isP1 ? parseFloat(match.odds1) || 0 : parseFloat(match.odds2) || 0;
 };
 
 const parseValueFromText = (text: string | undefined) => {
@@ -306,6 +358,8 @@ export function PerformancePage() {
   const [rawBets, setRawBets] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  
+  const [activeStatInfo, setActiveStatInfo] = useState<'brier' | 'pvalue' | null>(null);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -519,8 +573,7 @@ export function PerformancePage() {
       if (age <= ms10Days) units10d += unitProfit;
       if (age <= ms30Days) units30d += unitProfit;
 
-      const p1IsPick = isPlayer1Target(pickName, match.player1_name);
-      const closingOdds = p1IsPick ? match.odds1 : match.odds2;
+      const closingOdds = getClosingOddsForPlay(pickName, match);
       let clv = 0;
       if (closingOdds > 0 && marketOdds > 0) {
           clv = ((marketOdds / closingOdds) - 1) * 100;
@@ -818,18 +871,19 @@ export function PerformancePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Brier Score Calibration Card */}
-                  <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div 
+                      onClick={() => setActiveStatInfo('brier')}
+                      className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between cursor-pointer hover:border-white/10 transition-all duration-300 select-none group"
+                  >
                       <div>
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2 block">Forecasting Calibration</span>
+                          <div className="flex items-center justify-between mb-2">
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Forecasting Calibration</span>
+                              <HelpCircle size={14} className="text-gray-500 group-hover:text-tennis-lime transition-colors shrink-0" />
+                          </div>
                           <h4 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Brier Score</h4>
-                          <p className="text-[10px] text-gray-400 font-medium leading-relaxed mb-4">
-                              {i18n.language.startsWith('de') 
-                                ? 'Misst die absolute Kalibrierung unserer Fair-Odds-Wahrscheinlichkeiten. Ein Wert von 0.00 entspricht perfektem mathematischem Wissen, während 0.25 reinem Zufallsraten gleicht.' 
-                                : 'Measures the absolute calibration of our fair probability forecasts. A score of 0.00 represents perfect mathematical knowledge, whereas 0.25 represents pure random noise.'}
-                          </p>
                       </div>
                       
-                      <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-2">
+                      <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
                           <div className="flex flex-col">
                               <span className="text-3xl font-black text-tennis-lime font-mono">{stats.avgBrier.toFixed(4)}</span>
                               <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">
@@ -845,18 +899,19 @@ export function PerformancePage() {
                   </div>
                   
                   {/* p-Value Skill Certainty Card */}
-                  <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div 
+                      onClick={() => setActiveStatInfo('pvalue')}
+                      className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between cursor-pointer hover:border-white/10 transition-all duration-300 select-none group"
+                  >
                       <div>
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2 block">Statistical Significance</span>
+                          <div className="flex items-center justify-between mb-2">
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Statistical Significance</span>
+                              <HelpCircle size={14} className="text-gray-500 group-hover:text-tennis-lime transition-colors shrink-0" />
+                          </div>
                           <h4 className="text-white font-black text-xl mb-1 uppercase tracking-tight">{i18n.language.startsWith('de') ? 'Können-Nachweis (p-Wert)' : 'Proof of Skill (p-Value)'}</h4>
-                          <p className="text-[10px] text-gray-400 font-medium leading-relaxed mb-4">
-                              {i18n.language.startsWith('de') 
-                                ? 'Führt einen wissenschaftlichen t-Test gegen 10.000 simulierte Zufallswetten mit gleicher Quotenverteilung aus. Ein p-Wert unter 0.05 (5%) schließt reines Glück statistisch aus.' 
-                                : 'Executes a scientific t-test comparing our ROI against 10,000 simulated random-noise tipping records. A p-value below 0.05 mathematically excludes pure luck.'}
-                          </p>
                       </div>
                       
-                      <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-2">
+                      <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
                           <div className="flex flex-col">
                               <span className="text-3xl font-black text-blue-400 font-mono">p = {stats.pValue.toFixed(4)}</span>
                               <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">
@@ -1083,7 +1138,8 @@ export function PerformancePage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto flex-grow">
+        {/* DESKTOP TABLE VIEW */}
+        <div className="overflow-x-auto flex-grow hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-black/20 text-gray-500 text-[9px] font-black uppercase tracking-[0.2em] border-b border-white/5">
@@ -1101,7 +1157,6 @@ export function PerformancePage() {
                 
                 const isMaxBomb = stake >= 3.0;
                 const tagClasses = getLabelStyle(type, isMaxBomb);
-                // SOTA FIX: Emojis sauber entfernen, damit das Badge absolut seriös aussieht
                 const cleanType = type.replace(/(🔥|✨|🛡️|🔬|🛑|📈|❄️|💎|⚖️|💰|⚡)/g, '').trim();
 
                 return (
@@ -1116,11 +1171,13 @@ export function PerformancePage() {
                           {match.player1_name} <span className="text-gray-600 font-normal mx-1">vs</span> {match.player2_name}
                         </span>
                         
-                        <div className="flex flex-col gap-1.5 mt-1.5 md:hidden">
-                           <div className="flex items-center gap-2">
-                               <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${tagClasses}`}>
-                                 <span>{cleanType} {pickName.split(' ').pop()} @{entryOdds?.toFixed(2)}</span>
+                        <div className="flex flex-col gap-1.5 mt-2 md:hidden">
+                           <div className="flex items-center flex-wrap gap-1.5">
+                               <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${tagClasses}`}>
+                                 <span>{cleanType}</span>
                                </span>
+                               <span className="text-xs font-bold text-gray-200">{pickName}</span>
+                               <span className="text-[10px] font-mono text-gray-500">@{entryOdds?.toFixed(2)}</span>
                                {stake > 0 && (
                                    <span className="text-[10px] font-mono text-tennis-lime bg-tennis-lime/10 px-1.5 py-0.5 rounded border border-tennis-lime/20">
                                        {stake.toFixed(1)}u
@@ -1203,6 +1260,77 @@ export function PerformancePage() {
             </tbody>
           </table>
         </div>
+
+        {/* MOBILE CARD VIEW */}
+        <div className="md:hidden flex-grow flex flex-col divide-y divide-white/5 bg-black/10">
+          {currentTableData.map((match) => {
+            const { pickName, type, entryOdds, closingOdds, clv, isWin, edge, stake, unitProfit } = match.calculated;
+            const isMaxBomb = stake >= 3.0;
+            const tagClasses = getLabelStyle(type, isMaxBomb);
+            const cleanType = type.replace(/(🔥|✨|🛡️|🔬|🛑|📈|❄️|💎|⚖️|💰|⚡)/g, '').trim();
+
+            return (
+              <div key={match.id} className="p-4 flex flex-col gap-3 hover:bg-white/[0.01] transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-gray-500">
+                    {new Date(match.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider truncate max-w-[150px]">
+                    {match.tournament}
+                  </span>
+                </div>
+
+                <div className="text-sm font-bold text-white">
+                  {match.player1_name} <span className="text-gray-600 font-normal mx-1">vs</span> {match.player2_name}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm border ${tagClasses}`}>
+                    {cleanType}
+                  </span>
+                  <span className="text-xs font-bold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/20">
+                    {pickName}
+                  </span>
+                  <span className="text-xs font-mono text-gray-300">
+                    @{entryOdds?.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-1 pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-3 text-[10px] font-mono text-gray-400">
+                    <div>
+                      <span className="text-gray-500">STAKE:</span> <span className="font-bold text-white">{stake.toFixed(1)}u</span>
+                    </div>
+                    <div className="w-1 h-1 bg-white/10 rounded-full"></div>
+                    <div>
+                      <span className="text-gray-500">EDGE:</span> <span className={`font-bold ${edge > 5 ? 'text-tennis-lime' : 'text-blue-400'}`}>+{edge.toFixed(1)}%</span>
+                    </div>
+                    {closingOdds > 0 && Math.abs(clv) > 0.5 && (
+                      <>
+                        <div className="w-1 h-1 bg-white/10 rounded-full"></div>
+                        <div>
+                          <span className="text-gray-500">CLV:</span> <span className={`font-bold ${clv > 0 ? 'text-emerald-500' : 'text-red-500'}`}>{clv > 0 ? '+' : ''}{clv.toFixed(1)}%</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div>
+                    {isWin ? (
+                      <span className="inline-flex items-center gap-1 text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide border border-tennis-lime/20 shadow-[0_0_10px_rgba(132,204,22,0.1)]">
+                        WON (+{unitProfit.toFixed(2)}u)
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide border border-red-500/20">
+                        LOST ({unitProfit.toFixed(2)}u)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
         
         {/* Pagination Controls */}
         {processedBets.length > 0 && (
@@ -1282,6 +1410,120 @@ export function PerformancePage() {
           </div>
         )}
       </div>
+
+      {/* MONODERNE FRAMER MOTION POPUPS (MODALS) */}
+      <AnimatePresence>
+        {activeStatInfo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveStatInfo(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative bg-[#1a1d26] border border-white/10 rounded-3xl p-6 max-w-md w-full shadow-2xl overflow-hidden z-10"
+            >
+              {/* Glow effects */}
+              <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none -translate-y-1/2 translate-x-1/2 ${activeStatInfo === 'brier' ? 'bg-[#FF00FF]' : 'bg-blue-500'}`}></div>
+              
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    {activeStatInfo === 'brier' ? 'Forecasting Calibration' : 'Statistical Significance'}
+                  </span>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight mt-1">
+                    {activeStatInfo === 'brier' ? 'Brier Score' : 't-Test p-Wert'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActiveStatInfo(null)}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-4 text-xs leading-relaxed text-gray-300 font-medium">
+                {activeStatInfo === 'brier' ? (
+                  <>
+                    <p>
+                      {i18n.language.startsWith('de')
+                        ? 'Der Brier-Score misst die absolute Kalibrierung unserer Fair-Odds-Wahrscheinlichkeiten. Er quantifiziert den mittleren quadratischen Vorhersagefehler gegenüber den tatsächlichen Spielergebnissen.'
+                        : 'The Brier score measures the absolute calibration of our fair odds probabilities. It quantifies the mean squared prediction error against actual match outcomes.'}
+                    </p>
+                    <div className="bg-black/30 border border-white/5 rounded-xl p-3 font-mono text-[10px] text-gray-400 text-center">
+                      BS = (1/N) * Σ (p_t - o_t)²
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1">
+                        <span className="text-gray-500">0.00 (PERFEKT)</span>
+                        <span className="text-tennis-lime font-bold">Absolute Allwissendheit</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1">
+                        <span className="text-gray-500">&lt; 0.20 (EXZELLENT)</span>
+                        <span className="text-emerald-400 font-bold">Starker mathematischer Edge</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1">
+                        <span className="text-gray-500">0.25 (BASELINE)</span>
+                        <span className="text-gray-400 font-bold">Reines Zufalls-Münzwurfrauschen</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic">
+                      {i18n.language.startsWith('de')
+                        ? 'Ein niedriger Brier-Score bestätigt, dass die KI Wahrscheinlichkeiten berechnet, die der mathematischen Realität entsprechen.'
+                        : 'A lower Brier score confirms that the AI computes probabilities matching mathematical reality.'}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      {i18n.language.startsWith('de')
+                        ? 'Der p-Wert basiert auf dem renommierten Buchdahl-t-Test für Sportwetten-Effizienz. Er berechnet die Wahrscheinlichkeit, dass unsere Rendite (ROI) durch reinen Zufall oder Glück zustande gekommen ist.'
+                        : 'The p-value is based on the prestigious Buchdahl t-test for betting efficiency. It calculates the probability that our performance (ROI) is a product of pure luck or random variance.'}
+                    </p>
+                    <div className="bg-black/30 border border-white/5 rounded-xl p-3 font-mono text-[10px] text-gray-400 text-center">
+                      p-Wert = P(ROI_zufall ≥ ROI_beobachtet)
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1">
+                        <span className="text-gray-500">p &lt; 0.05 (5%)</span>
+                        <span className="text-blue-400 font-bold">Statistisch signifikant (Glück ausgeschlossen)</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1">
+                        <span className="text-gray-500">p &lt; 0.01 (1%)</span>
+                        <span className="text-indigo-400 font-bold">Hochgradig signifikant (Perfekte Marktbeherrschung)</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic">
+                      {i18n.language.startsWith('de')
+                        ? 'Unsere aktuelle Skill-Sicherheit liegt bei ' + stats.skillCertainty.toFixed(2) + '%, was bedeutet, dass der Markt statistisch nachweisbar geschlagen wird.'
+                        : 'Our current skill certainty is ' + stats.skillCertainty.toFixed(2) + '%, proving mathematically that we are beating the market.'}
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Close Action Button */}
+              <button
+                onClick={() => setActiveStatInfo(null)}
+                className={`w-full mt-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs text-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg ${activeStatInfo === 'brier' ? 'bg-tennis-lime hover:bg-[#b5e000]' : 'bg-blue-400 hover:bg-blue-500'}`}
+              >
+                {i18n.language.startsWith('de') ? 'Verstanden' : 'Understood'}
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

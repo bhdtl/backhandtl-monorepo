@@ -111,6 +111,58 @@ const checkPlayResult = (pickName: string, match: any): boolean => {
     return checkWinnerResult(pick, actualWinner);
 };
 
+const getClosingOddsForPlay = (pickName: string, match: any): number => {
+    if (!pickName || !match) return 0;
+    const pick = pickName.trim();
+    const lowerPick = pick.toLowerCase();
+    const p1 = match.player1_name || "";
+    const p2 = match.player2_name || "";
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        const boundaryMatch = pick.match(/[\d.]+/);
+        if (!boundaryMatch) return 0;
+        const boundary = parseFloat(boundaryMatch[0]);
+        const ouList = match.neobet_over_unders;
+        if (Array.isArray(ouList)) {
+            const ouObj = ouList.find(ou => ou && Math.abs((parseFloat(ou.boundary) || 0) - boundary) < 0.01);
+            if (ouObj) {
+                if (lowerPick.includes("over")) {
+                    return parseFloat(ouObj.over) || 0;
+                } else if (lowerPick.includes("under")) {
+                    return parseFloat(ouObj.under) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 2. HANDICAP GAMES
+    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+        const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!signNumMatch) return 0;
+        const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
+        const isP1 = isPlayer1Target(pick, p1);
+        const spList = match.neobet_spreads;
+        if (Array.isArray(spList)) {
+            const targetHandicap = isP1 ? handicap : -handicap;
+            const spObj = spList.find(sp => sp && Math.abs((parseFloat(sp.handicap) || 0) - targetHandicap) < 0.01);
+            if (spObj) {
+                if (isP1) {
+                    return parseFloat(spObj.odds1) || 0;
+                } else {
+                    return parseFloat(spObj.odds2) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    const isP1 = isPlayer1Target(pick, p1);
+    return isP1 ? parseFloat(match.odds1) || 0 : parseFloat(match.odds2) || 0;
+};
+
 // 🚀 SOTA FIX: Sync with Performance Page to include 'type' and 'fairOdds'
 const parseValueFromText = (text: string | undefined) => {
     if (!text) {
@@ -244,8 +296,7 @@ const AIStatsHero = () => {
               cumulativeUnits += unitProfit;
               totalUnitsStaked += actualStake;
 
-              const p1IsPick = isPlayer1Target(valInfo.pickName, match.player1_name);
-              const closingOdds = p1IsPick ? match.odds1 : match.odds2;
+              const closingOdds = getClosingOddsForPlay(valInfo.pickName, match);
               let clv = 0;
               const entryOdds = valInfo.marketOdds;
               

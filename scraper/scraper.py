@@ -2336,6 +2336,8 @@ async def run_pipeline():
                     "bookmaker_odds": m['bookmaker_odds'],
                     "is_visible_in_scanner": False, 
                     "api_match_key": m['api_match_key'],
+                    "neobet_spreads": m.get("neobet_spreads", []),
+                    "neobet_over_unders": m.get("neobet_over_unders", []),
                     "ai_analysis_text": "[SHADOW TRACKING] Match collected for historical player metrics."
                 }
                 if not db_match_id:
@@ -2369,7 +2371,9 @@ async def run_pipeline():
                     "odds2": m['odds2'], 
                     "is_visible_in_scanner": True, 
                     "bookmaker_odds": m['bookmaker_odds'],
-                    "api_match_key": m['api_match_key'] 
+                    "api_match_key": m['api_match_key'],
+                    "neobet_spreads": m.get("neobet_spreads", []),
+                    "neobet_over_unders": m.get("neobet_over_unders", [])
                 }
                 if final_time_str and not final_time_str.endswith("T00:00:00Z"):
                     update_data["match_time"] = final_time_str
@@ -2468,7 +2472,9 @@ async def run_pipeline():
                                 "ai_analysis_text": ai_text_final,
                                 "match_time": final_time_str, 
                                 "is_visible_in_scanner": True,
-                                "api_match_key": m['api_match_key'] 
+                                "api_match_key": m['api_match_key'],
+                                "neobet_spreads": m.get("neobet_spreads", []),
+                                "neobet_over_unders": m.get("neobet_over_unders", [])
                             }).eq("id", db_match_id).execute()
                         except: pass
 
@@ -2822,7 +2828,9 @@ async def run_pipeline():
                         "is_visible_in_scanner": True,
                         "api_match_key": m['api_match_key'],
                         "neo_contest_id": m['api_match_key'],
-                        "main_bet_type": main_bet_type
+                        "main_bet_type": main_bet_type,
+                        "neobet_spreads": m.get("neobet_spreads", []),
+                        "neobet_over_unders": m.get("neobet_over_unders", [])
                     }
                     
                     hist_fair1 = fair1
