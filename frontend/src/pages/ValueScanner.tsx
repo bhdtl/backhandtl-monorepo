@@ -60,7 +60,7 @@ function parseBetFromText(text: string | undefined): ParsedBet {
       const match = text.match(regex);
       if (match) {
           let rawStake = match[6] ? parseFloat(match[6]) : 0;
-          let finalStake = Math.max(0, Math.min(3, rawStake));
+          let finalStake = Math.max(0, Math.min(5, rawStake));
           finalStake = Math.round(finalStake * 10) / 10;
 
           return {
@@ -80,7 +80,7 @@ function parseBetFromText(text: string | undefined): ParsedBet {
        const match = text.match(legacyRegex);
        if (match) {
           let rawStake = parseFloat(match[5]);
-          let finalStake = Math.max(0, Math.min(3, rawStake));
+          let finalStake = Math.max(0, Math.min(5, rawStake));
           finalStake = Math.round(finalStake * 10) / 10;
 
           return {
