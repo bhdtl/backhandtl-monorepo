@@ -508,6 +508,8 @@ function OverlappingRadar({ skillsA, skillsB }: { skillsA: any, skillsB: any }) 
 function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { playerAData: any, playerBData: any, surface: string }) {
     if (!playerAData || !playerBData) return null;
 
+    const [showQuantStats, setShowQuantStats] = useState(false);
+
     const getPlayerElo = (skills: any, surf: string) => {
         if (!skills || !skills.elo_metrics) return 1500;
         try {
@@ -518,6 +520,19 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
             return eloObj.hard || 1500;
         } catch {
             return 1500;
+        }
+    };
+
+    const getSurfaceAdvancedStats = (skills: any, surf: string) => {
+        if (!skills || !skills.advanced_stats) return null;
+        try {
+            const parsed = typeof skills.advanced_stats === 'string' ? JSON.parse(skills.advanced_stats) : skills.advanced_stats;
+            const timeData = parsed.all || parsed;
+            const surfLower = (surf || 'hard').toLowerCase();
+            const key = surfLower.includes('clay') ? 'clay' : surfLower.includes('grass') ? 'grass' : 'hard';
+            return timeData[key] || timeData.overall || timeData.hard || Object.values(timeData)[0] || null;
+        } catch {
+            return null;
         }
     };
 
@@ -535,6 +550,9 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
     const formA = formAObj?.score ? parseFloat(formAObj.score) : 5.0;
     const formB = formBObj?.score ? parseFloat(formBObj.score) : 5.0;
 
+    const statsA = getSurfaceAdvancedStats(playerAData.skills, surface);
+    const statsB = getSurfaceAdvancedStats(playerBData.skills, surface);
+
     const eloDiff = Math.abs(eloA - eloB);
     const formDiff = Math.abs(formA - formB).toFixed(1);
 
@@ -548,6 +566,63 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
 
     const formTotal = formA + formB || 1;
     const formPercentA = Math.round((formA / formTotal) * 100);
+
+    const metrics = [
+        { key: 'aces_per_match', label: 'Aces / Match', isPercentage: false },
+        { key: 'df_per_match', label: 'Double Faults / Match', isPercentage: false },
+        { key: 'first_in_pct', label: '1st Serve In', isPercentage: true },
+        { key: 'first_win_pct', label: '1st Serve Won', isPercentage: true },
+        { key: 'second_win_pct', label: '2nd Serve Won', isPercentage: true },
+        { key: 'ret_win_pct', label: 'Return Win', isPercentage: true },
+        { key: 'bp_saved_pct', label: 'BP Saved', isPercentage: true },
+        { key: 'bp_conv_pct', label: 'BP Converted', isPercentage: true },
+    ];
+
+    const renderAdvancedDuel = (metric: any) => {
+        const rawValA = statsA ? statsA[metric.key] : null;
+        const rawValB = statsB ? statsB[metric.key] : null;
+        
+        const valA = rawValA !== null && rawValA !== undefined ? parseFloat(rawValA) : null;
+        const valB = rawValB !== null && rawValB !== undefined ? parseFloat(rawValB) : null;
+
+        const displayA = valA !== null ? `${valA.toFixed(metric.isPercentage ? 1 : 2)}${metric.isPercentage ? '%' : ''}` : '-';
+        const displayB = valB !== null ? `${valB.toFixed(metric.isPercentage ? 1 : 2)}${metric.isPercentage ? '%' : ''}` : '-';
+
+        let perA = 50;
+        if (valA !== null && valB !== null) {
+            const total = (valA + valB) || 1;
+            perA = Math.round((valA / total) * 100);
+        }
+
+        const hasData = valA !== null || valB !== null;
+        
+        return (
+            <div key={metric.key} className="group/item">
+                <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-[0.15em] mb-1.5 transition-colors">
+                    <span className={valA !== null && (valB === null || valA >= valB) ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
+                        {displayA}
+                    </span>
+                    <span className="text-gray-500 font-black tracking-widest text-[8px] uppercase">
+                        {metric.label}
+                    </span>
+                    <span className={valB !== null && (valA === null || valB >= valA) ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
+                        {displayB}
+                    </span>
+                </div>
+                {hasData ? (
+                    <div className="flex h-1.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
+                        <div style={{ width: `${perA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime transition-[width] duration-1000 transform-gpu" />
+                        <div style={{ width: `${100-perA}%` }} className="h-full bg-gradient-to-l from-blue-500/80 to-blue-500 transition-[width] duration-1000 transform-gpu" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
+                    </div>
+                ) : (
+                    <div className="flex h-1.5 w-full bg-black/40 rounded-full border border-dashed border-white/5 relative justify-center items-center">
+                        <span className="text-[7px] font-mono text-gray-700 tracking-widest uppercase">No Telemetry</span>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="w-full max-w-[640px] mx-auto mb-10 md:mb-14 p-6 rounded-3xl bg-[#1a1d26] border border-white/5 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
@@ -616,6 +691,40 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                         {playerBData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
                     </div>
                 </div>
+            </div>
+
+            {/* COLLAPSIBLE ACCORDION FOR ADVANCED STATS */}
+            <div className="mt-6 pt-6 border-t border-white/5">
+                <button
+                    onClick={() => setShowQuantStats(!showQuantStats)}
+                    className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors py-2 group/btn"
+                >
+                    <span className="flex items-center gap-2">
+                        <Sliders size={12} className="text-tennis-lime transition-transform group-hover/btn:rotate-12" />
+                        Granular Surface Telemetry ({surfLabel})
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[8px] font-bold text-gray-500 uppercase tracking-widest border border-white/5 bg-black/25 px-2.5 py-1 rounded-md transition-colors group-hover/btn:border-white/10 group-hover/btn:text-gray-300">
+                        {showQuantStats ? 'Hide Matrix' : 'Reveal Matrix'}
+                        {showQuantStats ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                    </span>
+                </button>
+
+                {showQuantStats && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-6 p-4 rounded-2xl bg-black/20 border border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                        {metrics.map(metric => renderAdvancedDuel(metric))}
+                        
+                        <div className="col-span-full mt-2 text-[8px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-between border-t border-white/5 pt-3">
+                            <span className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse"></span>
+                                A: {(statsA?.matches_with_stats || 0)} matches
+                            </span>
+                            <span className="flex items-center gap-1">
+                                B: {(statsB?.matches_with_stats || 0)} matches
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
