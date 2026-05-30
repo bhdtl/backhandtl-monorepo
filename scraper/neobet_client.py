@@ -130,6 +130,16 @@ class NeoBetAPI:
             if not home_raw or not away_raw or not match_id:
                 continue
             
+            # 🚀 SOTA COMPLIANCE: EXCLUDE ALL DOUBLES MATCHES (Only Singles Matches Allowed!)
+            # 1. Slashes in player names (NEO.bet format for doubles, e.g. "Bolelli, S./Vavassori, A.")
+            if "/" in home_raw or "/" in away_raw:
+                continue
+                
+            # 2. League/Tournament name matches (e.g. contains "doubles", "doppel", etc.)
+            league_name = (match.get("league") or "").lower()
+            if any(term in league_name for term in ["doubles", "doppel", "doub.", "dop."]):
+                continue
+            
             # Normalize player names
             p1_name = reorder_player_name(home_raw)
             p2_name = reorder_player_name(away_raw)
