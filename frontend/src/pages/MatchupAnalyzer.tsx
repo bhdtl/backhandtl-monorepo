@@ -50,6 +50,7 @@ import { useAccess } from '../hooks/useAccess';
 import { StyleAnalysis } from '../components/StyleAnalysis'; 
 import { BsiSpeedPerformance } from '../components/BsiSpeedPerformance'; 
 import { MarketOddsPerformance } from '../components/MarketOddsPerformance'; 
+import { motion, AnimatePresence } from 'framer-motion'; 
 
 // --- CONFIG ---
 const FUNCTION_URL = "https://suoaznisiowoolxilaju.supabase.co/functions/v1/smart-api";
@@ -167,19 +168,26 @@ function ProcessingIndicator({ isVisible, progress, statusText }: { isVisible: b
                 <span className="text-sm md:text-xs font-mono text-white font-bold">{Math.round(progress)}%</span>
             </div>
             <div className="h-3 md:h-2.5 w-full bg-[#15171e] rounded-full relative border border-white/10 overflow-visible">
-                <div
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime rounded-full shadow-[0_0_15px_rgba(132,204,22,0.6)] transition-[width] duration-200 ease-linear transform-gpu"
-                    style={{ width: `${progress}%` }}
+                {/* Smooth Progress Track */}
+                <motion.div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime rounded-full shadow-[0_0_15px_rgba(132,204,22,0.6)] transform-gpu"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ type: "spring", stiffness: 45, damping: 12, mass: 0.8 }}
                 />
-                <div
-                    className="absolute top-1/2 z-20 transition-[left] duration-200 ease-linear transform-gpu will-change-transform"
-                    style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
+                {/* Smooth Floating Tennis Ball */}
+                <motion.div
+                    className="absolute top-1/2 z-20 transform-gpu"
+                    initial={{ left: "0%" }}
+                    animate={{ left: `${progress}%` }}
+                    style={{ x: "-50%", y: "-50%" }}
+                    transition={{ type: "spring", stiffness: 45, damping: 12, mass: 0.8 }}
                 >
                     <div className="animate-roll w-6 h-6 md:w-5 md:h-5 rounded-full bg-[#dfff4f] border border-black/30 shadow-lg flex items-center justify-center relative overflow-hidden">
                         <div className="absolute w-[140%] h-[140%] rounded-full border-[1.5px] border-black/20 left-1/2 -top-[20%]"></div>
                         <div className="absolute w-[140%] h-[140%] rounded-full border-[1.5px] border-black/20 right-1/2 -bottom-[20%]"></div>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </div>
     );
@@ -508,8 +516,6 @@ function OverlappingRadar({ skillsA, skillsB }: { skillsA: any, skillsB: any }) 
 function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { playerAData: any, playerBData: any, surface: string }) {
     if (!playerAData || !playerBData) return null;
 
-    const [showQuantStats, setShowQuantStats] = useState(false);
-
     const getPlayerElo = (skills: any, surf: string) => {
         if (!skills || !skills.elo_metrics) return 1500;
         try {
@@ -567,18 +573,21 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
     const formTotal = formA + formB || 1;
     const formPercentA = Math.round((formA / formTotal) * 100);
 
-    const metrics = [
+    const serviceMetrics = [
         { key: 'aces_per_match', label: 'Aces / Match', isPercentage: false },
         { key: 'df_per_match', label: 'Double Faults / Match', isPercentage: false },
         { key: 'first_in_pct', label: '1st Serve In', isPercentage: true },
         { key: 'first_win_pct', label: '1st Serve Won', isPercentage: true },
         { key: 'second_win_pct', label: '2nd Serve Won', isPercentage: true },
+    ];
+
+    const returnMetrics = [
         { key: 'ret_win_pct', label: 'Return Win', isPercentage: true },
         { key: 'bp_saved_pct', label: 'BP Saved', isPercentage: true },
         { key: 'bp_conv_pct', label: 'BP Converted', isPercentage: true },
     ];
 
-    const renderAdvancedDuel = (metric: any) => {
+    const renderAdvancedDuel = (metric: any, index: number) => {
         const rawValA = statsA ? statsA[metric.key] : null;
         const rawValB = statsB ? statsB[metric.key] : null;
         
@@ -597,8 +606,14 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
         const hasData = valA !== null || valB !== null;
         
         return (
-            <div key={metric.key} className="group/item">
-                <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-[0.15em] mb-1.5 transition-colors">
+            <motion.div 
+                key={metric.key} 
+                className="group/item relative"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+            >
+                <div className="flex justify-between items-end text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] mb-1.5 transition-colors">
                     <span className={valA !== null && (valB === null || valA >= valB) ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
                         {displayA}
                     </span>
@@ -611,8 +626,18 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                 </div>
                 {hasData ? (
                     <div className="flex h-1.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
-                        <div style={{ width: `${perA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime transition-[width] duration-1000 transform-gpu" />
-                        <div style={{ width: `${100-perA}%` }} className="h-full bg-gradient-to-l from-blue-500/80 to-blue-500 transition-[width] duration-1000 transform-gpu" />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${perA}%` }}
+                            transition={{ type: "spring", stiffness: 45, damping: 11, delay: 0.1 + index * 0.06 }}
+                            className="h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)] transform-gpu" 
+                        />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${100-perA}%` }}
+                            transition={{ type: "spring", stiffness: 45, damping: 11, delay: 0.1 + index * 0.06 }}
+                            className="h-full bg-gradient-to-l from-blue-500/80 to-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)] transform-gpu" 
+                        />
                         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
                     </div>
                 ) : (
@@ -620,7 +645,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                         <span className="text-[7px] font-mono text-gray-700 tracking-widest uppercase">No Telemetry</span>
                     </div>
                 )}
-            </div>
+            </motion.div>
         );
     };
 
@@ -648,8 +673,18 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                         </span>
                     </div>
                     <div className="flex h-2.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
-                        <div style={{ width: `${eloPercentA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(132,204,22,0.3)]" />
-                        <div style={{ width: `${100-eloPercentA}%` }} className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${eloPercentA}%` }}
+                            transition={{ type: "spring", stiffness: 40, damping: 10 }}
+                            className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)] transform-gpu" 
+                        />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${100-eloPercentA}%` }}
+                            transition={{ type: "spring", stiffness: 40, damping: 10 }}
+                            className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)] transform-gpu" 
+                        />
                         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
                     </div>
                 </div>
@@ -668,8 +703,18 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                         </span>
                     </div>
                     <div className="flex h-2.5 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5 shadow-inner">
-                        <div style={{ width: `${formPercentA}%` }} className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(132,204,22,0.3)]" />
-                        <div style={{ width: `${100-formPercentA}%` }} className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 transition-[width] duration-1000 transform-gpu shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${formPercentA}%` }}
+                            transition={{ type: "spring", stiffness: 40, damping: 10 }}
+                            className="h-full bg-gradient-to-r from-tennis-lime/90 to-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)] transform-gpu" 
+                        />
+                        <motion.div 
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${100-formPercentA}%` }}
+                            transition={{ type: "spring", stiffness: 40, damping: 10 }}
+                            className="h-full bg-gradient-to-l from-blue-500/90 to-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)] transform-gpu" 
+                        />
                         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-black/60 z-10"></div>
                     </div>
                 </div>
@@ -693,38 +738,47 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                 </div>
             </div>
 
-            {/* COLLAPSIBLE ACCORDION FOR ADVANCED STATS */}
-            <div className="mt-6 pt-6 border-t border-white/5">
-                <button
-                    onClick={() => setShowQuantStats(!showQuantStats)}
-                    className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors py-2 group/btn"
-                >
-                    <span className="flex items-center gap-2">
-                        <Sliders size={12} className="text-tennis-lime transition-transform group-hover/btn:rotate-12" />
+            {/* ADVANCED QUANT MATRIX */}
+            <div className="mt-8 pt-6 border-t border-white/5">
+                <div className="flex w-full items-center justify-between mb-6">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 flex items-center gap-2">
+                        <Sliders size={12} className="text-tennis-lime animate-pulse" />
                         Granular Surface Telemetry ({surfLabel})
                     </span>
-                    <span className="flex items-center gap-1.5 text-[8px] font-bold text-gray-500 uppercase tracking-widest border border-white/5 bg-black/25 px-2.5 py-1 rounded-md transition-colors group-hover/btn:border-white/10 group-hover/btn:text-gray-300">
-                        {showQuantStats ? 'Hide Matrix' : 'Reveal Matrix'}
-                        {showQuantStats ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest bg-black/40 px-2.5 py-1 rounded-md border border-white/5 flex items-center gap-1.5 shadow-inner">
+                        <Activity size={10} className="text-tennis-lime animate-pulse" /> Live Telemetry Matrix
                     </span>
-                </button>
+                </div>
 
-                {showQuantStats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-6 p-4 rounded-2xl bg-black/20 border border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
-                        {metrics.map(metric => renderAdvancedDuel(metric))}
-                        
-                        <div className="col-span-full mt-2 text-[8px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-between border-t border-white/5 pt-3">
-                            <span className="flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse"></span>
-                                A: {(statsA?.matches_with_stats || 0)} matches
-                            </span>
-                            <span className="flex items-center gap-1">
-                                B: {(statsB?.matches_with_stats || 0)} matches
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                            </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                    {/* Column 1: Service Metrics */}
+                    <div className="space-y-4">
+                        <div className="text-[8px] font-black uppercase tracking-widest text-tennis-lime/70 mb-2 border-b border-tennis-lime/10 pb-1.5 flex items-center gap-1.5">
+                            <Zap size={10} className="text-tennis-lime" /> Service Dominance
                         </div>
+                        {serviceMetrics.map((metric, idx) => renderAdvancedDuel(metric, idx))}
                     </div>
-                )}
+
+                    {/* Column 2: Return & Break Point Metrics */}
+                    <div className="space-y-4">
+                        <div className="text-[8px] font-black uppercase tracking-widest text-blue-400/70 mb-2 border-b border-blue-400/10 pb-1.5 flex items-center gap-1.5">
+                            <Crosshair size={10} className="text-blue-400" /> Tactical Return
+                        </div>
+                        {returnMetrics.map((metric, idx) => renderAdvancedDuel(metric, idx + serviceMetrics.length))}
+                    </div>
+                </div>
+
+                {/* Granular Match Samples Count */}
+                <div className="mt-6 text-[8px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-between border-t border-white/5 pt-4">
+                    <span className="flex items-center gap-1 bg-black/20 px-2.5 py-1.5 rounded-xl border border-white/5 shadow-inner">
+                        <span className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse"></span>
+                        A Sample: {(statsA?.matches_with_stats || 0)} matches
+                    </span>
+                    <span className="flex items-center gap-1 bg-black/20 px-2.5 py-1.5 rounded-xl border border-white/5 shadow-inner">
+                        B Sample: {(statsB?.matches_with_stats || 0)} matches
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    </span>
+                </div>
             </div>
         </div>
     );
