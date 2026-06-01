@@ -54,6 +54,43 @@ if not OPENROUTER_API_KEY or not SUPABASE_URL or not SUPABASE_KEY:
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+async def save_market_odds(payload: Dict[str, Any], db_match_id: Optional[str] = None, is_insert: bool = False) -> Optional[str]:
+    """
+    Saves or updates a match in the market_odds table.
+    Gracefully handles missing columns (e.g., neobet_spreads, neobet_over_unders)
+    by retrying the operation without them if Supabase returns a schema cache error.
+    """
+    data = dict(payload)
+    try:
+        if is_insert or not db_match_id:
+            res = supabase.table("market_odds").insert(data).execute()
+            if res.data:
+                return res.data[0]['id']
+        else:
+            res = supabase.table("market_odds").update(data).eq("id", db_match_id).execute()
+            if res.data:
+                return res.data[0]['id']
+    except Exception as e:
+        err_msg = str(e)
+        if "neobet_over_unders" in err_msg or "neobet_spreads" in err_msg or "PGRST204" in err_msg:
+            log("⚠️ Supabase schema mismatch: 'neobet_spreads' or 'neobet_over_unders' columns are missing in database. Retrying database save without these columns...")
+            data.pop("neobet_spreads", None)
+            data.pop("neobet_over_unders", None)
+            try:
+                if is_insert or not db_match_id:
+                    res = supabase.table("market_odds").insert(data).execute()
+                    if res.data:
+                        return res.data[0]['id']
+                else:
+                    res = supabase.table("market_odds").update(data).eq("id", db_match_id).execute()
+                    if res.data:
+                        return res.data[0]['id']
+            except Exception as retry_err:
+                log(f"❌ Failed to save match even without neobet columns: {retry_err}")
+        else:
+            log(f"❌ Supabase database save error: {e}")
+    return db_match_id
+
 MODEL_NAME = 'meta-llama/llama-3.3-70b-instruct'
 
 TOURNAMENT_LOC_CACHE: Dict[str, Any] = {}
@@ -2354,13 +2391,9 @@ async def run_pipeline():
                     shadow_data["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                     shadow_data["opening_odds1"] = m['odds1']
                     shadow_data["opening_odds2"] = m['odds2']
-                    try:
-                        res_ins = supabase.table("market_odds").insert(shadow_data).execute()
-                        if res_ins.data: db_match_id = res_ins.data[0]['id']
-                    except: pass
+                    db_match_id = await save_market_odds(shadow_data, is_insert=True)
                 else:
-                    try: supabase.table("market_odds").update(shadow_data).eq("id", db_match_id).execute()
-                    except: pass
+                    db_match_id = await save_market_odds(shadow_data, db_match_id=db_match_id, is_insert=False)
                 continue 
 
             # --- FULL MATCHUP PATH --->
@@ -2387,8 +2420,7 @@ async def run_pipeline():
                 }
                 if final_time_str and not final_time_str.endswith("T00:00:00Z"):
                     update_data["match_time"] = final_time_str
-                try: supabase.table("market_odds").update(update_data).eq("id", db_match_id).execute()
-                except: pass
+                await save_market_odds(update_data, db_match_id=db_match_id, is_insert=False)
                 hist_fair1 = to_float(existing_match.get('ai_fair_odds1'), 0)
                 hist_fair2 = to_float(existing_match.get('ai_fair_odds2'), 0)
                 
@@ -2472,21 +2504,20 @@ async def run_pipeline():
                     hist_fair2 = fair2
                     
                     if db_match_id:
-                        try:
-                            supabase.table("market_odds").update({
-                                "odds1": m['odds1'], 
-                                "odds2": m['odds2'], 
-                                "bookmaker_odds": m['bookmaker_odds'],
-                                "ai_fair_odds1": fair1, 
-                                "ai_fair_odds2": fair2,
-                                "ai_analysis_text": ai_text_final,
-                                "match_time": final_time_str, 
-                                "is_visible_in_scanner": True,
-                                "api_match_key": m['api_match_key'],
-                                "neobet_spreads": m.get("neobet_spreads", []),
-                                "neobet_over_unders": m.get("neobet_over_unders", [])
-                            }).eq("id", db_match_id).execute()
-                        except: pass
+                        cached_update = {
+                            "odds1": m['odds1'], 
+                            "odds2": m['odds2'], 
+                            "bookmaker_odds": m['bookmaker_odds'],
+                            "ai_fair_odds1": fair1, 
+                            "ai_fair_odds2": fair2,
+                            "ai_analysis_text": ai_text_final,
+                            "match_time": final_time_str, 
+                            "is_visible_in_scanner": True,
+                            "api_match_key": m['api_match_key'],
+                            "neobet_spreads": m.get("neobet_spreads", []),
+                            "neobet_over_unders": m.get("neobet_over_unders", [])
+                        }
+                        await save_market_odds(cached_update, db_match_id=db_match_id, is_insert=False)
 
                 else:
                     log(f"  🧠 Fresh AI & Markov Chain Sim: {full_n1} vs {full_n2} | T: {matched_tour_name}")
@@ -2847,18 +2878,13 @@ async def run_pipeline():
                     hist_fair2 = fair2
                     
                     if db_match_id: 
-                        try:
-                            supabase.table("market_odds").update(data).eq("id", db_match_id).execute()
-                        except: pass
+                        await save_market_odds(data, db_match_id=db_match_id, is_insert=False)
                     else:
                         data["opening_odds1"] = m['odds1']
                         data["opening_odds2"] = m['odds2']
-                        try:
-                            res_ins = supabase.table("market_odds").insert(data).execute()
-                            if res_ins.data: 
-                                db_match_id = res_ins.data[0]['id']
+                        db_match_id = await save_market_odds(data, is_insert=True)
+                        if db_match_id:
                             log(f"💾 Saved New Match: {full_n1} vs {full_n2} - Open: {m['odds1']} | {m['odds2']}")
-                        except Exception as ins_err: pass
 
             if db_match_id:
                 should_log_history = False
