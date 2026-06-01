@@ -14,6 +14,24 @@ export function useAccess() {
   const [credits, setCredits] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
+  // --- SOTA: Load from user-specific cache instantly on mount ---
+  useEffect(() => {
+    if (!user) {
+      // Wenn nicht eingeloggt, blockieren wir nicht
+      setLoading(false);
+      return;
+    }
+    const cachedTier = localStorage.getItem(`bh_user_tier_${user.id}`);
+    const cachedRole = localStorage.getItem(`bh_user_role_${user.id}`);
+    const cachedCredits = localStorage.getItem(`bh_user_credits_${user.id}`);
+    if (cachedTier) {
+      setTier(cachedTier as SubscriptionTier);
+      setRole(cachedRole || 'USER');
+      setCredits(cachedCredits ? parseInt(cachedCredits, 10) : 0);
+      setLoading(false);
+    }
+  }, [user]);
+
   // --- 1. THE FOUNDER SWITCH (Bulletproof Edition v3) ---
   const emailSafe = (user?.email ?? '').toLowerCase().trim();
   const isFounder = emailSafe === 'bh.dtl@web.de';
@@ -61,18 +79,23 @@ export function useAccess() {
 
         // Degradierungs-Logik: Wenn abgelaufen und kein Admin/Founder -> Zurück auf FREE
         if (isExpired && !isAdminRole && !isFounder) {
-            console.warn("Local Auth Check: Subscription has expired. Downgrading to FREE.");
-            dbTier = 'FREE';
+             console.warn("Local Auth Check: Subscription has expired. Downgrading to FREE.");
+             dbTier = 'FREE';
         }
 
         // Fallback: Falls ein ungültiger Wert in der DB steht
         if (!['FREE', 'WEEKEND', 'ELITE', 'PREMIUM', 'ADMIN'].includes(dbTier)) {
-            dbTier = 'FREE';
+             dbTier = 'FREE';
         }
         
         setTier(dbTier as SubscriptionTier);
         setCredits(data.credits ?? 0);
         setRole(data.role || 'USER'); 
+
+        // SOTA: Cache in localStorage sichern
+        localStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
+        localStorage.setItem(`bh_user_role_${user.id}`, data.role || 'USER');
+        localStorage.setItem(`bh_user_credits_${user.id}`, (data.credits ?? 0).toString());
       }
       
       if (error && error.code !== 'PGRST116') {

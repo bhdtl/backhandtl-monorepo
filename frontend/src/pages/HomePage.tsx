@@ -221,8 +221,13 @@ const parseValueFromText = (text: string | undefined) => {
 const AIStatsHero = () => {
   const { t } = useTranslation();
   
-  const [stats, setStats] = useState({ avgClv: 0, totalUnits: 0, roi: 0 });
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(() => {
+    const cached = localStorage.getItem('bh_hero_stats');
+    return cached ? JSON.parse(cached) : { avgClv: 0, totalUnits: 0, roi: 0 };
+  });
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('bh_hero_stats');
+  });
 
   useEffect(() => {
     const fetchPerformance = async () => {
@@ -236,7 +241,7 @@ const AIStatsHero = () => {
           while (keepFetching) {
               const { data, error } = await supabase
                   .from('market_odds')
-                  .select('*')
+                  .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at')
                   .neq('actual_winner_name', null)
                   .neq('actual_winner_name', '')
                   .gt('created_at', STATS_RESET_DATE)
@@ -310,20 +315,28 @@ const AIStatsHero = () => {
 
             if (validSignals > 0) {
                 const roiVal = totalUnitsStaked > 0 ? (cumulativeUnits / totalUnitsStaked) * 100 : 0;
-                setStats({
+                const newStats = {
                   avgClv: parseFloat((sumClv / validSignals).toFixed(2)),
                   totalUnits: parseFloat(cumulativeUnits.toFixed(2)),
                   roi: parseFloat(roiVal.toFixed(2))
-                });
+                };
+                setStats(newStats);
+                localStorage.setItem('bh_hero_stats', JSON.stringify(newStats));
             } else {
-                setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+                const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
+                setStats(fallbackStats);
+                localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
             }
           } else {
-              setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+              const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
+              setStats(fallbackStats);
+              localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
           }
       } catch (err) {
           console.error("Error fetching stats:", err);
-          setStats({ avgClv: 0, totalUnits: 0, roi: 0 });
+          const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
+          setStats(fallbackStats);
+          localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
       } finally {
           setLoading(false);
       }
@@ -485,9 +498,17 @@ interface HomePageProps {
 
 export function HomePage({ onPlayerClick }: HomePageProps) {
   const { t } = useTranslation();
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [players, setPlayers] = useState<Player[]>(() => {
+    const cached = localStorage.getItem('bh_cached_players');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>(() => {
+    const cached = localStorage.getItem('bh_cached_players');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('bh_cached_players');
+  });
     
   const [showFilters, setShowFilters] = useState(false);
   const [overflowVisible, setOverflowVisible] = useState(false);
@@ -503,6 +524,23 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   const [countries, setCountries] = useState<string[]>([]);
   const [playStyles, setPlayStyles] = useState<string[]>([]);
   const [surfaces, setSurfaces] = useState<string[]>([]);
+
+  // --- SOTA: Automatic Derived State Sync from Players Cache ---
+  useEffect(() => {
+    if (players.length > 0) {
+      const uniqueCountries = [...new Set(players.map(p => p.country).filter(Boolean))];
+      const allStylesRaw = players.map(p => p.play_style).filter(Boolean);
+      const uniquePlayStyles = new Set<string>();
+      allStylesRaw.forEach(s => {
+          s.split(',').forEach(sub => uniquePlayStyles.add(sub.split('(')[0].trim())); 
+      });
+      const uniqueSurfaces = [...new Set(players.map(p => p.surface_preference).filter(Boolean))];
+
+      setCountries(uniqueCountries.sort());
+      setPlayStyles(Array.from(uniquePlayStyles).sort());
+      setSurfaces(uniqueSurfaces.sort());
+    }
+  }, [players]);
 
   const normalizePlayStyle = (style: string) => {
     if (!style) return '';
@@ -581,20 +619,9 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
       setPlayers(playersWithRatings);
       setFilteredPlayers(playersWithRatings);
-
-      const uniqueCountries = [...new Set(playersWithRatings.map(p => p.country).filter(Boolean))];
-        
-      const allStylesRaw = playersWithRatings.map(p => p.play_style).filter(Boolean);
-      const uniquePlayStyles = new Set<string>();
-      allStylesRaw.forEach(s => {
-          s.split(',').forEach(sub => uniquePlayStyles.add(sub.split('(')[0].trim())); 
-      });
-
-      const uniqueSurfaces = [...new Set(playersWithRatings.map(p => p.surface_preference).filter(Boolean))];
-
-      setCountries(uniqueCountries.sort());
-      setPlayStyles(Array.from(uniquePlayStyles).sort());
-      setSurfaces(uniqueSurfaces.sort());
+      
+      // SOTA: Cache in localStorage
+      localStorage.setItem('bh_cached_players', JSON.stringify(playersWithRatings));
     } catch (error) {
       console.error('Error loading players:', error);
     } finally {

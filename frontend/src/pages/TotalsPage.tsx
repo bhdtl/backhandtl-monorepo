@@ -73,9 +73,14 @@ export function TotalsPage() {
   const navigate = useNavigate();
   const { isElite, loading: accessLoading } = useAccess();
   
-  const [activeMatches, setActiveMatches] = useState<any[]>([]);
+  const [activeMatches, setActiveMatches] = useState<any[]>(() => {
+    const cached = localStorage.getItem('bh_cached_totals');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [historicalData, setHistoricalData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('bh_cached_totals');
+  });
   
   // Filtering: ALL | OVERS (Proj > 22.5) | UNDERS (Proj < 20.5)
   const [marketFilter, setMarketFilter] = useState<'ALL' | 'OVERS' | 'UNDERS'>('ALL');
@@ -207,6 +212,9 @@ export function TotalsPage() {
         processedMatches.sort((a, b) => b.projection - a.projection);
         
         setActiveMatches(processedMatches);
+        
+        // SOTA: Cache in localStorage sichern
+        localStorage.setItem('bh_cached_totals', JSON.stringify(processedMatches));
 
     } catch (err) {
         console.error("Error fetching O/U data:", err);

@@ -203,9 +203,14 @@ export function AIPicksPage() {
   const { t } = useTranslation();
   const { isElite, loading: accessLoading } = useAccess();
   
-  const [activePicks, setActivePicks] = useState<any[]>([]);
+  const [activePicks, setActivePicks] = useState<any[]>(() => {
+    const cached = localStorage.getItem('bh_cached_picks');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [playerMap, setPlayerMap] = useState<Map<string, Player>>(new Map());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('bh_cached_picks');
+  });
   const [timeFilter, setTimeFilter] = useState<'ALL' | '30MIN'>('ALL');
   
   // 🚀 SOTA: State für das Expandieren der KI Analyse
@@ -253,7 +258,7 @@ export function AIPicksPage() {
         // Filtert Matches für heute & Zukunft
         const { data, error } = await supabase
             .from('market_odds')
-            .select('*')
+            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, match_time, last_update, created_at, is_visible_in_scanner, tournament')
             .eq('is_visible_in_scanner', true)
             .is('actual_winner_name', null)
             .gte('match_time', new Date(new Date().setHours(0,0,0,0)).toISOString())
@@ -311,6 +316,9 @@ export function AIPicksPage() {
         // Sortiere strikt nach KI-Überzeugung (Stake)
         validPicks.sort((a, b) => b.parsedVal.stake - a.parsedVal.stake);
         setActivePicks(validPicks);
+        
+        // SOTA: Cache in localStorage sichern
+        localStorage.setItem('bh_cached_picks', JSON.stringify(validPicks));
 
     } catch (err) {
         console.error("Error fetching active picks:", err);

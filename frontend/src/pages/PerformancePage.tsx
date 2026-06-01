@@ -349,44 +349,58 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function PerformancePage() {
   const { t, i18n } = useTranslation();
   
-  const [processedBets, setProcessedBets] = useState<any[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(() => {
+    const cached = localStorage.getItem('bh_perf_stats');
+    return cached ? JSON.parse(cached) : {
+      totalSignals: 0,
+      avgEdge: 0,        
+      avgClv: 0,
+      totalUnits: 0,
+      roi: 0,
+      units10d: 0,
+      units30d: 0,
+      avgBrier: 0.25,
+      pValue: 0.5,
+      skillCertainty: 50,
+      brackets: {
+          fav: { clvSum: 0, units: 0, count: 0 },   
+          core: { clvSum: 0, units: 0, count: 0 },  
+          dog: { clvSum: 0, units: 0, count: 0 },   
+          long: { clvSum: 0, units: 0, count: 0 }   
+      },
+      stakeBrackets: {
+          low: { clvSum: 0, units: 0, count: 0 },   
+          med: { clvSum: 0, units: 0, count: 0 },   
+          high: { clvSum: 0, units: 0, count: 0 },  
+          max: { clvSum: 0, units: 0, count: 0 }    
+      }
+    };
+  });
+
+  const [rawBets, setRawBets] = useState<any[]>(() => {
+    const cached = localStorage.getItem('bh_perf_raw_bets');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [chartData, setChartData] = useState<any[]>(() => {
+    const cached = localStorage.getItem('bh_perf_chart_data');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [processedBets, setProcessedBets] = useState<any[]>(() => {
+    const cached = localStorage.getItem('bh_perf_processed_bets');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('bh_perf_stats');
+  });
   
   const [chartFilter, setChartFilter] = useState<'1W' | '1M' | '3M' | 'ALL'>('ALL');
   const categoryFilter = 'ALL';
-  const [rawBets, setRawBets] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   
   const [activeStatInfo, setActiveStatInfo] = useState<'brier' | 'pvalue' | null>(null);
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [stats, setStats] = useState({
-    totalSignals: 0,
-    avgEdge: 0,        
-    avgClv: 0,
-    totalUnits: 0,
-    roi: 0,
-    units10d: 0,
-    units30d: 0,
-    avgBrier: 0.25,
-    pValue: 0.5,
-    skillCertainty: 50,
-    brackets: {
-        fav: { clvSum: 0, units: 0, count: 0 },   
-        core: { clvSum: 0, units: 0, count: 0 },  
-        dog: { clvSum: 0, units: 0, count: 0 },   
-        long: { clvSum: 0, units: 0, count: 0 }   
-    },
-    stakeBrackets: {
-        low: { clvSum: 0, units: 0, count: 0 },   
-        med: { clvSum: 0, units: 0, count: 0 },   
-        high: { clvSum: 0, units: 0, count: 0 },  
-        max: { clvSum: 0, units: 0, count: 0 }    
-    }
-  });
 
   useEffect(() => {
     fetchHistory();
@@ -427,7 +441,7 @@ export function PerformancePage() {
     while (keepFetching) {
         const { data, error } = await supabase
             .from('market_odds')
-            .select('*')
+            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at')
             .neq('actual_winner_name', null)
             .neq('actual_winner_name', '')
             .gt('created_at', STATS_RESET_DATE) 
@@ -454,6 +468,7 @@ export function PerformancePage() {
 
     if (allData.length > 0) {
       setRawBets(allData);
+      localStorage.setItem('bh_perf_raw_bets', JSON.stringify(allData));
       processAndCalculate(allData);
     } else {
        setStats({ 
@@ -639,7 +654,7 @@ export function PerformancePage() {
         const avgOdds = activeSignalsCount > 0 ? sumOdds / activeSignalsCount : 1.90;
         const sig = calculateSkillSignificance(activeSignalsCount, roiVal / 100, avgOdds);
 
-        setStats({
+        const newStats = {
             totalSignals: activeSignalsCount,
             avgEdge: parseFloat(avgEdgeVal.toFixed(1)),
             avgClv: parseFloat(avgClvVal.toFixed(2)),
@@ -652,12 +667,16 @@ export function PerformancePage() {
             skillCertainty: sig.skillCertainty,
             brackets,
             stakeBrackets
-        });
+        };
+        setStats(newStats);
+        localStorage.setItem('bh_perf_stats', JSON.stringify(newStats));
     } else {
-        setStats({ 
+        const fallbackStats = { 
             totalSignals: 0, avgEdge: 0, avgClv: 0, totalUnits: 0, roi: 0, 
             units10d: 0, units30d: 0, avgBrier: 0.25, pValue: 0.5, skillCertainty: 50, brackets, stakeBrackets 
-        });
+        };
+        setStats(fallbackStats);
+        localStorage.setItem('bh_perf_stats', JSON.stringify(fallbackStats));
     }
 
     // 🚀 SOTA FIX: Exakte chronologische Tabellen-Sortierung (neueste gespielte Matches zuerst)
@@ -669,6 +688,10 @@ export function PerformancePage() {
 
     setProcessedBets(sortedForTable);
     setChartData(chartPoints);
+    
+    // SOTA: Cache in localStorage sichern
+    localStorage.setItem('bh_perf_processed_bets', JSON.stringify(sortedForTable));
+    localStorage.setItem('bh_perf_chart_data', JSON.stringify(chartPoints));
   };
 
   const exportToMarkdown = () => {
