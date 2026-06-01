@@ -1715,7 +1715,13 @@ def calculate_value_metrics(
             "pattern_boost": None
         }
         
-    actual_edge_decimal = (fair_prob * market_odds) - 1.0
+    raw_edge_decimal = (fair_prob * market_odds) - 1.0
+    
+    # 🚀 SOTA: Syndicate Edge Haircut (75% Shrinkage to combat selection bias & regression to the mean)
+    # If the model calculates a 20% raw edge, we only "see" and act on 5.0% edge (20% * 0.25).
+    # This precisely matches "bei 25% edge nur 5% edge sehen" and aligns with Buchdahl's principles.
+    SYNDICATE_HAIRCUT = 0.25
+    actual_edge_decimal = raw_edge_decimal * SYNDICATE_HAIRCUT
     
     # 🚀 SOTA: Edge Capping to prevent uncalibrated/hallucinated ELO margins (Buchdahl model calibration)
     is_challenger = "challenger" in (tour_name or "").lower() or "itf" in (tour_name or "").lower()
@@ -1725,8 +1731,9 @@ def calculate_value_metrics(
         
     edge_percent = round(actual_edge_decimal * 100, 1)
     
-    # 🚀 SOTA: Syndicate Sniper Filter (Favorites < 1.80 -> +5.0% edge; Underdogs >= 1.80 -> +6.5% edge)
-    min_edge = 0.050 if market_odds < 1.80 else 0.065
+    # 🚀 SOTA: Post-Haircut Syndicate gates (Favorites < 1.80 -> +2.5% edge; Underdogs >= 1.80 -> +3.0% edge)
+    # Implies a raw calculated edge of at least +10.0% (favorites) and +12.0% (underdogs/handicaps/totals) is required.
+    min_edge = 0.025 if market_odds < 1.80 else 0.030
     if actual_edge_decimal < min_edge: 
         return {
             "type": "NO EDGE", 
