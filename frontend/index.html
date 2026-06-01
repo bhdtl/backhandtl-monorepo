@@ -29,6 +29,38 @@
     
     <script>window.lemonSqueezyAffiliateConfig = { store: "backhandtl" };</script>
     <script src="https://lmsqueezy.com/affiliate.js" defer></script>
+    
+    <script>
+      // SOTA: Auto-recover from chunk load and asset errors (Vercel deployment transitions)
+      window.addEventListener('error', function(e) {
+        var target = e.target;
+        if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+          var src = target.src || target.href;
+          if (src && (src.indexOf('/assets/index-') !== -1 || src.indexOf('/src/') !== -1)) {
+            console.warn('Essential asset failed to load. Old build cached in browser. Force-refreshing page...', src);
+            var lastReload = localStorage.getItem('last_auto_reload');
+            var now = Date.now();
+            if (!lastReload || (now - parseInt(lastReload, 10) > 10000)) {
+              localStorage.setItem('last_auto_reload', now.toString());
+              window.location.reload();
+            }
+          }
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(e) {
+        var msg = e.reason && e.reason.message;
+        if (msg && (msg.indexOf('ChunkLoadError') !== -1 || msg.indexOf('Loading chunk') !== -1 || msg.indexOf('Failed to fetch dynamically imported module') !== -1)) {
+          console.warn('Dynamic chunk load error. Force-refreshing to load new deployment...');
+          var lastReload = localStorage.getItem('last_auto_reload');
+          var now = Date.now();
+          if (!lastReload || (now - parseInt(lastReload, 10) > 10000)) {
+            localStorage.setItem('last_auto_reload', now.toString());
+            window.location.reload();
+          }
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
