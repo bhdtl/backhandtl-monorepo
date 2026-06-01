@@ -1568,7 +1568,7 @@ async def get_db_data():
         players = fetch_all_rows("players", "id, first_name, last_name, country, tour, form_rating, surface_ratings")
         skills = fetch_all_rows("player_skills", "player_id, serve, power, forehand, backhand, volley, speed, stamina, mental, overall_rating, elo_metrics, advanced_stats, sackmann_metrics")
         reports = fetch_all_rows("scouting_reports", "player_id, strengths, weaknesses")
-        tournaments = fetch_all_rows("tournaments", "name, location, surface")
+        tournaments = fetch_all_rows("tournaments", "name, location, surface, bsi_rating, notes")
         
         if tournaments:
             for t in tournaments:
