@@ -2052,7 +2052,8 @@ async def analyze_match_with_ai(tour_name, p1, p2, s1, s2, report1, report2, sur
        - 0.5 = REDUCE STAKE (Risky matchup).
        - 1.0 = STANDARD.
        - 1.5 = MAX UPGRADE (Dream tactical matchup & opponent is fatigued).
-    5. ONLY RETURN JSON.
+    5. VALUE & HANDICAP BALANCE: Tennis betting relies heavily on game handicaps (+/- spreads) and totals. Even if one player is the 'Mathematical Winner', the opponent may keep the match extremely close. You MUST write a highly balanced, dual-perspective analysis. Explain the favorite's path to victory, BUT ALSO detail exactly how the underdog's style, serve, or strengths can keep this match highly competitive (e.g., covering a +2.5 or +3.5 game spread, forcing tiebreaks, or winning a set). Avoid a one-sided bias so the analysis perfectly frames handicap/spread value.
+    6. ONLY RETURN JSON.
     
     OUTPUT JSON:
     {{
