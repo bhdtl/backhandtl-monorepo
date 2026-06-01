@@ -52,6 +52,7 @@ import { BsiSpeedPerformance } from '../components/BsiSpeedPerformance';
 import { MarketOddsPerformance } from '../components/MarketOddsPerformance'; 
 import { motion, AnimatePresence } from 'framer-motion'; 
 
+// Trigger fresh Vercel deployment
 // --- CONFIG ---
 const FUNCTION_URL = "https://suoaznisiowoolxilaju.supabase.co/functions/v1/smart-api";
 
