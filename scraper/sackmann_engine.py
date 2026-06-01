@@ -594,7 +594,7 @@ async def compile_intelligence_matrix():
     db_players = []
     offset = 0
     while True:
-        res = supabase.table("players").select("id, sackmann_id, first_name, last_name").not_.is_("sackmann_id", "null").range(offset, offset + 999).execute()
+        res = supabase.table("players").select("id, sackmann_id, first_name, last_name, surface_ratings").not_.is_("sackmann_id", "null").range(offset, offset + 999).execute()
         chunk = res.data or []
         db_players.extend(chunk)
         if len(chunk) < 1000: break
@@ -635,25 +635,58 @@ async def compile_intelligence_matrix():
     log("🧮 Kompiliere endgültige Quant-Profile...")
     compiled_data = engine.compile_final_profiles()
 
-    log("🚀 Injeziere Matrix in Supabase (Player Skills & Players UI)...")
+    log("💾 Lade Supabase player_skills zur Konflikt-Prüfung...")
+    db_skills = []
+    offset = 0
+    while True:
+        res_skills = supabase.table("player_skills").select("player_id, elo_metrics, advanced_stats, sackmann_metrics").range(offset, offset + 999).execute()
+        chunk_skills = res_skills.data or []
+        db_skills.extend(chunk_skills)
+        if len(chunk_skills) < 1000: break
+        offset += 1000
+    
+    skills_by_pid = {s["player_id"]: s for s in db_skills if s.get("player_id")}
+
+    log("🚀 Injeziere Matrix in Supabase (Player Skills & Players UI mit Conflict Checking)...")
     success = 0
     for p in db_players:
         sid = p.get('sackmann_id')
         if sid in compiled_data:
             d = compiled_data[sid]
             try:
-                supabase.table("player_skills").update({
-                    "elo_metrics": d["elo_metrics"],
-                    "advanced_stats": d["advanced_stats"],
-                    "sackmann_metrics": d["sackmann_metrics"], 
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }).eq("player_id", p["id"]).execute()
+                existing_skill = skills_by_pid.get(p["id"])
                 
-                supabase.table("players").update({
-                    "surface_ratings": d["surface_ratings"]
-                }).eq("id", p["id"]).execute()
-                success += 1
-            except: pass
+                # Check if skills actually changed
+                skills_changed = True
+                if existing_skill:
+                    skills_changed = False
+                    if (existing_skill.get("elo_metrics") != d["elo_metrics"] or
+                        existing_skill.get("advanced_stats") != d["advanced_stats"] or
+                        existing_skill.get("sackmann_metrics") != d["sackmann_metrics"]):
+                        skills_changed = True
+                        
+                if skills_changed:
+                    supabase.table("player_skills").update({
+                        "elo_metrics": d["elo_metrics"],
+                        "advanced_stats": d["advanced_stats"],
+                        "sackmann_metrics": d["sackmann_metrics"], 
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }).eq("player_id", p["id"]).execute()
+                
+                # Check if players surface_ratings actually changed
+                players_changed = True
+                if p.get("surface_ratings") == d["surface_ratings"]:
+                    players_changed = False
+                    
+                if players_changed:
+                    supabase.table("players").update({
+                        "surface_ratings": d["surface_ratings"]
+                    }).eq("id", p["id"]).execute()
+                    
+                if skills_changed or players_changed:
+                    success += 1
+            except Exception as e:
+                pass
             
     log(f"🏁 ALCHEMIST FINISHED. {success} Spieler besitzen nun Gott-Level-Statistiken!")
 

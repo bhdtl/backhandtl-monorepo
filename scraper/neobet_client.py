@@ -135,9 +135,13 @@ class NeoBetAPI:
             if "/" in home_raw or "/" in away_raw:
                 continue
                 
-            # 2. League/Tournament name matches (e.g. contains "doubles", "doppel", etc.)
+            # 2. League/Tournament name matches (e.g. contains "doubles", "doppel", "junior", "qualification", etc.)
             league_name = (match.get("league") or "").lower()
-            if any(term in league_name for term in ["doubles", "doppel", "doub.", "dop."]):
+            if any(term in league_name for term in [
+                "doubles", "doppel", "doub.", "dop.", 
+                "junior", "boys", "girls", "u18", "under 18",
+                "qualification", "qual.", "exhibition", "schaukampf", "showdown"
+            ]):
                 continue
             
             # Normalize player names

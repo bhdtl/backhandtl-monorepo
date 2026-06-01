@@ -64,7 +64,7 @@ export function CourtDatabase() {
     try {
       const { data, error } = await supabase
         .from('tournaments')
-        .select('*')
+        .select('id, name, location, surface, bsi_rating, bounce, notes')
         .order('bsi_rating', { ascending: false });
 
       if (error) throw error;

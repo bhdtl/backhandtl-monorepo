@@ -278,14 +278,14 @@ export function AdminCMS() {
   const loadData = async () => {
     try {
       const [p, r, s, a, arts, tours, tix, fb] = await Promise.all([
-          supabase.from('players').select('*').order('last_name', { ascending: true }),
-          supabase.from('scouting_reports').select('*'),
-          supabase.from('player_skills').select('*'),
-          supabase.from('player_achievements').select('*'),
-          supabase.from('articles').select('*').order('created_at', { ascending: false }),
-          supabase.from('tournaments').select('*').order('name', { ascending: true }),
-          supabase.from('support_tickets').select('*').order('created_at', { ascending: false }),
-          supabase.from('feedback_posts').select('*').order('created_at', { ascending: false })
+          supabase.from('players').select('id, first_name, last_name, country, play_style, surface_preference, profile_image_url, tour').order('last_name', { ascending: true }),
+          supabase.from('scouting_reports').select('id, player_id, strengths, weaknesses, mental_game_notes, last_updated'),
+          supabase.from('player_skills').select('id, player_id, serve, forehand, backhand, volley, speed, power, mental, stamina, overall_rating'),
+          supabase.from('player_achievements').select('id, player_id, achievement_key, unlocked'),
+          supabase.from('articles').select('id, slug, title, excerpt, content, hero_image_url, tags, is_published, author_name, published_at').order('created_at', { ascending: false }),
+          supabase.from('tournaments').select('id, name, bsi_rating, surface').order('name', { ascending: true }),
+          supabase.from('support_tickets').select('id, user_id, subject, message, status, admin_response, created_at').order('created_at', { ascending: false }),
+          supabase.from('feedback_posts').select('id, user_id, category, title, content, status, upvotes_count, created_at').order('created_at', { ascending: false })
       ]);
       
       if (p.error) console.warn("Players fetch error", p.error);

@@ -962,8 +962,8 @@ export function MatchupAnalyzer() {
   // --- INIT ---
   useEffect(() => {
     Promise.all([
-        supabase.from('players').select('*').order('last_name'), 
-        supabase.from('tournaments').select('*').order('name')
+        supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour').order('last_name'), 
+        supabase.from('tournaments').select('id, name, location, surface, bsi_rating').order('name')
     ]).then(([p, t]) => {
       if(p.data) setPlayers(p.data); 
       if(t.data) setTournaments(t.data);
@@ -1014,9 +1014,9 @@ export function MatchupAnalyzer() {
   const fetchDeepData = async (id: string, setter: any) => {
     setDataLoading(true);
     try {
-        const { data: p } = await supabase.from('players').select('*').eq('id', id).single();
-        const { data: s } = await supabase.from('player_skills').select('*').eq('player_id', id).maybeSingle();
-        const { data: r } = await supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle();
+        const { data: p } = await supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour, surface_ratings').eq('id', id).single();
+        const { data: s } = await supabase.from('player_skills').select('player_id, overall_rating, serve, power, forehand, backhand, volley, speed, stamina, mental, elo_metrics, advanced_stats, sackmann_metrics').eq('player_id', id).maybeSingle();
+        const { data: r } = await supabase.from('scouting_reports').select('player_id, strengths, weaknesses').eq('player_id', id).maybeSingle();
         setter({ player: p, skills: s, report: r });
     } catch(e) { console.error(e); } finally { setDataLoading(false); }
   };

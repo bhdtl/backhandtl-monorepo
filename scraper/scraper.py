@@ -1534,13 +1534,13 @@ async def get_advanced_load_analysis(matches: List[Dict]) -> str:
     except: 
         return "Unknown"
 
-def fetch_all_rows(table_name: str) -> List[Dict]:
+def fetch_all_rows(table_name: str, columns: str = "*") -> List[Dict]:
     data = []
     offset = 0
     limit = 1000
     while True:
         try:
-            res = supabase.table(table_name).select("*").range(offset, offset + limit - 1).execute()
+            res = supabase.table(table_name).select(columns).range(offset, offset + limit - 1).execute()
             chunk = res.data or []
             data.extend(chunk)
             if len(chunk) < limit:
@@ -1551,9 +1551,10 @@ def fetch_all_rows(table_name: str) -> List[Dict]:
             break
     return data
 
+
 async def get_db_data():
     try:
-        weights_res = supabase.table("ai_system_weights").select("*").execute()
+        weights_res = supabase.table("ai_system_weights").select("tour, weight_skill, weight_form, weight_surface, mc_variance").execute()
         if weights_res.data:
             for w in weights_res.data:
                 tour = w.get("tour", "ATP")
@@ -1564,10 +1565,10 @@ async def get_db_data():
                     "MC_VARIANCE": to_float(w.get("mc_variance"), 1.20)
                 }
 
-        players = fetch_all_rows("players")
-        skills = fetch_all_rows("player_skills")
-        reports = fetch_all_rows("scouting_reports")
-        tournaments = fetch_all_rows("tournaments")
+        players = fetch_all_rows("players", "id, first_name, last_name, country, tour, form_rating, surface_ratings")
+        skills = fetch_all_rows("player_skills", "player_id, serve, power, forehand, backhand, volley, speed, stamina, mental, overall_rating, elo_metrics, advanced_stats, sackmann_metrics")
+        reports = fetch_all_rows("scouting_reports", "player_id, strengths, weaknesses")
+        tournaments = fetch_all_rows("tournaments", "name, location, surface")
         
         if tournaments:
             for t in tournaments:
@@ -1715,10 +1716,17 @@ def calculate_value_metrics(
         }
         
     actual_edge_decimal = (fair_prob * market_odds) - 1.0
+    
+    # 🚀 SOTA: Edge Capping to prevent uncalibrated/hallucinated ELO margins (Buchdahl model calibration)
+    is_challenger = "challenger" in (tour_name or "").lower() or "itf" in (tour_name or "").lower()
+    max_edge = 0.12 if is_challenger else 0.10
+    if actual_edge_decimal > max_edge:
+        actual_edge_decimal = max_edge
+        
     edge_percent = round(actual_edge_decimal * 100, 1)
     
-    # 🚀 SOTA: Dynamic Edge Thresholds (Favorites < 1.80 -> +1.5% edge; Underdogs >= 1.80 -> +4.0% edge)
-    min_edge = 0.015 if market_odds < 1.80 else 0.040
+    # 🚀 SOTA: Syndicate Sniper Filter (Favorites < 1.80 -> +5.0% edge; Underdogs >= 1.80 -> +6.5% edge)
+    min_edge = 0.050 if market_odds < 1.80 else 0.065
     if actual_edge_decimal < min_edge: 
         return {
             "type": "NO EDGE", 
@@ -1733,19 +1741,19 @@ def calculate_value_metrics(
     b = market_odds - 1.0
     full_kelly = actual_edge_decimal / b
     
-    # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-3 Unit Scale)
+    # 🚀 SOTA FIX: SYNDICATE VARIANCE PENALTY (0-5 Unit Scale)
     if market_odds < 2.00:
-        kelly_fraction = 0.15      # 15% Kelly for solid favorites
-        max_allowed_stake = 3.0    # Max 3.0u
+        kelly_fraction = 0.25      # 25% Kelly for solid favorites
+        max_allowed_stake = 5.0    # Max 5.0u
     elif market_odds < 3.00:
-        kelly_fraction = 0.10      # Reduced leverage for regular underdogs
-        max_allowed_stake = 2.0    # Max 2.0u
+        kelly_fraction = 0.15      # Reduced leverage for regular underdogs
+        max_allowed_stake = 3.0    # Max 3.0u
     elif market_odds < 5.00:
-        kelly_fraction = 0.05      # High variance dampening
-        max_allowed_stake = 1.0    # Max 1.0u
+        kelly_fraction = 0.08      # High variance dampening
+        max_allowed_stake = 2.0    # Max 2.0u
     else:
-        kelly_fraction = 0.02      # Longshot extreme dampening
-        max_allowed_stake = 0.5    # Max 0.5u
+        kelly_fraction = 0.04      # Longshot extreme dampening
+        max_allowed_stake = 1.0    # Max 1.0u
         
     # ═══════════════════════════════════════════════════════════════════════════
     # PLAYER-SPECIFIC SURFACE & COURT ANALYSIS (BUCHDAHL-CALIBRATED)
@@ -1836,8 +1844,16 @@ def calculate_value_metrics(
     if veto_bet:
         pattern_multiplier = 0.0
 
+    # 🚀 SOTA: ELO-Default-Trap Protection (Stake clamping to 0.5u for players with < 15 historical professional matches)
+    num_matches = len(player_history) if player_history else 0
+    if player_name and num_matches < 15:
+        max_allowed_stake = min(max_allowed_stake, 0.5)
+        pattern_warning = f"⚠️ Uncalibrated ELO Warning: {player_name} has only {num_matches} historical matches in database. Clamping max stake to 0.5u to prevent ELO default trap."
+
     raw_stake = (full_kelly * 100) * kelly_fraction
-    adjusted_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
+    
+    # 🚀 SOTA: 1/5th Fractional Kelly scaling (0.20 multiplier) to protect bankroll against model uncertainty & high variance
+    adjusted_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier * 0.20
     optimal_stake = round(min(max_allowed_stake, max(0.1, adjusted_stake)), 1)
     
     if veto_bet or optimal_stake <= 0.0:
@@ -1861,11 +1877,11 @@ def calculate_value_metrics(
             "pattern_warning": pattern_warning,
             "pattern_boost": pattern_boost
         }
-    elif optimal_stake >= 2.5:
+    elif optimal_stake >= 4.0:
         label = "🔥 MAX BOMB (QUANT + SCOUT)"
-    elif optimal_stake >= 1.5:
+    elif optimal_stake >= 2.5:
         label = "✨ HIGH CONVICTION"
-    elif optimal_stake >= 0.5:
+    elif optimal_stake >= 1.0:
         label = "🛡️ CORE VALUE"
     else:
         label = "🔬 MICRO EDGE"
@@ -1886,12 +1902,14 @@ def calculate_physics_fair_odds(p1_name, p2_name, s1, s2, surface, mc_prob_a):
     elo2 = s2.get('elo_metrics', {}).get(elo_surf, 1500)
     
     elo_diff = elo1 - elo2
-    prob_elo = normal_cdf_prob(elo_diff, sigma=280.0)
     
-    mc_prob_a = max(0.01, min(0.99, mc_prob_a / 100.0))
+    # 🚀 SOTA: The AI (LLM) acts ONLY as a small tactical ELO modifier (+/- 30 ELO points max), not as a 70% direct probability driver.
+    # mc_prob_a is between 1 and 99. We scale it such that a deviation from 50% shifts ELO by max +/- 30 points.
+    mc_prob_a_val = max(1.0, min(99.0, mc_prob_a))
+    elo_adjustment = (mc_prob_a_val - 50.0) * 0.60  # range: [-30, +30] ELO points
     
-    # 🚀 SOTA: Keine Market-Blend mehr während Discovery. Pure Model Edge.
-    final_prob = (prob_elo * 0.30) + (mc_prob_a * 0.70)
+    elo_diff_adjusted = elo_diff + elo_adjustment
+    final_prob = normal_cdf_prob(elo_diff_adjusted, sigma=280.0)
     return final_prob
 
 # =================================================================
@@ -2306,6 +2324,19 @@ async def run_pipeline():
     log(f"🔍 Starte Neural Enrichment für {len(matches)} API-Matches...")
     db_matched_count = 0
     seen_match_keys = set()
+
+    # 🚀 SOTA: Bulk fetch active matches to eliminate individual SELECT queries inside the loop
+    active_matches_res = supabase.table("market_odds")\
+        .select("id, api_match_key, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, created_at, actual_winner_name, neobet_spreads, neobet_over_unders, bookmaker_odds, match_time, is_visible_in_scanner")\
+        .is_("actual_winner_name", "null")\
+        .execute()
+    active_matches_list = active_matches_res.data or []
+
+    # Fast in-memory lookup indexes
+    match_by_key = {am["api_match_key"]: am for am in active_matches_list if am.get("api_match_key")}
+
+    market_odds_to_upsert = []
+    pending_odds_history = []
     
     for m in matches:
         try:
@@ -2332,33 +2363,41 @@ async def run_pipeline():
                 
             if not validate_market_integrity(m['odds1'], m['odds2']): continue 
 
-            res1 = supabase.table("market_odds").select("*").eq("api_match_key", m['api_match_key']).execute()
-            existing_match = res1.data[0] if res1.data else None
+            # In-memory primary lookup
+            existing_match = match_by_key.get(m['api_match_key'])
 
             if not existing_match:
-                res_fb1 = supabase.table("market_odds").select("*").ilike("player1_name", f"%{n1_last}%").ilike("player2_name", f"%{n2_last}%").is_("actual_winner_name", "null").order("created_at", desc=True).limit(1).execute()
-                existing_match = res_fb1.data[0] if res_fb1.data else None
-                
+                # In-memory fuzzy fallback matching
+                for am in active_matches_list:
+                    am_p1 = normalize_db_name(am.get("player1_name", ""))
+                    am_p2 = normalize_db_name(am.get("player2_name", ""))
+                    if n1_last in am_p1 and n2_last in am_p2:
+                        existing_match = am
+                        break
+                        
             if not existing_match:
-                res_fb2 = supabase.table("market_odds").select("*").ilike("player1_name", f"%{n2_last}%").ilike("player2_name", f"%{n1_last}%").is_("actual_winner_name", "null").order("created_at", desc=True).limit(1).execute()
-                existing_match = res_fb2.data[0] if res_fb2.data else None
-                
-                if existing_match:
-                    full_n1, full_n2 = full_n2, full_n1
-                    p1_obj, p2_obj = p2_obj, p1_obj
-                    m['odds1'], m['odds2'] = m['odds2'], m['odds1']
-                    
-                    swapped_bookies = {}
-                    for b_name, b_odds in m['bookmaker_odds'].items():
-                        swapped_bookies[b_name] = {"odds1": b_odds["odds2"], "odds2": b_odds["odds1"]}
-                    m['bookmaker_odds'] = swapped_bookies
-                    
-                    swapped_sets = {}
-                    if "2:0" in m.get('bookie_set_odds', {}): swapped_sets["0:2"] = m['bookie_set_odds']["2:0"]
-                    if "0:2" in m.get('bookie_set_odds', {}): swapped_sets["2:0"] = m['bookie_set_odds']["0:2"]
-                    if "2:1" in m.get('bookie_set_odds', {}): swapped_sets["1:2"] = m['bookie_set_odds']["2:1"]
-                    if "1:2" in m.get('bookie_set_odds', {}): swapped_sets["2:1"] = m['bookie_set_odds']["1:2"]
-                    m['bookie_set_odds'] = swapped_sets
+                # Swapped names fuzzy check in memory
+                for am in active_matches_list:
+                    am_p1 = normalize_db_name(am.get("player1_name", ""))
+                    am_p2 = normalize_db_name(am.get("player2_name", ""))
+                    if n2_last in am_p1 and n1_last in am_p2:
+                        existing_match = am
+                        full_n1, full_n2 = full_n2, full_n1
+                        p1_obj, p2_obj = p2_obj, p1_obj
+                        m['odds1'], m['odds2'] = m['odds2'], m['odds1']
+                        
+                        swapped_bookies = {}
+                        for b_name, b_odds in m['bookmaker_odds'].items():
+                            swapped_bookies[b_name] = {"odds1": b_odds["odds2"], "odds2": b_odds["odds1"]}
+                        m['bookmaker_odds'] = swapped_bookies
+                        
+                        swapped_sets = {}
+                        if "2:0" in m.get('bookie_set_odds', {}): swapped_sets["0:2"] = m['bookie_set_odds']["2:0"]
+                        if "0:2" in m.get('bookie_set_odds', {}): swapped_sets["2:0"] = m['bookie_set_odds']["0:2"]
+                        if "2:1" in m.get('bookie_set_odds', {}): swapped_sets["1:2"] = m['bookie_set_odds']["2:1"]
+                        if "1:2" in m.get('bookie_set_odds', {}): swapped_sets["2:1"] = m['bookie_set_odds']["1:2"]
+                        m['bookie_set_odds'] = swapped_sets
+                        break
             
             if existing_match:
                 if is_suspicious_movement(to_float(existing_match.get('odds1'), 0), m['odds1'], to_float(existing_match.get('odds2'), 0), m['odds2']):
@@ -2388,13 +2427,25 @@ async def run_pipeline():
                     "neobet_over_unders": m.get("neobet_over_unders", []),
                     "ai_analysis_text": "[SHADOW TRACKING] Match collected for historical player metrics."
                 }
-                if not db_match_id:
-                    shadow_data["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                    shadow_data["opening_odds1"] = m['odds1']
-                    shadow_data["opening_odds2"] = m['odds2']
-                    db_match_id = await save_market_odds(shadow_data, is_insert=True)
-                else:
-                    db_match_id = await save_market_odds(shadow_data, db_match_id=db_match_id, is_insert=False)
+                
+                # Conflict Handling: Check if shadow tracking match has any changes before scheduling write
+                has_changes = True
+                if existing_match:
+                    has_changes = False
+                    if (to_float(existing_match.get("odds1")) != to_float(m["odds1"]) or 
+                        to_float(existing_match.get("odds2")) != to_float(m["odds2"]) or
+                        existing_match.get("match_time") != final_time_str or
+                        existing_match.get("bookmaker_odds") != m["bookmaker_odds"]):
+                        has_changes = True
+                
+                if has_changes:
+                    if not db_match_id:
+                        shadow_data["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                        shadow_data["opening_odds1"] = m['odds1']
+                        shadow_data["opening_odds2"] = m['odds2']
+                    else:
+                        shadow_data["id"] = db_match_id
+                    market_odds_to_upsert.append(shadow_data)
                 continue 
 
             # --- FULL MATCHUP PATH --->
@@ -2421,9 +2472,27 @@ async def run_pipeline():
                 }
                 if final_time_str and not final_time_str.endswith("T00:00:00Z"):
                     update_data["match_time"] = final_time_str
-                await save_market_odds(update_data, db_match_id=db_match_id, is_insert=False)
-                hist_fair1 = to_float(existing_match.get('ai_fair_odds1'), 0)
-                hist_fair2 = to_float(existing_match.get('ai_fair_odds2'), 0)
+                    
+                # Conflict Handling: Check if signal locked match has any changes before scheduling write
+                has_changes = True
+                if existing_match:
+                    has_changes = False
+                    if (to_float(existing_match.get("odds1")) != to_float(m["odds1"]) or 
+                        to_float(existing_match.get("odds2")) != to_float(m["odds2"]) or
+                        not existing_match.get("is_visible_in_scanner") or
+                        existing_match.get("bookmaker_odds") != m["bookmaker_odds"] or
+                        (final_time_str and not final_time_str.endswith("T00:00:00Z") and existing_match.get("match_time") != final_time_str) or
+                        existing_match.get("neobet_spreads") != update_data["neobet_spreads"] or
+                        existing_match.get("neobet_over_unders") != update_data["neobet_over_unders"]):
+                        has_changes = True
+                        
+                if has_changes:
+                    if db_match_id:
+                        update_data["id"] = db_match_id
+                    market_odds_to_upsert.append(update_data)
+                    
+                hist_fair1 = to_float(existing_match.get('ai_fair_odds1'), 0) if existing_match else 0
+                hist_fair2 = to_float(existing_match.get('ai_fair_odds2'), 0) if existing_match else 0
                 
             else:
                 cached_ai = {}
@@ -2504,7 +2573,23 @@ async def run_pipeline():
                     hist_fair1 = fair1
                     hist_fair2 = fair2
                     
-                    if db_match_id:
+                    # Conflict Handling: Check if cached update has any changes before scheduling write
+                    has_changes = True
+                    if existing_match:
+                        has_changes = False
+                        if (to_float(existing_match.get("odds1")) != to_float(m["odds1"]) or 
+                            to_float(existing_match.get("odds2")) != to_float(m["odds2"]) or
+                            not existing_match.get("is_visible_in_scanner") or
+                            existing_match.get("bookmaker_odds") != m["bookmaker_odds"] or
+                            existing_match.get("match_time") != final_time_str or
+                            existing_match.get("neobet_spreads") != m.get("neobet_spreads", []) or
+                            existing_match.get("neobet_over_unders") != m.get("neobet_over_unders", []) or
+                            existing_match.get("ai_analysis_text") != ai_text_final or
+                            existing_match.get("ai_fair_odds1") != fair1 or
+                            existing_match.get("ai_fair_odds2") != fair2):
+                            has_changes = True
+                            
+                    if has_changes:
                         cached_update = {
                             "odds1": m['odds1'], 
                             "odds2": m['odds2'], 
@@ -2518,7 +2603,9 @@ async def run_pipeline():
                             "neobet_spreads": m.get("neobet_spreads", []),
                             "neobet_over_unders": m.get("neobet_over_unders", [])
                         }
-                        await save_market_odds(cached_update, db_match_id=db_match_id, is_insert=False)
+                        if db_match_id:
+                            cached_update["id"] = db_match_id
+                        market_odds_to_upsert.append(cached_update)
 
                 else:
                     log(f"  🧠 Fresh AI & Markov Chain Sim: {full_n1} vs {full_n2} | T: {matched_tour_name}")
@@ -2639,12 +2726,12 @@ async def run_pipeline():
                     else:
                         sim_result['set_probs'] = {
                             "2:0": round((p1_set_prob * p1_set_prob) * 100, 1),
-                            "2:1": round((prob - (p1_set_prob * p1_set_prob)) * 100, 1),
+                            "2:1": round((prob_calibrated - (p1_set_prob * p1_set_prob)) * 100, 1),
                             "0:2": round((p2_set_prob * p2_set_prob) * 100, 1),
-                            "1:2": round(((1.0 - prob) - (p2_set_prob * p2_set_prob)) * 100, 1)
+                            "1:2": round(((1.0 - prob_calibrated) - (p2_set_prob * p2_set_prob)) * 100, 1)
                         }
 
-                    sim_result['projected_handicap'] = round((prob - 0.50) * 100 * 0.14, 2)
+                    sim_result['projected_handicap'] = round((prob_calibrated - 0.50) * 100 * 0.14, 2)
                     sim_result['bookmaker_set_odds'] = m.get('bookie_set_odds', {})
                     sim_result['is_grand_slam'] = _is_slam
                     sim_result['best_of'] = _best_of
@@ -2688,6 +2775,9 @@ async def run_pipeline():
                     game_diffs = mc_results.get("game_differentials", [])
                     for sp in m.get("neobet_spreads", []):
                         hc = sp["handicap"]
+                        # 🚀 SOTA: Exclude narrow spreads (+/- 1.5, +/- 2.5) where Moneyline (ML) has structurally superior value.
+                        if abs(hc) <= 2.5:
+                            continue
                         p_home_sp_sim = sum(1 for diff in game_diffs if diff + hc > 0) / len(game_diffs) if game_diffs else prob
                         p_away_sp_sim = 1.0 - p_home_sp_sim
                         
@@ -2878,47 +2968,100 @@ async def run_pipeline():
                     hist_fair1 = fair1
                     hist_fair2 = fair2
                     
-                    if db_match_id: 
-                        await save_market_odds(data, db_match_id=db_match_id, is_insert=False)
-                    else:
-                        data["opening_odds1"] = m['odds1']
-                        data["opening_odds2"] = m['odds2']
-                        db_match_id = await save_market_odds(data, is_insert=True)
+                    # Conflict Handling: Check if fully simulated match has any changes before scheduling write
+                    has_changes = True
+                    if existing_match:
+                        has_changes = False
+                        if (to_float(existing_match.get("odds1")) != to_float(m["odds1"]) or 
+                            to_float(existing_match.get("odds2")) != to_float(m["odds2"]) or
+                            not existing_match.get("is_visible_in_scanner") or
+                            existing_match.get("bookmaker_odds") != m["bookmaker_odds"] or
+                            existing_match.get("match_time") != final_time_str or
+                            existing_match.get("neobet_spreads") != data["neobet_spreads"] or
+                            existing_match.get("neobet_over_unders") != data["neobet_over_unders"] or
+                            existing_match.get("ai_analysis_text") != ai_text_final or
+                            existing_match.get("ai_fair_odds1") != fair1 or
+                            existing_match.get("ai_fair_odds2") != fair2):
+                            has_changes = True
+                            
+                    if has_changes:
                         if db_match_id:
-                            log(f"💾 Saved New Match: {full_n1} vs {full_n2} - Open: {m['odds1']} | {m['odds2']}")
+                            # Preserve original creation time
+                            data.pop("created_at", None)
+                            data["id"] = db_match_id
+                        else:
+                            data["opening_odds1"] = m['odds1']
+                            data["opening_odds2"] = m['odds2']
+                        market_odds_to_upsert.append(data)
 
-            if db_match_id:
-                should_log_history = False
-                if not existing_match:
-                    should_log_history = True
-                elif is_signal_locked or hist_is_value: 
-                    should_log_history = True
-                else:
-                    try:
-                        old_o1 = to_float(existing_match.get('odds1'), 0)
-                        old_o2 = to_float(existing_match.get('odds2'), 0)
-                        if round(old_o1, 3) != round(m['odds1'], 3) or round(old_o2, 3) != round(m['odds2'], 3):
-                            should_log_history = True
-                    except: pass
-                
-                if should_log_history:
-                    h_data = {
-                        "match_id": db_match_id, 
-                        "odds1": m['odds1'], 
-                        "odds2": m['odds2'], 
-                        "fair_odds1": hist_fair1, 
-                        "fair_odds2": hist_fair2, 
-                        "is_hunter_pick": (hist_is_value or is_signal_locked),
-                        "pick_player_name": "LOCKED" if is_signal_locked else hist_pick_player,
-                        "recorded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                    }
-                    try: 
-                        supabase.table("odds_history").insert(h_data).execute()
-                    except: pass
+            # History log computation (inside try/except loop, at the end of matching iteration)
+            should_log_history = False
+            if not existing_match:
+                should_log_history = True
+            elif is_signal_locked or hist_is_value: 
+                should_log_history = True
+            else:
+                try:
+                    old_o1 = to_float(existing_match.get('odds1'), 0)
+                    old_o2 = to_float(existing_match.get('odds2'), 0)
+                    if round(old_o1, 3) != round(m['odds1'], 3) or round(old_o2, 3) != round(m['odds2'], 3):
+                        should_log_history = True
+                except: pass
+            
+            if should_log_history:
+                h_data = {
+                    "odds1": m['odds1'], 
+                    "odds2": m['odds2'], 
+                    "fair_odds1": hist_fair1, 
+                    "fair_odds2": hist_fair2, 
+                    "is_hunter_pick": (hist_is_value or is_signal_locked),
+                    "pick_player_name": "LOCKED" if is_signal_locked else hist_pick_player,
+                    "recorded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                }
+                pending_odds_history.append((m['api_match_key'], h_data))
 
         except Exception as e: 
             log(f"⚠️ Match Error bei Iteration: {e}")
             
+    # 🚀 Silicon Valley Best Practice: Perform all writes in bulk at the end of the scraper run
+    if market_odds_to_upsert:
+        log(f"💾 Bulk-Upserting {len(market_odds_to_upsert)} matches into 'market_odds'...")
+        chunk_size = 100
+        upserted_rows = []
+        for i in range(0, len(market_odds_to_upsert), chunk_size):
+            chunk = market_odds_to_upsert[i:i+chunk_size]
+            try:
+                res = supabase.table("market_odds").upsert(chunk).execute()
+                if res.data:
+                    upserted_rows.extend(res.data)
+            except Exception as e:
+                log(f"❌ Error during bulk upsert of market_odds: {e}")
+                
+        # Map generated UUIDs to api_match_key to link history inserts
+        key_to_id = {row["api_match_key"]: row["id"] for row in upserted_rows if row.get("api_match_key")}
+        # Fallback to pre-loaded match mapping
+        for row in active_matches_list:
+            if row.get("api_match_key") and row.get("id"):
+                if row["api_match_key"] not in key_to_id:
+                    key_to_id[row["api_match_key"]] = row["id"]
+                
+        # Prepare bulk history records with correct match_id
+        odds_history_inserts = []
+        for match_key, h_data in pending_odds_history:
+            real_match_id = key_to_id.get(match_key)
+            if real_match_id:
+                h_data["match_id"] = real_match_id
+                odds_history_inserts.append(h_data)
+                
+        if odds_history_inserts:
+            log(f"💾 Bulk-Inserting {len(odds_history_inserts)} history logs into 'odds_history'...")
+            for i in range(0, len(odds_history_inserts), chunk_size):
+                chunk = odds_history_inserts[i:i+chunk_size]
+                try:
+                    supabase.table("odds_history").insert(chunk).execute()
+                except Exception as e:
+                    log(f"❌ Error during bulk insert of odds_history: {e}")
+
     log(f"📊 SUMMARY: {db_matched_count} relevante DB-Matches erfolgreich prozessiert.")
         
     log("🏁 Cycle Finished.")
