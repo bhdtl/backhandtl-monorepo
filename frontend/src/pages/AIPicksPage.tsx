@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   Target, Zap, Clock, Shield, Flame, Wallet, ArrowRight, Layers, Activity, CheckCircle2, TrendingUp, TrendingDown, MapPin,
-  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair
+  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Filter
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
@@ -212,6 +212,7 @@ export function AIPicksPage() {
     return !localStorage.getItem('bh_cached_picks');
   });
   const [timeFilter, setTimeFilter] = useState<'ALL' | '30MIN'>('ALL');
+  const [minEdgeFilter, setMinEdgeFilter] = useState<number>(5.0);
   
   // 🚀 SOTA: State für das Expandieren der KI Analyse
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -350,8 +351,11 @@ export function AIPicksPage() {
           });
       }
       
+      // Dynamic Edge Filter
+      list = list.filter(pick => pick.parsedVal.edge >= minEdgeFilter);
+      
       return list.filter(pick => !pick.parsedVal.type.toLowerCase().includes('live'));
-  }, [activePicks, timeFilter]);
+  }, [activePicks, timeFilter, minEdgeFilter]);
 
   const currentKpis = useMemo(() => {
       let units = 0;
@@ -409,6 +413,34 @@ export function AIPicksPage() {
                       <Flame size={12} className={timeFilter === '30MIN' ? 'animate-pulse' : ''} />
                       Last 30 Min
                   </button>
+              </div>
+          </div>
+
+          {/* Dynamic Syndicate Sniper Edge Slider */}
+          <div className="bg-[#15171e] p-5 rounded-2xl border border-white/5 mb-6 shadow-lg">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                      <div className="flex items-center gap-2 mb-1">
+                          <Filter size={14} className="text-tennis-lime" />
+                          <h3 className="text-sm font-black text-white uppercase tracking-wider">Syndicate Selective Calibration</h3>
+                      </div>
+                      <p className="text-[10px] text-gray-500 font-medium">Dynamically adjust the mathematical edge threshold to filter out low-conviction noise.</p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-1 md:max-w-md w-full">
+                      <span className="text-[10px] font-mono font-bold text-gray-500 whitespace-nowrap">MIN EDGE:</span>
+                      <input 
+                          type="range" 
+                          min="0" 
+                          max="12" 
+                          step="0.5" 
+                          value={minEdgeFilter} 
+                          onChange={(e) => setMinEdgeFilter(parseFloat(e.target.value))}
+                          className="flex-1 accent-tennis-lime bg-black/40 h-1.5 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="min-w-[65px] px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/5 text-center font-mono font-black text-xs text-tennis-lime">
+                          {minEdgeFilter.toFixed(1)}%
+                      </div>
+                  </div>
               </div>
           </div>
 
