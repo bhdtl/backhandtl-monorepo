@@ -3,13 +3,14 @@ import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   Target, Zap, Clock, Shield, Flame, Wallet, ArrowRight, Layers, Activity, CheckCircle2, TrendingUp, TrendingDown, MapPin,
-  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair
+  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Gift
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumLock } from '../components/PremiumLock';
 import { useAccess } from '../hooks/useAccess';
+import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
 
 // --- TYPES ---
 interface Player {
@@ -215,6 +216,7 @@ export function AIPicksPage() {
   
   // 🚀 SOTA: State für das Expandieren der KI Analyse
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   
   // Realtime Debounce Ref
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -258,7 +260,7 @@ export function AIPicksPage() {
         // Filtert Matches für heute & Zukunft
         const { data, error } = await supabase
             .from('market_odds')
-            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, match_time, last_update, created_at, is_visible_in_scanner, tournament')
+            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, match_time, last_update, created_at, is_visible_in_scanner, tournament, games_prediction, neo_contest_id, api_match_key')
             .eq('is_visible_in_scanner', true)
             .is('actual_winner_name', null)
             .gte('match_time', new Date(new Date().setHours(0,0,0,0)).toISOString())
@@ -352,6 +354,17 @@ export function AIPicksPage() {
       
       return list.filter(pick => !pick.parsedVal.type.toLowerCase().includes('live'));
   }, [activePicks, timeFilter]);
+
+  const pickOfTheDay = useMemo(() => {
+      if (displayedPicks.length === 0) return null;
+      const sorted = [...displayedPicks].sort((a, b) => {
+          if (b.parsedVal.stake !== a.parsedVal.stake) {
+              return b.parsedVal.stake - a.parsedVal.stake;
+          }
+          return b.parsedVal.edge - a.parsedVal.edge;
+      });
+      return sorted[0];
+  }, [displayedPicks]);
 
   const currentKpis = useMemo(() => {
       let units = 0;
@@ -453,6 +466,152 @@ export function AIPicksPage() {
                   </div>
               </div>
           </div>
+
+          {/* 🚀 NEU: NEO.bet Exklusiver Banner */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => setIsPromoOpen(true)}
+            className="mb-8 relative overflow-hidden rounded-[2rem] border border-white/5 bg-black/40 hover:border-tennis-lime/20 cursor-pointer shadow-xl transition-all duration-300 group"
+          >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6">
+                  <div className="flex items-center gap-4">
+                      <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime hidden sm:block">
+                          <Gift size={20} className="animate-pulse" />
+                      </div>
+                      <div>
+                          <div className="flex items-center gap-2 mb-1">
+                              <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
+                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-tennis-lime">Partner Promotion</span>
+                          </div>
+                          <h3 className="text-base font-black text-white uppercase tracking-tight">Sichere dir 25€ gratis Wettguthaben</h3>
+                          <p className="text-xs text-gray-500 font-semibold mt-0.5">Exklusive Freebet ohne Einzahlung für unsere AI Picks.</p>
+                      </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 shrink-0">
+                      <span className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">Promo freischalten</span>
+                      <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </div>
+              </div>
+          </motion.div>
+
+          {/* 🚀 NEU: PICK OF THE DAY HERO CARD */}
+          {pickOfTheDay && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-10 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1d1f27] to-[#111317] border border-tennis-lime/30 p-6 md:p-8 shadow-[0_0_50px_rgba(204,255,0,0.06)] group hover:border-tennis-lime/60 transition-all duration-300"
+              >
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-tennis-lime/5 rounded-full blur-[90px] pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
+                  <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-[90px] pointer-events-none" />
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/5 relative z-10">
+                      <div className="flex items-center gap-2.5">
+                          <div className="flex h-2.5 w-2.5 relative">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-tennis-lime"></span>
+                          </div>
+                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-tennis-lime">
+                              Pick of the Day / Premium Selection
+                          </span>
+                      </div>
+                      <div className="flex items-center gap-2 self-start sm:self-auto text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                          <MapPin size={10} className="text-gray-400" />
+                          <span className="truncate max-w-[150px] uppercase tracking-wider">{pickOfTheDay.tournament}</span>
+                          <span className="text-gray-600">|</span>
+                          <Clock size={10} className="text-gray-400" />
+                          <span>{new Date(pickOfTheDay.match_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                      <div className="lg:col-span-7 flex flex-col justify-center">
+                          <div className="flex items-center justify-between px-4 md:px-8 mb-6">
+                              <div className={`flex flex-col items-center w-[40%] text-center gap-3 ${pickOfTheDay.isPlayer1Target ? 'opacity-100' : 'opacity-50'}`}>
+                                  <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player1_name)} isTarget={pickOfTheDay.isPlayer1Target} />
+                                  <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">
+                                      {pickOfTheDay.player1_name.split(' ').pop()}
+                                  </span>
+                              </div>
+                              <div className="w-10 h-10 rounded-full bg-black/50 border border-white/10 flex items-center justify-center text-xs font-black text-gray-500 shadow-inner">
+                                  VS
+                              </div>
+                              <div className={`flex flex-col items-center w-[40%] text-center gap-3 ${!pickOfTheDay.isPlayer1Target ? 'opacity-100' : 'opacity-50'}`}>
+                                  <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player2_name)} isTarget={!pickOfTheDay.isPlayer1Target} />
+                                  <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">
+                                      {pickOfTheDay.player2_name.split(' ').pop()}
+                                  </span>
+                              </div>
+                          </div>
+
+                          <div className="bg-black/40 rounded-2xl p-4 border border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+                              <div>
+                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 font-mono">RECOMMENDED PLAY</div>
+                                  <div className="text-base font-black text-white uppercase tracking-tight">
+                                      {displayPickName(pickOfTheDay.parsedVal.pickName)}
+                                  </div>
+                              </div>
+                              <div className="flex gap-4 shrink-0">
+                                  <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/5 flex flex-col items-center">
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Odds</span>
+                                      <span className="text-base font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
+                                  </div>
+                                  <div className="bg-tennis-lime/10 px-4 py-2 rounded-xl border border-tennis-lime/20 flex flex-col items-center">
+                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">True Edge</span>
+                                      <span className="text-base font-mono font-black text-tennis-lime">+{pickOfTheDay.parsedVal.edge.toFixed(1)}%</span>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div className="lg:col-span-5 bg-black/40 rounded-3xl p-5 md:p-6 border border-white/5 flex flex-col justify-between h-full relative overflow-hidden group/calc">
+                          <div className="absolute -top-10 -right-10 w-24 h-24 bg-tennis-lime/10 rounded-full blur-xl pointer-events-none group-hover/calc:bg-tennis-lime/20 transition-all duration-300" />
+                          
+                          <div className="flex items-center gap-2 mb-4">
+                              <Gift size={16} className="text-tennis-lime animate-pulse" />
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">Freebet ROI Calculator</span>
+                          </div>
+
+                          <div className="space-y-3 mb-6">
+                              <div className="flex justify-between items-center">
+                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Freebet-Einsatz:</span>
+                                  <span className="text-xs font-mono font-bold text-white bg-white/5 px-2.5 py-1 rounded">25.00 €</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Mögl. Auszahlung:</span>
+                                  <span className="text-xs font-mono font-black text-white bg-white/5 px-2.5 py-1 rounded">
+                                      {(25 * pickOfTheDay.parsedVal.marketOdds).toFixed(2)} €
+                                  </span>
+                              </div>
+                              <div className="h-px bg-white/5 my-1" />
+                              <div className="flex justify-between items-center">
+                                  <span className="text-[10px] text-tennis-lime font-black uppercase tracking-wider flex items-center gap-1">
+                                      <Zap size={10} /> Netto-Reingewinn:
+                                  </span>
+                                  <span className="text-lg font-mono font-black text-tennis-lime bg-tennis-lime/10 px-3 py-1.5 rounded-xl border border-tennis-lime/20 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
+                                      {(25 * (pickOfTheDay.parsedVal.marketOdds - 1)).toFixed(2)} €
+                                  </span>
+                              </div>
+                          </div>
+
+                          <a
+                              href={pickOfTheDay.games_prediction?.neo_betslip?.url 
+                                  ? `${pickOfTheDay.games_prediction.neo_betslip.url}-potd` 
+                                  : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pickOfTheDay.neo_contest_id || pickOfTheDay.api_match_key || pickOfTheDay.id}!Set_MATCH_HC2W(0.0)!${pickOfTheDay.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-potd`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full py-3.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:scale-[1.01] active:scale-[0.99] transition-all hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] flex items-center justify-center gap-2 transform-gpu"
+                          >
+                              <Zap size={12} className="fill-current" />
+                              <span>Tipp platzieren mit 25€ Freebet</span>
+                          </a>
+                      </div>
+                  </div>
+              </motion.div>
+          )}
 
           {displayedPicks.length === 0 ? (
              <motion.div 
@@ -758,6 +917,9 @@ export function AIPicksPage() {
               {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
           </p>
       </div>
+
+      {/* NeoBet Promo Modal */}
+      <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
     </div>
   );
 }

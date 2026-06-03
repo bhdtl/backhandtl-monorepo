@@ -4,10 +4,21 @@ import { useTranslation } from 'react-i18next';
 interface PartnerBadgeProps {
   className?: string;
   variant?: 'compact' | 'full';
+  onPromoClick?: () => void;
 }
 
-export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBadgeProps) {
+export function PartnerBadge({ className = "", variant = 'compact', onPromoClick }: PartnerBadgeProps) {
   const { t } = useTranslation();
+
+  const defaultRedirectUrl = "https://neo.bet/de/Sportwetten/Tennis?affiliateId=backhandtl-collab-cta";
+
+  const handleClick = () => {
+    if (onPromoClick) {
+      onPromoClick();
+    } else {
+      window.open(defaultRedirectUrl, '_blank');
+    }
+  };
 
   if (variant === 'compact') {
     return (
@@ -15,8 +26,9 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.02 }}
+        onClick={handleClick}
         transition={{ duration: 0.3 }}
-        className={`inline-flex items-center gap-3 px-4 py-2 bg-[#15171e]/60 border border-white/10 rounded-2xl shadow-xl backdrop-blur-md cursor-pointer group ${className}`}
+        className={`inline-flex items-center gap-3 px-4 py-2 bg-[#15171e]/60 border border-white/10 rounded-2xl shadow-xl backdrop-blur-md cursor-pointer group active:scale-95 transition-transform ${className}`}
       >
         <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-500 group-hover:text-white transition-colors">
           {t('partner.officialPartner')}:
@@ -36,7 +48,9 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`p-6 bg-gradient-to-br from-[#15171e]/80 to-[#0f1115]/80 border border-white/5 rounded-[2rem] shadow-2xl backdrop-blur-xl relative overflow-hidden group hover:border-tennis-lime/20 transition-all duration-300 ${className}`}
+      whileHover={{ scale: 1.005 }}
+      onClick={handleClick}
+      className={`p-6 bg-gradient-to-br from-[#15171e]/80 to-[#0f1115]/80 border border-white/5 rounded-[2rem] shadow-2xl backdrop-blur-xl relative overflow-hidden group hover:border-tennis-lime/20 cursor-pointer active:scale-[0.99] transition-all duration-300 ${className}`}
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500"></div>
       
@@ -70,4 +84,3 @@ export function PartnerBadge({ className = "", variant = 'compact' }: PartnerBad
     </motion.div>
   );
 }
-

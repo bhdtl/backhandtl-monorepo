@@ -1,15 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
   Zap, Search, Clock, ArrowDown,
   AlertTriangle, CheckCircle2, Shield, XCircle,
   ChevronRight, Filter, Lock, Crown, Target, Activity, HelpCircle, Eye, Settings,
-  TrendingUp, TrendingDown, BookOpen, BarChart3, Crosshair, Layers, Flame, Wallet
+  TrendingUp, TrendingDown, BookOpen, BarChart3, Crosshair, Layers, Flame, Wallet, Gift
 } from 'lucide-react';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { LoadingScreen } from '../components/LoadingScreen'; 
 import { useTranslation } from 'react-i18next';
 import { useAccess } from '../hooks/useAccess';
+import { motion } from 'framer-motion';
+import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
 import { OddsMovementModal } from '../components/OddsMovementModal'; 
 import { LiveValueMatch, Player, ParsedBet, GamesPrediction } from '../types/tennis'; 
 import { QuantumGamesBadge } from '../components/QuantumGamesBadge';
@@ -250,6 +252,7 @@ const renderTypeBadge = (typeStr: string) => {
 // --- MAIN COMPONENT ---
 export function ValueScanner() {
   const { t, i18n } = useTranslation();
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   
   const { isElite, loading: accessLoading } = useAccess();
 
@@ -713,7 +716,7 @@ export function ValueScanner() {
 
           {/* MATCH LIST AREA */}
           <div className="space-y-4">
-            {processedMatches.length > 0 ? processedMatches.map((match: any) => {
+            {processedMatches.length > 0 ? processedMatches.map((match: any, index: number) => {
                 const analysis = match.betInfo;
                 const isFinished = match.status !== 'PENDING';
                 const predictionStatus = match.status;
@@ -831,12 +834,12 @@ export function ValueScanner() {
                 const timeAgoInfo = formatTimeAgo(match.created_at);
 
                 return (
-                  <div
-                    key={match.id}
-                    className={`relative group bg-[#15171e] border rounded-[1.5rem] p-5 hover:border-white/10 transition-[border-color] shadow-xl overflow-hidden active:scale-[0.99] duration-200 transform-gpu will-change-transform
-                    ${predictionStatus === 'WON' ? 'border-tennis-lime/40' : (predictionStatus === 'LOST' ? 'border-red-500/30' : 'border-white/5')}
-                    `}
-                  >
+                  <Fragment key={match.id}>
+                    <div
+                      className={`relative group bg-[#15171e] border rounded-[1.5rem] p-5 hover:border-white/10 transition-[border-color] shadow-xl overflow-hidden active:scale-[0.99] duration-200 transform-gpu will-change-transform
+                      ${predictionStatus === 'WON' ? 'border-tennis-lime/40' : (predictionStatus === 'LOST' ? 'border-red-500/30' : 'border-white/5')}
+                      `}
+                    >
                     
                     {/* --- HEADER --- */}
                     <div className="flex justify-between items-center mb-5 opacity-100 z-10 relative pl-2 cursor-pointer" onClick={() => handleMatchClick(match)}>
@@ -1095,7 +1098,37 @@ export function ValueScanner() {
                         )}
                     </div>
                   </div>
-                );
+
+                  {index === 2 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => setIsPromoOpen(true)}
+                      className="relative overflow-hidden rounded-[1.5rem] border border-white/5 bg-gradient-to-r from-[#1d1f27] to-[#15171e] hover:border-tennis-lime/20 cursor-pointer shadow-xl transition-all duration-300 p-5 group flex flex-col md:flex-row gap-5 items-center justify-between animate-in fade-in"
+                    >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
+                        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                            <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime shrink-0">
+                                <Gift size={22} className="animate-pulse" />
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
+                                    <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
+                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">Partner Promotion</span>
+                                </div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-tight">Sichere dir 25€ Gratiswette ohne Einzahlung</h3>
+                                <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Exklusive Freebet ohne Einzahlung für unsere Value-Signale.</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
+                            <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">Bonus freischalten</span>
+                            <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                    </motion.div>
+                  )}
+                </Fragment>
+              );
             }) : (
               <div className="flex flex-col items-center justify-center py-20 bg-[#15171e] rounded-[1.5rem] border border-dashed border-white/10 text-center px-6">
                 <Filter className="text-gray-700 mb-3" size={32} />
@@ -1112,6 +1145,9 @@ export function ValueScanner() {
               {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
           </p>
       </div>
+
+      {/* NeoBet Promo Modal */}
+      <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
     </div>
   );
 }

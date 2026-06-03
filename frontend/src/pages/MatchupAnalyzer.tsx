@@ -53,6 +53,8 @@ import { MarketOddsPerformance } from '../components/MarketOddsPerformance';
 import { motion, AnimatePresence } from 'framer-motion'; 
 
 // Trigger fresh Vercel deployment
+import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
+import { Gift } from 'lucide-react';
 // --- CONFIG ---
 const FUNCTION_URL = "https://suoaznisiowoolxilaju.supabase.co/functions/v1/smart-api";
 
@@ -909,6 +911,77 @@ function InternalMatchupCard({ playerA, playerB, prediction, context, isAnalyzin
   );
 }
 
+interface NeoBetMatchupPromoProps {
+  analysisResult: any;
+  playerAData: any;
+  playerBData: any;
+  onClaimPromo: () => void;
+}
+
+function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimPromo }: NeoBetMatchupPromoProps) {
+  if (!analysisResult || !playerAData || !playerBData) return null;
+
+  const { winner_prediction: winnerName, probA } = analysisResult;
+  const cleanWinnerName = winnerName.split(' ').pop() || winnerName;
+
+  const isWinnerA = winnerName.toLowerCase().includes(playerAData.player.last_name.toLowerCase().trim());
+  const winProb = isWinnerA ? probA : (1 - probA);
+
+  // Calculate estimated odds with a standard 5% margin
+  const estOdds = Math.max(1.10, Math.min(10.0, (1 / winProb) * 0.95));
+  const potentialPayout = 25 * estOdds;
+  const netProfit = 25 * (estOdds - 1);
+
+  return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-[380px] md:max-w-[400px] mx-auto bg-gradient-to-br from-[#1a1d24] to-[#111317] border border-tennis-lime/20 rounded-[2rem] p-5 shadow-xl mt-6 relative overflow-hidden group text-center"
+      >
+          <div className="absolute top-0 right-0 w-24 h-24 bg-tennis-lime/5 rounded-full blur-xl pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-300" />
+          
+          <div className="flex items-center justify-center gap-2 mb-3">
+              <Gift size={14} className="text-tennis-lime animate-bounce" />
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">
+                  Matchup Freebet Intel
+              </span>
+          </div>
+
+          <p className="text-[11px] text-gray-400 font-medium leading-relaxed mb-4">
+              Platziere deine exklusive <span className="text-white font-bold">25€ Freebet</span> auf <span className="text-tennis-lime font-black">{cleanWinnerName}</span> bei unserem Partner NEO.bet:
+          </p>
+
+          <div className="bg-black/30 rounded-2xl p-4 border border-white/5 space-y-2 mb-4">
+              <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  <span>Errechnete Quote:</span>
+                  <span className="font-mono text-white font-black">@{estOdds.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  <span>Mögl. Auszahlung:</span>
+                  <span className="font-mono text-white font-black">{potentialPayout.toFixed(2)} €</span>
+              </div>
+              <div className="h-px bg-white/5 my-1" />
+              <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-tennis-lime font-black uppercase tracking-wider flex items-center gap-1">
+                      <Zap size={10} /> Netto-Reingewinn:
+                  </span>
+                  <span className="font-mono font-black text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-xl border border-tennis-lime/20 shadow-[0_0_10px_rgba(204,255,0,0.15)]">
+                      {netProfit.toFixed(2)} €
+                  </span>
+              </div>
+          </div>
+
+          <button
+              onClick={onClaimPromo}
+              className="w-full py-3 bg-white hover:bg-tennis-lime text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all flex items-center justify-center gap-1.5 transform-gpu"
+          >
+              <Zap size={10} className="fill-current" />
+              <span>Freebet sichern & wetten</span>
+          </button>
+      </motion.div>
+  );
+}
+
 // --- MAIN PAGE EXPORT ---
 export function MatchupAnalyzer() {
   const { t, i18n } = useTranslation();
@@ -921,6 +994,7 @@ export function MatchupAnalyzer() {
   const [vaultLoading, setVaultLoading] = useState(false);
   const [savingVault, setSavingVault] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   const isLoadingFromVaultRef = useRef(false);
 
   const [players, setPlayers] = useState<any[]>([]);
@@ -1431,6 +1505,12 @@ export function MatchupAnalyzer() {
                               
                               <div className="w-full px-4 mb-6">
                                  <SaveVaultButton />
+                                 <NeoBetMatchupPromo 
+                                     analysisResult={analysisResult}
+                                     playerAData={playerAData}
+                                     playerBData={playerBData}
+                                     onClaimPromo={() => setIsPromoOpen(true)}
+                                 />
                               </div>
 
                               <div className="bg-[#1a1d26] p-6 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col items-center w-full relative overflow-hidden group">
@@ -1560,6 +1640,12 @@ export function MatchupAnalyzer() {
                               <InternalMatchupCard playerA={{ name: playerAData.player.last_name, image: playerAData.player.profile_image_url, country: playerAData.player.country, id: playerAData.player.id }} playerB={{ name: playerBData.player.last_name, image: playerBData.player.profile_image_url, country: playerBData.player.country, id: playerBData.player.id }} prediction={analysisResult} context={{ surface: finalSurface, bsi: finalBsi }} isAnalyzing={analyzing} />
                               <div className="w-full max-w-[400px]">
                                   <SaveVaultButton />
+                                  <NeoBetMatchupPromo 
+                                      analysisResult={analysisResult}
+                                      playerAData={playerAData}
+                                      playerBData={playerBData}
+                                      onClaimPromo={() => setIsPromoOpen(true)}
+                                  />
                               </div>
                           </div>
 
@@ -1801,6 +1887,9 @@ export function MatchupAnalyzer() {
       {activeSlot && (
         <PlayerSelectModal isOpen={!!activeSlot} onClose={() => setActiveSlot(null)} onSelect={(p: any) => { if(activeSlot==='A') setPlayerA(p); else setPlayerB(p); setAnalysisResult(null); }} players={filteredPlayers} />
       )}
+
+      {/* NeoBet Promo Modal */}
+      <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
     </div>
   );
 }

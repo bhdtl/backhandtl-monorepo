@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, TrendingUp, Award, Zap, ArrowRight, BarChart3, AlertTriangle, Percent, Target, Scale, Wallet, PieChart } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, TrendingUp, Award, Zap, ArrowRight, BarChart3, AlertTriangle, Percent, Target, Scale, Wallet, PieChart, Gift } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { PlayerCard } from '../components/PlayerCard';
 import { ScrollToTop } from '../components/ScrollToTop';
@@ -9,6 +9,8 @@ import { Link } from 'react-router-dom';
 import { LoadingScreen } from '../components/LoadingScreen'; 
 import { useTranslation } from 'react-i18next';
 import { PartnerBadge } from '../components/PartnerBadge';
+import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
+import { motion } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
@@ -498,6 +500,7 @@ interface HomePageProps {
 
 export function HomePage({ onPlayerClick }: HomePageProps) {
   const { t } = useTranslation();
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [players, setPlayers] = useState<Player[]>(() => {
     const cached = localStorage.getItem('bh_cached_players');
     return cached ? JSON.parse(cached) : [];
@@ -733,7 +736,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
       {/* 🚀 SOTA: NEO.bet Premium-Kooperationsleiste */}
       <div className="mb-8">
-         <PartnerBadge variant="full" />
+         <PartnerBadge variant="full" onPromoClick={() => setIsPromoOpen(true)} />
       </div>
 
       {/* COMPACT FILTER BAR */}
@@ -895,6 +898,22 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
               <AlertTriangle size={12} /> {t('homePage.disclaimer')}
           </p>
       </div>
+
+      {/* Floating Promo Chip */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsPromoOpen(true)}
+        className="fixed bottom-24 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all"
+      >
+        <Gift size={14} className="animate-bounce" />
+        <span>25€ Freebet</span>
+      </motion.div>
+
+      {/* NeoBet Promo Modal */}
+      <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
 
     </div>
   );
