@@ -977,7 +977,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
           className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
         >
           <Gift size={14} className="animate-bounce" />
-          <span>25€ Freebet</span>
+          <span>{t('picks.floatingFreebet', '25€ Freebet')}</span>
         </div>
       ) : (
         <motion.div
@@ -989,7 +989,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
           className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all"
         >
           <Gift size={14} className="animate-bounce" />
-          <span>25€ Freebet</span>
+          <span>{t('picks.floatingFreebet', '25€ Freebet')}</span>
         </motion.div>
       )}
 

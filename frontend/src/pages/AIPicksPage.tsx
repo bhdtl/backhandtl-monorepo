@@ -211,7 +211,7 @@ const PlayerAvatar = ({ player, isTarget }: { player: Player | undefined, isTarg
 };
 
 export function AIPicksPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isElite, loading: accessLoading } = useAccess();
   
   const [activePicks, setActivePicks] = useState<any[]>(() => {
@@ -419,10 +419,11 @@ export function AIPicksPage() {
       const isToday = date.toDateString() === today.toDateString();
       const isTomorrow = date.toDateString() === tomorrow.toDateString();
 
-      if (isToday) return 'Heute';
-      if (isTomorrow) return 'Morgen';
+      if (isToday) return t('picks.today', 'Heute');
+      if (isTomorrow) return t('picks.tomorrow', 'Morgen');
 
-      return date.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' });
+      const activeLanguage = i18n.language || 'de';
+      return date.toLocaleDateString(activeLanguage, { weekday: 'long', day: '2-digit', month: 'long' });
   };
 
   const groupedPicks = useMemo(() => {
@@ -500,7 +501,7 @@ export function AIPicksPage() {
           {/* Clean Search & Filter Panel (Apple/Revolut-Style) */}
           <div className="flex flex-col gap-4 mb-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">Picks Stream</h2>
+                  <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">{t('picks.streamTitle', 'Picks Stream')}</h2>
                   
                   <div className="flex flex-wrap items-center gap-3">
                       
@@ -510,14 +511,14 @@ export function AIPicksPage() {
                               onClick={() => setTimeFilter('ALL')}
                               className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${timeFilter === 'ALL' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
-                              All Plays
+                              {t('picks.allPlays', 'All Plays')}
                           </button>
                           <button
                               onClick={() => setTimeFilter('30MIN')}
                               className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1 ${timeFilter === '30MIN' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <Flame size={10} className={timeFilter === '30MIN' ? 'animate-pulse' : ''} />
-                              Last 30 Min
+                              {t('picks.last30Min', 'Last 30 Min')}
                           </button>
                       </div>
 
@@ -528,14 +529,14 @@ export function AIPicksPage() {
                               className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'VALUE' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <TrendingUp size={10} />
-                              Value Sort
+                              {t('picks.valueSort', 'Value Sort')}
                           </button>
                           <button
                               onClick={() => setSortBy('TIME')}
                               className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'TIME' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <Clock size={10} />
-                              Time Sort
+                              {t('picks.timeSort', 'Time Sort')}
                           </button>
                       </div>
 
@@ -547,7 +548,7 @@ export function AIPicksPage() {
                   <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={16} />
                   <input
                       type="text"
-                      placeholder="Matchups suchen nach Spielername oder Turnier..."
+                      placeholder={t('picks.searchPlaceholder', 'Matchups suchen nach Spielername oder Turnier...')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-11 pr-10 py-3 bg-[#15171e] border border-white/5 rounded-2xl focus:outline-none focus:border-tennis-lime focus:bg-black/20 text-white placeholder-gray-500 text-xs transition-all shadow-inner"
@@ -569,7 +570,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-gray-400">
                           <Activity size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Active Plays</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.activePlays', 'Active Plays')}</span>
                       </div>
                       <span className="text-4xl font-black text-white tracking-tight">{currentKpis.totalActive}</span>
                   </div>
@@ -581,7 +582,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-tennis-lime">
                           <Wallet size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Risk Sizing</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.riskSizing', 'Risk Sizing')}</span>
                       </div>
                       <div className="flex items-end gap-1">
                           <span className="text-4xl font-black text-tennis-lime tracking-tight">{currentKpis.totalUnitsRisked}</span>
@@ -595,7 +596,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-blue-400">
                           <Zap size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Max Edge</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.maxEdge', 'Max Edge')}</span>
                       </div>
                       <div className="flex items-end gap-1">
                           <span className="text-4xl font-black text-white tracking-tight">+{currentKpis.highestEdge}</span>
@@ -621,15 +622,15 @@ export function AIPicksPage() {
                       <div>
                           <div className="flex items-center gap-2 mb-1">
                               <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
-                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-tennis-lime">Partner Promotion</span>
+                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Partner Promotion')}</span>
                           </div>
-                          <h3 className="text-base font-black text-white uppercase tracking-tight">Sichere dir 25€ gratis Wettguthaben</h3>
-                          <p className="text-xs text-gray-500 font-semibold mt-0.5">Exklusive Freebet ohne Einzahlung für unsere AI Picks.</p>
+                          <h3 className="text-base font-black text-white uppercase tracking-tight">{t('picks.promoTitle', 'Sichere dir 25€ gratis Wettguthaben')}</h3>
+                          <p className="text-xs text-gray-500 font-semibold mt-0.5">{t('picks.promoSubtitle', 'Exklusive Freebet ohne Einzahlung für unsere AI Picks.')}</p>
                       </div>
                   </div>
                   
                   <div className="flex items-center gap-3 shrink-0">
-                      <span className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">Promo freischalten</span>
+                      <span className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">{t('picks.unlockPromo', 'Promo freischalten')}</span>
                       <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
                   </div>
               </div>
@@ -662,7 +663,7 @@ export function AIPicksPage() {
                       <div className="flex flex-wrap items-center gap-3">
                           <span className="inline-flex items-center gap-2.5 px-3 py-1 bg-tennis-lime text-black rounded-full text-[9px] font-black tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(132,204,22,0.3)]">
                               <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span>
-                              Pick of the Day
+                              {t('picks.pickOfTheDay', 'Pick of the Day')}
                           </span>
                           <span className="text-gray-600 hidden sm:inline">|</span>
                           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -674,7 +675,7 @@ export function AIPicksPage() {
                           <Clock size={12} className="text-gray-600" />
                           <span>{new Date(pickOfTheDay.match_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           <span className="text-gray-700 mx-1">•</span>
-                          <span className="text-[10px] uppercase font-sans tracking-wider font-extrabold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/10">Premium</span>
+                          <span className="text-[10px] uppercase font-sans tracking-wider font-extrabold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/10">{t('picks.premium', 'Premium')}</span>
                       </div>
                   </div>
 
@@ -729,18 +730,18 @@ export function AIPicksPage() {
                           {/* Recommended Play Block */}
                           <div className="bg-black/30 rounded-[1.5rem] p-5 border border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
                               <div className="w-full sm:w-auto text-center sm:text-left">
-                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em] mb-1 font-mono">RECOMMENDED SELECTION</div>
+                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em] mb-1 font-mono">{t('picks.recommendedSelection', 'RECOMMENDED SELECTION')}</div>
                                   <div className="text-lg font-black text-white uppercase tracking-tight">
                                       {displayPickName(pickOfTheDay.parsedVal.pickName)}
                                   </div>
                               </div>
                               <div className="flex gap-3 w-full sm:w-auto shrink-0 justify-center">
                                   <div className="bg-white/[0.03] px-4 py-2.5 rounded-xl border border-white/5 flex flex-col items-center min-w-[70px]">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Odds</span>
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{t('picks.odds', 'Odds')}</span>
                                       <span className="text-sm font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
                                   </div>
                                   <div className="bg-tennis-lime/10 px-4 py-2.5 rounded-xl border border-tennis-lime/20 flex flex-col items-center min-w-[70px]">
-                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">True Edge</span>
+                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.trueEdge', 'True Edge')}</span>
                                       <span className="text-sm font-mono font-black text-tennis-lime">+{pickOfTheDay.parsedVal.edge.toFixed(1)}%</span>
                                   </div>
                               </div>
@@ -766,25 +767,25 @@ export function AIPicksPage() {
                                   <div className="p-1 bg-tennis-lime/10 rounded-lg border border-tennis-lime/20">
                                       <Gift size={14} className="text-tennis-lime animate-pulse" />
                                   </div>
-                                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-tennis-lime">Freebet Value Calculator</span>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-tennis-lime">{t('picks.freebetCalculator', 'Freebet Value Calculator')}</span>
                               </div>
                               
                               <p className="text-[11px] font-medium text-gray-400 mb-4 leading-relaxed">
-                                  Wende deine <strong>25€ Freiwette</strong> risikofrei auf diese Auswahl an und sichere dir einen garantierten Netto-Gewinn:
+                                  {t('picks.freebetCalculatorDesc', 'Wende deine 25€ Freiwette risikofrei auf diese Auswahl an und sichere dir einen garantierten Netto-Gewinn:')}
                               </p>
 
                               {/* Metric Cards Flow */}
                               <div className="grid grid-cols-3 gap-2.5 mb-2">
                                   <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">FREEBET</span>
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.freebet', 'FREEBET')}</span>
                                       <span className="text-xs font-mono font-black text-white">25 €</span>
                                   </div>
                                   <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">ODDS</span>
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.oddsLabel', 'ODDS')}</span>
                                       <span className="text-xs font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
                                   </div>
                                   <div className="bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_0_15px_rgba(132,204,22,0.05)]">
-                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-wider mb-1">NET PROFIT</span>
+                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-wider mb-1">{t('picks.netProfit', 'NET PROFIT')}</span>
                                       <span className="text-xs font-mono font-black text-tennis-lime">{(25 * (pickOfTheDay.parsedVal.marketOdds - 1)).toFixed(2)} €</span>
                                   </div>
                               </div>
@@ -800,7 +801,7 @@ export function AIPicksPage() {
                               className="w-full py-4 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu hover:scale-[1.01] active:scale-[0.99]"
                           >
                               <Zap size={14} className="fill-current text-black" />
-                              <span>25€ Freebet einlösen</span>
+                              <span>{t('picks.redeemFreebet', '25€ Freebet einlösen')}</span>
                           </a>
 
                       </div>
@@ -817,12 +818,12 @@ export function AIPicksPage() {
              >
                 <Shield className="text-gray-600 mb-4 animate-pulse" size={32} />
                 <div className="text-white font-black uppercase tracking-widest mb-2 text-xs">
-                  {timeFilter === '30MIN' ? 'No Recent Drops' : 'No Active Plays'}
+                  {timeFilter === '30MIN' ? t('picks.noRecentDropsTitle', 'No Recent Drops') : t('picks.noActivePlaysTitle', 'No Active Plays')}
                 </div>
                 <p className="text-gray-500 text-[11px] max-w-sm leading-relaxed pl-1">
                   {timeFilter === '30MIN' 
-                     ? 'The AI has not detected any new edges in the last 30 minutes. Switch back to "All Plays" to view the full active portfolio.' 
-                     : 'The AI has not detected any high-conviction mathematical edges at this moment. The scanner runs 24/7.'}
+                     ? t('picks.noRecentDropsDesc', 'The AI has not detected any new edges in the last 30 minutes. Switch back to "All Plays" to view the full active portfolio.') 
+                     : t('picks.noActivePlaysDesc', 'The AI has not detected any high-conviction mathematical edges at this moment. The scanner runs 24/7.')}
                 </p>
              </motion.div>
           ) : isMobile ? (
@@ -873,7 +874,7 @@ export function AIPicksPage() {
                                              <div className="flex items-center gap-2 shrink-0">
                                                  {isHotDrop && (
                                                      <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                                         <Flame size={8} /> New
+                                                         <Flame size={8} /> {t('picks.newBadge', 'New')}
                                                      </span>
                                                  )}
                                                  <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
@@ -1142,7 +1143,7 @@ export function AIPicksPage() {
                                                  <div className="flex items-center gap-2 shrink-0">
                                                      {isHotDrop && (
                                                          <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                                             <Flame size={8} /> New
+                                                             <Flame size={8} /> {t('picks.newBadge', 'New')}
                                                          </span>
                                                      )}
                                                      <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
