@@ -220,7 +220,7 @@ const parseValueFromText = (text: string | undefined) => {
 };
 
 // --- COMPONENT: AI HERO STATS WIDGET ---
-const AIStatsHero = () => {
+const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
   const { t } = useTranslation();
   
   const [stats, setStats] = useState(() => {
@@ -232,126 +232,179 @@ const AIStatsHero = () => {
   });
 
   useEffect(() => {
+    let active = true;
+    let timerId: any;
+
     const fetchPerformance = async () => {
       try {
-          // 🚀 SOTA FIX: range pagination absolute Sync mit PerformancePage (umgeht 1000-row Limit)
-          let allData: any[] = [];
-          let offset = 0;
-          const limit = 1000;
-          let keepFetching = true;
+          const cached = localStorage.getItem('bh_hero_stats');
+          const cachedTime = localStorage.getItem('bh_hero_stats_time');
+          const now = Date.now();
 
-          while (keepFetching) {
-              const { data, error } = await supabase
-                  .from('market_odds')
-                  .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at')
-                  .neq('actual_winner_name', null)
-                  .neq('actual_winner_name', '')
-                  .gt('created_at', STATS_RESET_DATE)
-                  .order('created_at', { ascending: true })
-                  .range(offset, offset + limit - 1);
-
-              if (error) throw error;
-
-              if (data && data.length > 0) {
-                  allData = [...allData, ...data];
-                  offset += limit;
-                  if (data.length < limit) {
-                      keepFetching = false;
-                  }
-              } else {
-                  keepFetching = false;
+          // 🚀 5-Minute Cache Validation
+          if (cached && cachedTime && (now - parseInt(cachedTime, 10) < 300000)) {
+              if (active) {
+                  setStats(JSON.parse(cached));
+                  setLoading(false);
               }
+              return;
           }
 
-          if (allData && allData.length > 0) {
-            let sumClv = 0;
-            let cumulativeUnits = 0;
-            let totalUnitsStaked = 0;
-            let validSignals = 0;
+          const performFetch = async () => {
+              let allData: any[] = [];
+              let offset = 0;
+              const limit = 1000;
+              let keepFetching = true;
 
-            allData.forEach(match => {
-              let valInfo = parseValueFromText(match.ai_analysis_text);
-              
-              if (!valInfo.hasValue && match.ai_fair_odds1 && match.ai_fair_odds2) {
-                  const op1 = match.opening_odds1 || match.odds1;
-                  const op2 = match.opening_odds2 || match.odds2;
-                  if (op1 && op2) {
-                      const edge1 = ((op1 / match.ai_fair_odds1) - 1) * 100;
-                      const edge2 = ((op2 / match.ai_fair_odds2) - 1) * 100;
-                      if (edge1 > 1.0) valInfo = { hasValue: true, marketOdds: op1, fairOdds: match.ai_fair_odds1, edge: edge1, pickName: match.player1_name, stake: 1, type: 'INFO' };
-                      else if (edge2 > 1.0) valInfo = { hasValue: true, marketOdds: op2, fairOdds: match.ai_fair_odds2, edge: edge2, pickName: match.player2_name, stake: 1, type: 'INFO' };
+              while (keepFetching) {
+                  const { data, error } = await supabase
+                      .from('market_odds')
+                      .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at')
+                      .neq('actual_winner_name', null)
+                      .neq('actual_winner_name', '')
+                      .gt('created_at', STATS_RESET_DATE)
+                      .order('created_at', { ascending: true })
+                      .range(offset, offset + limit - 1);
+
+                  if (error) throw error;
+
+                  if (data && data.length > 0) {
+                      allData = [...allData, ...data];
+                      offset += limit;
+                      if (data.length < limit) {
+                          keepFetching = false;
+                      }
+                  } else {
+                      keepFetching = false;
                   }
               }
 
-              // 🛑 SOTA: Fractional Kelly & Buchdahl Efficiency Purge (Absolute Sync with PerformancePage)
-              if (!valInfo.hasValue) return;
+              if (allData && allData.length > 0) {
+                let sumClv = 0;
+                let cumulativeUnits = 0;
+                let totalUnitsStaked = 0;
+                let validSignals = 0;
 
-              if (valInfo.type === 'LEGACY') {
-                  // Historischer Purge: Löscht den alten ineffizienten "Core-Graveyard" aus der KPI Berechnung.
-                  if (valInfo.marketOdds < 2.0 && valInfo.stake < 2.0) return; 
-                  if (valInfo.marketOdds >= 1.50 && valInfo.marketOdds < 2.00 && valInfo.edge < 8.0) return;
+                allData.forEach(match => {
+                  let valInfo = parseValueFromText(match.ai_analysis_text);
+                  
+                  if (!valInfo.hasValue && match.ai_fair_odds1 && match.ai_fair_odds2) {
+                      const op1 = match.opening_odds1 || match.odds1;
+                      const op2 = match.opening_odds2 || match.odds2;
+                      if (op1 && op2) {
+                          const edge1 = ((op1 / match.ai_fair_odds1) - 1) * 100;
+                          const edge2 = ((op2 / match.ai_fair_odds2) - 1) * 100;
+                          if (edge1 > 1.0) valInfo = { hasValue: true, marketOdds: op1, fairOdds: match.ai_fair_odds1, edge: edge1, pickName: match.player1_name, stake: 1, type: 'INFO' };
+                          else if (edge2 > 1.0) valInfo = { hasValue: true, marketOdds: op2, fairOdds: match.ai_fair_odds2, edge: edge2, pickName: match.player2_name, stake: 1, type: 'INFO' };
+                      }
+                  }
+
+                  if (!valInfo.hasValue) return;
+
+                  if (valInfo.type === 'LEGACY') {
+                      if (valInfo.marketOdds < 2.0 && valInfo.stake < 2.0) return; 
+                      if (valInfo.marketOdds >= 1.50 && valInfo.marketOdds < 2.00 && valInfo.edge < 8.0) return;
+                  } else {
+                      if (valInfo.marketOdds >= 3.0 && valInfo.stake < 0.5) return;
+                      if (valInfo.marketOdds >= 2.0 && valInfo.marketOdds < 3.0 && valInfo.stake < 1.0) return;
+                  }
+
+                  const isWin = checkPlayResult(valInfo.pickName, match);
+                  const actualStake = valInfo.stake; 
+                  const unitProfit = isWin ? (actualStake * (valInfo.marketOdds - 1)) : -actualStake;
+                  
+                  cumulativeUnits += unitProfit;
+                  totalUnitsStaked += actualStake;
+
+                  const closingOdds = getClosingOddsForPlay(valInfo.pickName, match);
+                  let clv = 0;
+                  const entryOdds = valInfo.marketOdds;
+                  
+                  if (closingOdds > 0 && entryOdds > 0) {
+                      clv = ((entryOdds / closingOdds) - 1) * 100;
+                  }
+
+                  sumClv += clv;
+                  validSignals++;
+                });
+
+                if (validSignals > 0) {
+                    const roiVal = totalUnitsStaked > 0 ? (cumulativeUnits / totalUnitsStaked) * 100 : 0;
+                    const newStats = {
+                      avgClv: parseFloat((sumClv / validSignals).toFixed(2)),
+                      totalUnits: parseFloat(cumulativeUnits.toFixed(2)),
+                      roi: parseFloat(roiVal.toFixed(2))
+                    };
+                    if (active) {
+                        setStats(newStats);
+                        localStorage.setItem('bh_hero_stats', JSON.stringify(newStats));
+                        localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                    }
+                } else {
+                    const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
+                    if (active) {
+                        setStats(fallbackStats);
+                        localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+                        localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                    }
+                }
               } else {
-                  // Safety Check für das neue Modell (Filtert Noise heraus)
-                  if (valInfo.marketOdds >= 3.0 && valInfo.stake < 0.5) return;
-                  if (valInfo.marketOdds >= 2.0 && valInfo.marketOdds < 3.0 && valInfo.stake < 1.0) return;
+                  const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
+                  if (active) {
+                      setStats(fallbackStats);
+                      localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+                      localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                  }
               }
+          };
 
-              const isWin = checkPlayResult(valInfo.pickName, match);
-              const actualStake = valInfo.stake; 
-              const unitProfit = isWin ? (actualStake * (valInfo.marketOdds - 1)) : -actualStake;
-              
-              cumulativeUnits += unitProfit;
-              totalUnitsStaked += actualStake;
-
-              const closingOdds = getClosingOddsForPlay(valInfo.pickName, match);
-              let clv = 0;
-              const entryOdds = valInfo.marketOdds;
-              
-              if (closingOdds > 0 && entryOdds > 0) {
-                  clv = ((entryOdds / closingOdds) - 1) * 100;
+          // On mobile, if we have cached stats, render immediately and defer background update to avoid layout blocking
+          if (isMobile && cached) {
+              if (active) {
+                  setStats(JSON.parse(cached));
+                  setLoading(false);
               }
-
-              sumClv += clv;
-              validSignals++;
-            });
-
-            if (validSignals > 0) {
-                const roiVal = totalUnitsStaked > 0 ? (cumulativeUnits / totalUnitsStaked) * 100 : 0;
-                const newStats = {
-                  avgClv: parseFloat((sumClv / validSignals).toFixed(2)),
-                  totalUnits: parseFloat(cumulativeUnits.toFixed(2)),
-                  roi: parseFloat(roiVal.toFixed(2))
-                };
-                setStats(newStats);
-                localStorage.setItem('bh_hero_stats', JSON.stringify(newStats));
-            } else {
-                const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
-                setStats(fallbackStats);
-                localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
-            }
+              timerId = setTimeout(async () => {
+                  try {
+                      await performFetch();
+                  } catch (e) {
+                      console.error("Deferred fetch error:", e);
+                  }
+              }, 2000);
           } else {
-              const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
-              setStats(fallbackStats);
-              localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+              await performFetch();
           }
       } catch (err) {
           console.error("Error fetching stats:", err);
           const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
-          setStats(fallbackStats);
-          localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+          if (active) {
+              setStats(fallbackStats);
+              localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+              localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+          }
       } finally {
-          setLoading(false);
+          if (active) {
+              setLoading(false);
+          }
       }
     };
 
     fetchPerformance();
-  }, []);
+
+    return () => {
+        active = false;
+        if (timerId) clearTimeout(timerId);
+    };
+  }, [isMobile]);
 
   if (loading) return <div className="h-32 w-full lg:w-[480px] bg-[#1a1d26] rounded-2xl animate-pulse border border-white/5"></div>;
 
   return (
     <Link to="/performance" className="group relative w-full lg:w-auto bg-[#1a1d26] border border-white/10 rounded-2xl p-5 block hover:border-tennis-lime/50 transition-all duration-300 shadow-2xl overflow-hidden cursor-pointer no-underline">
-      <div className="absolute top-0 right-0 w-40 h-40 bg-tennis-lime/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-tennis-lime/10 transition-all pointer-events-none"></div>
+      <div 
+        className={`absolute top-0 right-0 w-40 h-40 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-tennis-lime/10 transition-all pointer-events-none ${isMobile ? '' : 'bg-tennis-lime/5 blur-3xl'}`}
+        style={isMobile ? { background: 'radial-gradient(circle, rgba(132, 204, 22, 0.08) 0%, rgba(132, 204, 22, 0) 70%)' } : {}}
+      ></div>
       
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div className="flex items-center gap-2">
@@ -501,6 +554,15 @@ interface HomePageProps {
 export function HomePage({ onPlayerClick }: HomePageProps) {
   const { t } = useTranslation();
   const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [players, setPlayers] = useState<Player[]>(() => {
     const cached = localStorage.getItem('bh_cached_players');
     return cached ? JSON.parse(cached) : [];
@@ -517,6 +579,15 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   const [overflowVisible, setOverflowVisible] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const [tourFilter, setTourFilter] = useState<'ATP' | 'WTA'>('ATP');
   const [countryFilter, setCountryFilter] = useState('');
   const [playStyleFilter, setPlayStyleFilter] = useState<string[]>([]);
@@ -577,16 +648,16 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
   useEffect(() => {
     filterPlayers();
-  }, [searchTerm, tourFilter, countryFilter, playStyleFilter, surfaceFilter, ratingFilter, sortBy, players]);
+  }, [debouncedSearchTerm, tourFilter, countryFilter, playStyleFilter, surfaceFilter, ratingFilter, sortBy, players]);
 
   useEffect(() => {
-    if (searchTerm.trim().length > 2) {
+    if (debouncedSearchTerm.trim().length > 2) {
       const timer = setTimeout(() => {
-        trackEvent('global_search', { query: searchTerm, tour: tourFilter });
+        trackEvent('global_search', { query: debouncedSearchTerm, tour: tourFilter });
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     if (countryFilter || playStyleFilter.length > 0 || surfaceFilter || ratingFilter > 0) {
@@ -637,8 +708,8 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
     filtered = filtered.filter((p) => p.tour === tourFilter);
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
       filtered = filtered.filter(
         (p) =>
           p.first_name.toLowerCase().includes(term) ||
@@ -730,7 +801,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
         
         {/* HERO WIDGET PLACEMENT */}
         <div className="w-full lg:w-auto">
-            <AIStatsHero />
+            <AIStatsHero isMobile={isMobile} />
         </div>
       </div>
 
@@ -900,17 +971,27 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
       </div>
 
       {/* Floating Promo Chip */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsPromoOpen(true)}
-        className="fixed bottom-24 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all"
-      >
-        <Gift size={14} className="animate-bounce" />
-        <span>25€ Freebet</span>
-      </motion.div>
+      {isMobile ? (
+        <div
+          onClick={() => setIsPromoOpen(true)}
+          className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
+        >
+          <Gift size={14} className="animate-bounce" />
+          <span>25€ Freebet</span>
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsPromoOpen(true)}
+          className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all"
+        >
+          <Gift size={14} className="animate-bounce" />
+          <span>25€ Freebet</span>
+        </motion.div>
+      )}
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
