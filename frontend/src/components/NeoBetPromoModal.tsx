@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gift, CheckCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Gift, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface NeoBetPromoModalProps {
@@ -8,44 +9,60 @@ interface NeoBetPromoModalProps {
 }
 
 export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const [isMobile, setIsMobile] = useState(false);
 
-  const isGerman = i18n.language?.startsWith('de');
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const registrationUrl = "https://neo.bet/de/Sportwetten/Tennis?affiliateId=backhandtl-promo-popup";
 
-  const steps = isGerman ? [
+  const steps = [
     {
-      title: "Konto erstellen",
-      desc: "Registriere dich kostenlos bei unserem Partner NEO.bet über unseren Link."
+      title: t('picks.promoStep1Title', 'Create Account'),
+      desc: t('picks.promoStep1Desc', 'Register for free with our partner NEO.bet using our dynamic referral link.')
     },
     {
-      title: "25€ Freebet erhalten",
-      desc: "Die 25€ Gratiswette wird deinem Account sofort gutgeschrieben – komplett ohne Einzahlung!"
+      title: t('picks.promoStep2Title', 'Get €25 Freebet'),
+      desc: t('picks.promoStep2Desc', 'A €25 Freebet will be credited to your account instantly – completely deposit-free!')
     },
     {
-      title: "Mit AI Picks gewinnen",
-      desc: "Setze die Freebet auf unsere mathematisch geprüften AI Picks und wandle sie risikofrei in Echtgeld um."
-    }
-  ] : [
-    {
-      title: "Create Account",
-      desc: "Register for free with our partner NEO.bet using our dynamic referral link."
-    },
-    {
-      title: "Get €25 Freebet",
-      desc: "A €25 Freebet will be credited to your account instantly – completely deposit-free!"
-    },
-    {
-      title: "Win with AI Picks",
-      desc: "Place the Freebet on our mathematically validated AI Picks to turn it into risk-free cash."
+      title: t('picks.promoStep3Title', 'Win with AI Picks'),
+      desc: t('picks.promoStep3Desc', 'Place the Freebet on our mathematically validated AI Picks to turn it into risk-free cash.')
     }
   ];
+
+  // Revolut & Apple native modal animation variants
+  const modalVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: isMobile ? '100%' : 30, 
+      scale: isMobile ? 1 : 0.95 
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { type: "spring", damping: 28, stiffness: 220 } 
+    },
+    exit: { 
+      opacity: 0, 
+      y: isMobile ? '100%' : 20, 
+      scale: isMobile ? 1 : 0.95,
+      transition: { duration: 0.22, ease: "easeInOut" }
+    }
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-0 md:p-4">
           {/* Backdrop Blur Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -57,68 +74,66 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
 
           {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
-            className="relative bg-[#15171e] border border-white/10 w-full max-w-[440px] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col z-10"
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative bg-gradient-to-br from-[#14161f] via-[#0f1118] to-[#0a0c10] border border-white/10 w-full max-w-[420px] shadow-2xl overflow-hidden flex flex-col z-10 max-md:absolute max-md:bottom-0 max-md:top-auto max-md:rounded-b-none max-md:rounded-t-[2.5rem] md:rounded-[2.5rem]"
           >
-            {/* Top Close Button */}
+            {/* Top Close Button (Sleek Apple style circle) */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 z-20 flex items-center justify-center p-2.5 bg-black/40 hover:bg-black/80 rounded-full border border-white/10 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-5 right-5 z-20 flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all active:scale-95"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
 
-            {/* Glowing effect inside */}
-            <div className="absolute -top-32 -left-32 w-64 h-64 bg-tennis-lime/10 rounded-full blur-[80px] pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-tennis-lime/5 rounded-full blur-[80px] pointer-events-none" />
+            {/* Subtle Gradient Backglows */}
+            <div className="absolute top-0 left-0 w-48 h-48 bg-tennis-lime/5 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-48 h-48 bg-tennis-lime/5 rounded-full blur-[80px] pointer-events-none" />
 
-            {/* Campaign Visual Banner */}
-            <div className="relative h-[220px] w-full overflow-hidden bg-black/20 flex items-center justify-center">
+            {/* Campaign Visual Banner with Revolut style overlap */}
+            <div className="relative h-[200px] w-full overflow-hidden bg-black/10 flex items-center justify-center">
               <img
                 src="/neobet/promo_square.jpg"
                 alt="NEO.bet 25€ Freebet Promotion"
-                className="w-full h-full object-cover scale-[1.02]"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#15171e] via-[#15171e]/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f1118] via-[#0f1118]/25 to-transparent" />
               
-              <div className="absolute bottom-4 left-6 flex items-center gap-2">
-                <div className="p-1 bg-tennis-lime/10 rounded-lg border border-tennis-lime/20">
-                  <Gift size={14} className="text-tennis-lime" />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-tennis-lime">
-                  EXCLUSIVE VOUCHER
+              <div className="absolute bottom-4 left-6 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                <Gift size={12} className="text-tennis-lime" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-tennis-lime">
+                  {t('picks.exclusiveVoucher', 'Exclusive Voucher')}
                 </span>
               </div>
             </div>
 
             {/* Body */}
-            <div className="px-6 pb-8 pt-2 relative z-10">
-              <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-1.5 leading-none">
-                {isGerman ? "25€ Gratiswette Sichern" : "Get Your €25 Freebet"}
+            <div className="px-6 pb-8 pt-4 relative z-10">
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1.5 leading-none">
+                {t('picks.floatingFreebet', '25€ Freebet')}
               </h3>
               <p className="text-xs text-gray-400 font-semibold mb-6">
-                {isGerman 
-                  ? "Exklusiv für Backhand.dtl Mitglieder. Keine Einzahlung erforderlich!" 
-                  : "Exclusive Backhand.dtl partner offer. No deposit required!"}
+                {t('picks.promoSubtitleModal', 'Exclusive partner offer for Backhand.dtl. No deposit required!')}
               </p>
 
-              {/* Step Checklist */}
-              <div className="space-y-4 mb-8">
+              {/* Step Checklist - Revolut-style timeline connector */}
+              <div className="relative pl-8 space-y-6 mb-8">
+                {/* Vertical Connector Line */}
+                <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-white/5" />
+
                 {steps.map((step, idx) => (
-                  <div key={idx} className="flex gap-4">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 rounded-full bg-tennis-lime/10 border border-tennis-lime/20 flex items-center justify-center text-tennis-lime text-[11px] font-black font-mono">
-                        {idx + 1}
-                      </div>
+                  <div key={idx} className="relative flex flex-col items-start gap-1">
+                    {/* Timeline Node Badge */}
+                    <div className="absolute -left-[27px] top-0 w-[22px] h-[22px] rounded-full bg-[#0f1118] border border-white/10 flex items-center justify-center text-[10px] font-black text-tennis-lime font-mono">
+                      {idx + 1}
                     </div>
                     <div>
                       <h4 className="text-xs font-black text-white uppercase tracking-wider mb-0.5 leading-none">
                         {step.title}
                       </h4>
-                      <p className="text-[11px] text-gray-400 font-medium leading-relaxed">
+                      <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
                         {step.desc}
                       </p>
                     </div>
@@ -126,22 +141,22 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
                 ))}
               </div>
 
-              {/* Main CTA */}
+              {/* Apple-style Glossy White CTA Button (Super Premium) */}
               <a
                 href={registrationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 bg-tennis-lime text-black font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-[0_0_25px_rgba(204,255,0,0.45)] hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 transform-gpu"
+                className="w-full py-4 bg-white hover:bg-white/95 text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_4px_25px_rgba(255,255,255,0.15)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 transform-gpu shadow-lg"
               >
-                <span>{isGerman ? "Jetzt 25€ Freebet beanspruchen" : "Claim €25 Freebet Now"}</span>
+                <span>{t('picks.promoClaim', 'Claim €25 Freebet Now')}</span>
                 <ArrowRight size={14} className="stroke-[3px]" />
               </a>
 
-              {/* Regulatory Footer */}
-              <div className="mt-5 pt-4 border-t border-white/5 flex flex-col items-center gap-1.5 text-center">
+              {/* Whitelist Regulatory Disclaimer */}
+              <div className="mt-6 pt-4 border-t border-white/5 flex flex-col items-center gap-1.5 text-center">
                 <div className="flex items-center gap-1.5 text-[8px] font-black text-gray-500 uppercase tracking-widest">
-                  <ShieldCheck size={11} className="text-tennis-lime" />
-                  <span>Officially Licensed & Regulated (Whitelist)</span>
+                  <ShieldCheck size={11} className="text-gray-500" />
+                  <span>{t('partner.licensedRegulated', 'Licensed & Regulated (Whitelist)')}</span>
                 </div>
                 <p className="text-[8.5px] font-bold text-gray-600 leading-none tracking-wide uppercase">
                   18+ | Suchtrisiken | Hilfe unter buwei.de

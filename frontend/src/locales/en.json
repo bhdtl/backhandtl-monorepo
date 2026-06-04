@@ -666,7 +666,16 @@
     "patternCaliberStrength": "Caliber Matchup Strength: {{name}} has won {{winRate}} ({{wins}}W-{{losses}}L) against similarly rated ELO opponents ({{elo1}}-{{elo2}}) on {{surface}}, covering by {{margin}} games.",
     "patternCoverRisk": "Historical Cover Risk: {{name}} has covered the {{spread}} spread in only {{winRate}} of recent matches on {{surface}}.",
     "patternCoverRate": "Historical Cover Rate: {{name}} has covered the {{spread}} spread in {{winRate}} of recent matches on {{surface}}.",
-    "patternMassiveEdge": "MASSIVE {{type}} EDGE: Model & History project {{projected}} games against bookmaker line {{line}}."
+    "patternMassiveEdge": "MASSIVE {{type}} EDGE: Model & History project {{projected}} games against bookmaker line {{line}}.",
+    "promoStep1Title": "Create Account",
+    "promoStep1Desc": "Register for free with our partner NEO.bet using our dynamic referral link.",
+    "promoStep2Title": "Get €25 Freebet",
+    "promoStep2Desc": "A €25 Freebet will be credited to your account instantly – completely deposit-free!",
+    "promoStep3Title": "Win with AI Picks",
+    "promoStep3Desc": "Place the Freebet on our mathematically validated AI Picks to turn it into risk-free cash.",
+    "promoClaim": "Claim €25 Freebet Now",
+    "exclusiveVoucher": "Exclusive Voucher",
+    "promoSubtitleModal": "Exclusive partner offer for Backhand.dtl. No deposit required!"
   },
   "partner": {
     "officialPartner": "Official Partner",

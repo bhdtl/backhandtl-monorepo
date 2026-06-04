@@ -665,7 +665,16 @@
     "patternCaliberStrength": "Forza contro pari livello: {{name}} ha vinto il {{winRate}} ({{wins}}V-{{losses}}P) contro avversari di ELO simile ({{elo1}}-{{elo2}}) su {{surface}}, coprendo di {{margin}} game.",
     "patternCoverRisk": "Rischio di copertura storico: {{name}} ha coperto l'handicap {{spread}} solo nel {{winRate}} delle partite recenti su {{surface}}.",
     "patternCoverRate": "Tasso di copertura storico: {{name}} ha coperto l'handicap {{spread}} nel {{winRate}} delle partite recenti su {{surface}}.",
-    "patternMassiveEdge": "MASSIMO VANTAGGIO {{type}}: Il modello e lo storico prevedono {{projected}} game rispetto alla linea del bookmaker di {{line}}."
+    "patternMassiveEdge": "MASSIMO VANTAGGIO {{type}}: Il modello e lo storico prevedono {{projected}} game rispetto alla linea del bookmaker di {{line}}.",
+    "promoStep1Title": "Crea un account",
+    "promoStep1Desc": "Registrati gratuitamente con il nostro partner NEO.bet tramite il nostro link.",
+    "promoStep2Title": "Ricevi 25€ di freebet",
+    "promoStep2Desc": "Una scommessa gratuita di 25€ verrà accreditata istantaneamente sul tuo conto, completamente senza deposito!",
+    "promoStep3Title": "Vinci con gli AI Picks",
+    "promoStep3Desc": "Piazza la scommessa gratuita sui nostri AI Picks convalidati matematicamente per convertirla in denaro reale senza rischi.",
+    "promoClaim": "Riscatta 25€ di freebet ora",
+    "exclusiveVoucher": "Buono esclusivo",
+    "promoSubtitleModal": "Offret partner esclusiva per Backhand.dtl. Nessun deposito richiesto!"
   },
   "partner": {
     "officialPartner": "Partner Ufficiale",
