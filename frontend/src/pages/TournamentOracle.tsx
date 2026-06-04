@@ -31,6 +31,8 @@ interface OracleDraw {
   // Computed fields
   tour_type?: string; 
   display_tournament?: string; 
+  player_a_info?: PlayerInfo;
+  player_b_info?: PlayerInfo;
 }
 
 interface PlayerInfo {
@@ -65,6 +67,21 @@ const getCountryISO = (country: string) => {
     'URUGUAY': 'uy', 'UZBEKISTAN': 'uz', 'MOLDOVA': 'md', 'ISRAEL': 'il'
   };
   return map[cleanCountry] || 'un';
+};
+
+// Helper to convert 2-letter country code to flag emoji
+const getFlagEmoji = (countryCode: string) => {
+  if (!countryCode || countryCode === 'un') return '🏳️';
+  const cleanCode = countryCode.trim().toLowerCase();
+  const codePoints = cleanCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  try {
+    return String.fromCodePoint(...codePoints);
+  } catch (e) {
+    return '🏳️';
+  }
 };
 
 // --- CSS für Apple-like Liquid Borders & Hidden Scrollbar ---
@@ -117,7 +134,6 @@ export function TournamentOracle() {
   const { isElite, loading: accessLoading } = useAccess();
   
   const [draws, setDraws] = useState<OracleDraw[]>([]);
-  const [playerDict, setPlayerDict] = useState<Map<string, PlayerInfo>>(new Map());
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -195,7 +211,6 @@ export function TournamentOracle() {
                   dict.set(initialKey, p);
               }
           });
-          setPlayerDict(dict);
       }
 
       // 🚀 Helper Function: Sicheres Abrufen des Spielers
@@ -211,10 +226,11 @@ export function TournamentOracle() {
           return dict.get(nameWithoutInitial);
       };
 
-      // 3. Enrich Draws with Display Tournaments (Splitting ATP/WTA)
+      // 3. Enrich Draws with Display Tournaments & Resolved Player Info
       const enrichedDraws: OracleDraw[] = (drawsData || []).map(draw => {
-          const pInfo = getPlayerSafely(draw.player_a_name); // 🚀 Benutzt den neuen Helper
-          const tourType = pInfo?.tour ? pInfo.tour.toUpperCase() : 'ATP';
+          const p1Info = getPlayerSafely(draw.player_a_name);
+          const p2Info = getPlayerSafely(draw.player_b_name);
+          const tourType = p1Info?.tour ? p1Info.tour.toUpperCase() : 'ATP';
           
           // Wenn der Name eh schon ATP/WTA enthält, lassen wir ihn so. Sonst append.
           const isAlreadySplit = draw.tournament_name.toUpperCase().includes('ATP') || draw.tournament_name.toUpperCase().includes('WTA');
@@ -223,7 +239,9 @@ export function TournamentOracle() {
           return {
               ...draw,
               tour_type: tourType,
-              display_tournament: displayTour
+              display_tournament: displayTour,
+              player_a_info: p1Info,
+              player_b_info: p2Info
           };
       });
 
@@ -246,15 +264,6 @@ export function TournamentOracle() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // --- 🚀 SOTA FIX: HELPER ZUM ABRUFEN WÄHREND DES RENDERING ---
-  const getPlayerInfoForRender = (oracleName: string) => {
-      if (!oracleName) return undefined;
-      const rawName = oracleName.toLowerCase().trim();
-      if (playerDict.has(rawName)) return playerDict.get(rawName);
-      const nameWithoutInitial = rawName.replace(/^[a-z]\.\s+/, '').trim();
-      return playerDict.get(nameWithoutInitial);
   };
 
   // --- MEMOIZED COMPUTATIONS ---
@@ -317,8 +326,17 @@ export function TournamentOracle() {
     <div className="min-h-screen bg-[#0f1115] w-full overflow-x-hidden relative selection:bg-tennis-lime/30 selection:text-tennis-lime pb-32 font-sans tracking-tight">
       <ScrollToTop />
       
-      {/* Subtle Ambient Background */}
-      <div className="absolute top-0 right-0 w-[50vw] h-[50vh] md:w-[80vw] md:h-[80vh] bg-tennis-lime/5 blur-[100px] md:blur-[200px] rounded-full -z-10 pointer-events-none transform-gpu" />
+      {/* Subtle Ambient Background - Zero-Blur on Mobile */}
+      {isMobile ? (
+        <div 
+          className="absolute top-0 right-0 w-[50vw] h-[50vh] -z-10 pointer-events-none" 
+          style={{
+            background: 'radial-gradient(circle at top right, rgba(132, 204, 22, 0.04) 0%, rgba(132, 204, 22, 0) 70%)'
+          }}
+        />
+      ) : (
+        <div className="absolute top-0 right-0 w-[80vw] h-[80vh] bg-tennis-lime/5 blur-[200px] rounded-full -z-10 pointer-events-none transform-gpu" />
+      )}
 
       <div className="pt-24 px-0 md:px-4 max-w-5xl mx-auto">
         
@@ -416,37 +434,27 @@ export function TournamentOracle() {
                   </div>
               </div>
 
-              {/* 4. MATCH LIST (WITH ANIMATIONS) */}
+              {/* 4. MATCH LIST */}
               <div className="space-y-4 px-4 md:px-0 min-h-[400px]">
                   {finalDisplayMatches.length === 0 ? (
-                      <motion.div 
-                          initial={{ opacity: 0 }} 
-                          animate={{ opacity: 1 }} 
-                          className="text-center py-16 text-gray-500 font-mono text-xs uppercase tracking-widest"
-                      >
+                      <div className="text-center py-16 text-gray-500 font-mono text-xs uppercase tracking-widest">
                           {searchQuery ? "No matches found for this search." : "No matches scheduled."}
-                      </motion.div>
-                  ) : (
-                      <AnimatePresence mode='popLayout'>
-                          {finalDisplayMatches.map((match, idx) => {
+                      </div>
+                  ) : isMobile ? (
+                      /* Mobile Layout: Pure HTML divs for 120fps scrolling and instant paint */
+                      <>
+                          {finalDisplayMatches.map((match) => {
                               const isP1Winner = match.predicted_winner === match.player_a_name;
-                              // 🚀 SOTA FIX: Benutzt die neue Render-Helper-Funktion
-                              const p1Info = getPlayerInfoForRender(match.player_a_name);
-                              const p2Info = getPlayerInfoForRender(match.player_b_name);
+                              const p1Info = match.player_a_info;
+                              const p2Info = match.player_b_info;
 
                               return (
-                                  <motion.div 
-                                      initial={{ opacity: 0, y: 20 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, scale: 0.95 }}
-                                      transition={isMobile 
-                                          ? { duration: 0.25, ease: "easeOut", delay: Math.min(idx * 0.02, 0.2) }
-                                          : { type: "spring", stiffness: 300, damping: 25, delay: idx * 0.05 }}
+                                  <div 
                                       key={match.id} 
-                                      className="group bg-[#1a1d26] border border-white/5 hover:border-white/10 rounded-[2rem] p-5 md:p-6 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-lg"
+                                      className="group bg-[#1a1d26] border border-white/5 rounded-[2rem] p-5 relative overflow-hidden flex flex-col items-center justify-between gap-4 shadow-lg"
                                   >
                                       {/* Tournament & Surface Note */}
-                                      <div className="flex flex-row md:flex-col items-center md:items-start justify-between w-full md:w-24 flex-shrink-0 border-b md:border-b-0 border-white/5 pb-3 md:pb-0">
+                                      <div className="flex flex-row items-center justify-between w-full border-b border-white/5 pb-3">
                                           <span className="text-[10px] font-black uppercase tracking-widest text-tennis-lime">
                                               {formatDateString(match.match_date.split('T')[0])}
                                           </span>
@@ -454,24 +462,26 @@ export function TournamentOracle() {
                                       </div>
 
                                       {/* Matchup Layout */}
-                                      <div className="flex-1 w-full flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
+                                      <div className="w-full flex flex-col items-center justify-center gap-3 relative">
                                           
                                           {/* Player A */}
-                                          <div className={`w-full md:flex-1 h-[72px] md:h-20 transition-all duration-500 ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
-                                              <div className={`liquid-winner-inner flex items-center justify-between px-4 md:px-5 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
+                                          <div className={`w-full h-[72px] transition-[opacity,transform] duration-300 ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                              <div className={`liquid-winner-inner flex items-center justify-between px-4 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p1Info?.profile_image_url ? (
-                                                          <img src={p1Info.profile_image_url} alt={match.player_a_name} loading="lazy" className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                          <img src={p1Info.profile_image_url} alt={match.player_a_name} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-black/40 border border-white/10" />
                                                       ) : (
-                                                          <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
+                                                          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] md:max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
                                                               <div className="flex items-center gap-1.5 mt-0.5">
-                                                                  <img src={`https://flagcdn.com/w20/${getCountryISO(p1Info.country)}.png`} className="w-3.5 rounded-[1px] opacity-80" alt={p1Info.country} />
+                                                                  <span className="text-sm select-none" title={p1Info.country}>
+                                                                      {getFlagEmoji(getCountryISO(p1Info.country))}
+                                                                  </span>
                                                                   {p1Info.play_style && <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest truncate max-w-[80px]">{p1Info.play_style}</span>}
                                                               </div>
                                                           )}
@@ -482,24 +492,116 @@ export function TournamentOracle() {
                                           </div>
 
                                           {/* VS Badge */}
-                                          <div className="text-[10px] md:text-xs font-black text-gray-600 italic tracking-[0.2em] shrink-0 absolute md:relative z-20 bg-[#1a1d26] md:bg-transparent px-2 py-1 rounded-full md:p-0">VS</div>
+                                          <div className="text-[10px] font-black text-gray-600 italic tracking-[0.2em] shrink-0 absolute z-20 bg-[#1a1d26] px-2 py-1 rounded-full">VS</div>
 
                                           {/* Player B */}
-                                          <div className={`w-full md:flex-1 h-[72px] md:h-20 transition-all duration-500 ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
-                                              <div className={`liquid-winner-inner flex items-center justify-between px-4 md:px-5 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
+                                          <div className={`w-full h-[72px] transition-[opacity,transform] duration-300 ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                              <div className={`liquid-winner-inner flex items-center justify-between px-4 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p2Info?.profile_image_url ? (
-                                                          <img src={p2Info.profile_image_url} alt={match.player_b_name} loading="lazy" className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                          <img src={p2Info.profile_image_url} alt={match.player_b_name} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-black/40 border border-white/10" />
                                                       ) : (
-                                                          <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
+                                                          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base md:text-lg font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] md:max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (
                                                               <div className="flex items-center gap-1.5 mt-0.5">
-                                                                  <img src={`https://flagcdn.com/w20/${getCountryISO(p2Info.country)}.png`} className="w-3.5 rounded-[1px] opacity-80" alt={p2Info.country} />
+                                                                  <span className="text-sm select-none" title={p2Info.country}>
+                                                                      {getFlagEmoji(getCountryISO(p2Info.country))}
+                                                                  </span>
+                                                                  {p2Info.play_style && <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest truncate max-w-[80px]">{p2Info.play_style}</span>}
+                                                              </div>
+                                                          )}
+                                                      </div>
+                                                  </div>
+                                                  {!isP1Winner && <CheckCircle2 className="text-tennis-lime shrink-0 ml-2" size={20} />}
+                                              </div>
+                                          </div>
+
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </>
+                  ) : (
+                      /* Desktop Layout: Rich animations */
+                      <AnimatePresence mode='popLayout'>
+                          {finalDisplayMatches.map((match, idx) => {
+                              const isP1Winner = match.predicted_winner === match.player_a_name;
+                              const p1Info = match.player_a_info;
+                              const p2Info = match.player_b_info;
+
+                              return (
+                                  <motion.div 
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.95 }}
+                                      transition={{ type: "spring", stiffness: 300, damping: 25, delay: idx * 0.05 }}
+                                      key={match.id} 
+                                      className="group bg-[#1a1d26] border border-white/5 hover:border-white/10 rounded-[2rem] p-6 relative overflow-hidden flex flex-row items-center justify-between gap-6 shadow-lg"
+                                  >
+                                      {/* Tournament & Surface Note */}
+                                      <div className="flex flex-col items-start justify-between w-24 flex-shrink-0">
+                                          <span className="text-[10px] font-black uppercase tracking-widest text-tennis-lime">
+                                              {formatDateString(match.match_date.split('T')[0])}
+                                          </span>
+                                          <span className="text-xs text-gray-400 font-bold mt-0.5">{match.surface}</span>
+                                      </div>
+
+                                      {/* Matchup Layout */}
+                                      <div className="flex-1 w-full flex flex-row items-center justify-center gap-6">
+                                          
+                                          {/* Player A */}
+                                          <div className={`flex-1 h-20 transition-[opacity,transform,box-shadow] duration-500 ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                              <div className={`liquid-winner-inner flex items-center justify-between px-5 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
+                                                  <div className="flex items-center gap-3">
+                                                      {p1Info?.profile_image_url ? (
+                                                          <img src={p1Info.profile_image_url} alt={match.player_a_name} loading="lazy" className="w-11 h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                      ) : (
+                                                          <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
+                                                      )}
+                                                      <div className="flex flex-col items-start">
+                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                              {match.player_a_name}
+                                                          </span>
+                                                          {p1Info && (
+                                                              <div className="flex items-center gap-1.5 mt-0.5">
+                                                                  <span className="text-sm select-none" title={p1Info.country}>
+                                                                      {getFlagEmoji(getCountryISO(p1Info.country))}
+                                                                  </span>
+                                                                  {p1Info.play_style && <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest truncate max-w-[80px]">{p1Info.play_style}</span>}
+                                                              </div>
+                                                          )}
+                                                      </div>
+                                                  </div>
+                                                  {isP1Winner && <CheckCircle2 className="text-tennis-lime shrink-0 ml-2" size={20} />}
+                                              </div>
+                                          </div>
+
+                                          {/* VS Badge */}
+                                          <div className="text-xs font-black text-gray-600 italic tracking-[0.2em] shrink-0">VS</div>
+
+                                          {/* Player B */}
+                                          <div className={`flex-1 h-20 transition-[opacity,transform,box-shadow] duration-500 ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                              <div className={`liquid-winner-inner flex items-center justify-between px-5 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
+                                                  <div className="flex items-center gap-3">
+                                                      {p2Info?.profile_image_url ? (
+                                                          <img src={p2Info.profile_image_url} alt={match.player_b_name} loading="lazy" className="w-11 h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                      ) : (
+                                                          <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
+                                                      )}
+                                                      <div className="flex flex-col items-start">
+                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                              {match.player_b_name}
+                                                          </span>
+                                                          {p2Info && (
+                                                              <div className="flex items-center gap-1.5 mt-0.5">
+                                                                  <span className="text-sm select-none" title={p2Info.country}>
+                                                                      {getFlagEmoji(getCountryISO(p2Info.country))}
+                                                                  </span>
                                                                   {p2Info.play_style && <span className="text-[9px] text-gray-500 uppercase font-bold tracking-widest truncate max-w-[80px]">{p2Info.play_style}</span>}
                                                               </div>
                                                           )}
