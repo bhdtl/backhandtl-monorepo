@@ -18,11 +18,21 @@ const STATS_RESET_DATE = '2026-05-27T00:00:00.000Z';
 
 // --- ROBUST HELPERS ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {
+    if (!pickName || !p1Name) return false;
     const pick = pickName.toLowerCase().trim();
     const p1 = p1Name.toLowerCase().trim();
     if (pick.includes(p1) || p1.includes(pick)) return true;
-    const pickLast = pick.split(' ').pop() || '';
-    if (pickLast && p1.includes(pickLast)) return true;
+    
+    // Check if player's surname (last word) is in pick name
+    const p1Words = p1.split(/\s+/);
+    const p1Last = p1Words[p1Words.length - 1];
+    if (p1Last && p1Last.length > 2 && pick.includes(p1Last)) return true;
+    
+    // Check first word of pick against player parts
+    const pickWords = pick.split(/\s+/);
+    const pickFirst = pickWords[0];
+    if (pickFirst && pickFirst.length > 2 && p1.includes(pickFirst)) return true;
+    
     return false;
 };
 
@@ -31,8 +41,11 @@ const checkWinnerResult = (pickName: string, actualWinner: string | null) => {
     const p = pickName.toLowerCase().trim();
     const w = actualWinner.toLowerCase().trim();
     if (p.includes(w) || w.includes(p)) return true;
-    const pLast = p.split(' ').pop() || '';
-    if (pLast && w.includes(pLast)) return true;
+    
+    const wWords = w.split(/\s+/);
+    const wLast = wWords[wWords.length - 1];
+    if (wLast && wLast.length > 2 && p.includes(wLast)) return true;
+    
     return false;
 };
 
@@ -76,7 +89,7 @@ const checkPlayResult = (pickName: string, match: any): boolean => {
     }
     
     // 2. HANDICAP GAMES
-    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+    else if (pick.match(/[+-]\s*\d+(?:\.\d+)?/)) {
         if (!score || !p1 || !p2) return false;
         const cleanScore = score.replace(/:/g, '-').replace(/[^0-9\-\s]/g, '');
         const sets = cleanScore.split(/\s+/);
@@ -110,7 +123,9 @@ const checkPlayResult = (pickName: string, match: any): boolean => {
     }
     
     // 3. MONEYLINE / MATCH WINNER
-    return checkWinnerResult(pick, actualWinner);
+    else {
+        return checkWinnerResult(pick, actualWinner);
+    }
 };
 
 const getClosingOddsForPlay = (pickName: string, match: any): number => {
@@ -140,7 +155,7 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     }
     
     // 2. HANDICAP GAMES
-    if (lowerPick.includes("games") && (lowerPick.includes("+") || lowerPick.includes("-"))) {
+    else if (pick.match(/[+-]\s*\d+(?:\.\d+)?/)) {
         const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
         if (!signNumMatch) return 0;
         const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
@@ -161,8 +176,10 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     }
     
     // 3. MONEYLINE / MATCH WINNER
-    const isP1 = isPlayer1Target(pick, p1);
-    return isP1 ? parseFloat(match.odds1) || 0 : parseFloat(match.odds2) || 0;
+    else {
+        const isP1 = isPlayer1Target(pick, p1);
+        return isP1 ? parseFloat(match.odds1) || 0 : parseFloat(match.odds2) || 0;
+    }
 };
 
 // 🚀 SOTA FIX: Sync with Performance Page to include 'type' and 'fairOdds'
@@ -259,7 +276,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
               while (keepFetching) {
                   const { data, error } = await supabase
                       .from('market_odds')
-                      .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at')
+                      .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, created_at, neobet_spreads, neobet_over_unders')
                       .neq('actual_winner_name', null)
                       .neq('actual_winner_name', '')
                       .gt('created_at', STATS_RESET_DATE)

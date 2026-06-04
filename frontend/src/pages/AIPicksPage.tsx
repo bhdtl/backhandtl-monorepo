@@ -24,11 +24,21 @@ interface Player {
 
 // --- ROBUST HELPERS (SYNCED WITH SOTA ENGINE) ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {
+    if (!pickName || !p1Name) return false;
     const pick = pickName.toLowerCase().trim();
     const p1 = p1Name.toLowerCase().trim();
     if (pick.includes(p1) || p1.includes(pick)) return true;
-    const pickLast = pick.split(' ').pop() || '';
-    if (pickLast && p1.includes(pickLast)) return true;
+    
+    // Check if player's surname (last word) is in pick name
+    const p1Words = p1.split(/\s+/);
+    const p1Last = p1Words[p1Words.length - 1];
+    if (p1Last && p1Last.length > 2 && pick.includes(p1Last)) return true;
+    
+    // Check first word of pick against player parts
+    const pickWords = pick.split(/\s+/);
+    const pickFirst = pickWords[0];
+    if (pickFirst && pickFirst.length > 2 && p1.includes(pickFirst)) return true;
+    
     return false;
 };
 
