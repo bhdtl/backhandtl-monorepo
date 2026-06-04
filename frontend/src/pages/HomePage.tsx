@@ -563,6 +563,21 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // SOTA Marketing: Trigger NeoBet promo modal once per session on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        const dismissed = sessionStorage.getItem('neobet_promo_dismissed');
+        if (!dismissed) {
+          setIsPromoOpen(true);
+          sessionStorage.setItem('neobet_promo_dismissed', 'true');
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const [players, setPlayers] = useState<Player[]>(() => {
     const cached = localStorage.getItem('bh_cached_players');
     return cached ? JSON.parse(cached) : [];
@@ -970,28 +985,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
           </p>
       </div>
 
-      {/* Floating Promo Chip */}
-      {isMobile ? (
-        <div
-          onClick={() => setIsPromoOpen(true)}
-          className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
-        >
-          <Gift size={14} className="animate-bounce" />
-          <span>{t('picks.floatingFreebet', '25€ Freebet')}</span>
-        </div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsPromoOpen(true)}
-          className="fixed bottom-36 right-4 z-40 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black px-4 py-3 rounded-full shadow-[0_0_20px_rgba(204,255,0,0.3)] border border-tennis-lime/20 flex items-center gap-2 cursor-pointer font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all"
-        >
-          <Gift size={14} className="animate-bounce" />
-          <span>{t('picks.floatingFreebet', '25€ Freebet')}</span>
-        </motion.div>
-      )}
+
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
