@@ -138,6 +138,21 @@ const getLabelStyle = (type: string, isMaxBomb: boolean) => {
     return 'bg-white/10 text-white border-white/20'; // Standard Value
 };
 
+// Helper to convert 2-letter country code to flag emoji
+const getFlagEmoji = (countryCode: string) => {
+  if (!countryCode || countryCode.toUpperCase() === 'UN') return '🏳️';
+  const cleanCode = countryCode.trim().toLowerCase();
+  const codePoints = cleanCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  try {
+    return String.fromCodePoint(...codePoints);
+  } catch (e) {
+    return '🏳️';
+  }
+};
+
 // --- COUNTRY CODE HELPER ---
 const getCountryCode = (countryName: string) => {
     const map: { [key: string]: string } = {
@@ -185,15 +200,10 @@ const PlayerAvatar = ({ player, isTarget }: { player: Player | undefined, isTarg
                     {initial}
                 </div>
             )}
-            {/* Flag Overlay */}
+            {/* Flag Overlay - SVG/HTTP-free Native Emoji */}
             {player.country && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full overflow-hidden border border-[#1a1d26] bg-[#1a1d26]">
-                    <img 
-                        src={`https://flagcdn.com/w40/${getCountryCode(player.country).toLowerCase()}.png`}
-                        alt={player.country}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border border-[#1a1d26] bg-[#1a1d26] flex items-center justify-center text-xs select-none shadow">
+                    {getFlagEmoji(getCountryCode(player.country))}
                 </div>
             )}
         </div>
@@ -213,6 +223,7 @@ export function AIPicksPage() {
     return !localStorage.getItem('bh_cached_picks');
   });
   const [timeFilter, setTimeFilter] = useState<'ALL' | '30MIN'>('ALL');
+  const [isMobile, setIsMobile] = useState(false);
   
   // 🚀 SOTA: State für das Expandieren der KI Analyse
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -220,6 +231,13 @@ export function AIPicksPage() {
   
   // Realtime Debounce Ref
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchActivePicks();
@@ -504,8 +522,27 @@ export function AIPicksPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-10 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1d1f27] to-[#111317] border border-tennis-lime/30 p-6 md:p-8 shadow-[0_0_50px_rgba(204,255,0,0.06)] group hover:border-tennis-lime/60 transition-all duration-300"
               >
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-tennis-lime/5 rounded-full blur-[90px] pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
-                  <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-[90px] pointer-events-none" />
+                  {isMobile ? (
+                    <>
+                      <div 
+                        className="absolute top-0 right-0 w-80 h-80 -z-10 pointer-events-none" 
+                        style={{
+                          background: 'radial-gradient(circle at top right, rgba(132, 204, 22, 0.04) 0%, rgba(132, 204, 22, 0) 70%)'
+                        }}
+                      />
+                      <div 
+                        className="absolute bottom-0 left-0 w-80 h-80 -z-10 pointer-events-none" 
+                        style={{
+                          background: 'radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.03) 0%, rgba(168, 85, 247, 0) 70%)'
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <div className="absolute top-0 right-0 w-80 h-80 bg-tennis-lime/5 rounded-full blur-[90px] pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
+                      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-[90px] pointer-events-none" />
+                    </>
+                  )}
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/5 relative z-10">
                       <div className="flex items-center gap-2.5">
@@ -567,7 +604,16 @@ export function AIPicksPage() {
                       </div>
 
                       <div className="lg:col-span-5 bg-black/40 rounded-3xl p-5 md:p-6 border border-white/5 flex flex-col justify-between h-full relative overflow-hidden group/calc">
-                          <div className="absolute -top-10 -right-10 w-24 h-24 bg-tennis-lime/10 rounded-full blur-xl pointer-events-none group-hover/calc:bg-tennis-lime/20 transition-all duration-300" />
+                          {isMobile ? (
+                              <div 
+                                className="absolute -top-10 -right-10 w-24 h-24 -z-10 pointer-events-none"
+                                style={{
+                                  background: 'radial-gradient(circle at top right, rgba(132, 204, 22, 0.08) 0%, rgba(132, 204, 22, 0) 70%)'
+                                }}
+                              />
+                          ) : (
+                              <div className="absolute -top-10 -right-10 w-24 h-24 bg-tennis-lime/10 rounded-full blur-xl pointer-events-none group-hover/calc:bg-tennis-lime/20 transition-all duration-300" />
+                          )}
                           
                           <div className="flex items-center gap-2 mb-4">
                               <Gift size={16} className="text-tennis-lime animate-pulse" />
@@ -629,6 +675,247 @@ export function AIPicksPage() {
                      : 'The AI has not detected any high-conviction mathematical edges at this moment. The scanner runs 24/7.'}
                 </p>
              </motion.div>
+          ) : isMobile ? (
+             /* Mobile Grid: No Framer Motion animations for maximum scrolling speed */
+             <div className="grid grid-cols-1 gap-5">
+                 {displayedPicks.map((pick) => {
+                     const val = pick.parsedVal;
+                     const matchDate = new Date(pick.match_time);
+                     const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                     
+                     const isMaxBomb = val.stake >= 2.5;
+                     const p1IsTarget = pick.isPlayer1Target; 
+                     
+                     const p1Data = getPlayerDetails(pick.player1_name);
+                     const p2Data = getPlayerDetails(pick.player2_name);
+
+                     const diffInMinutes = Math.floor((new Date().getTime() - new Date(pick.relevantTime).getTime()) / 60000);
+                     const isHotDrop = diffInMinutes <= 30;
+                     
+                     const tagClasses = getLabelStyle(val.type, isMaxBomb);
+                     const analysisData = parseAiAnalysis(pick.ai_analysis_text);
+                     const isExpanded = expandedId === pick.id;
+
+                     return (
+                         <div 
+                             key={pick.id}
+                             className={`relative flex flex-col bg-[#15171e] rounded-[2rem] border ${isMaxBomb ? 'border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.08)]' : 'border-white/5 shadow-xl'} overflow-hidden group`}
+                         >
+                             {/* Top Banner: Tournament & Time */}
+                             <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                                 <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+                                     <MapPin size={10} className="text-gray-500 shrink-0" />
+                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                         {pick.tournament}
+                                     </span>
+                                 </div>
+                                 <div className="flex items-center gap-2 shrink-0">
+                                     {isHotDrop && (
+                                         <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                             <Flame size={8} /> New
+                                         </span>
+                                     )}
+                                     <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
+                                         <Clock size={10} /> {timeString}
+                                     </div>
+                                 </div>
+                             </div>
+
+                             {/* Core Matchup */}
+                             <div className="p-5 flex-grow flex flex-col cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : pick.id)}>
+                                 <div className="flex items-center justify-between mb-6">
+                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                         <PlayerAvatar player={p1Data} isTarget={p1IsTarget} />
+                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                             {pick.player1_name.split(' ').pop()}
+                                         </span>
+                                     </div>
+                                     <div className="flex flex-col items-center justify-center w-[20%]">
+                                         <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
+                                             VS
+                                         </div>
+                                     </div>
+                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${!p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                         <PlayerAvatar player={p2Data} isTarget={!p1IsTarget} />
+                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${!p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                             {pick.player2_name.split(' ').pop()}
+                                         </span>
+                                     </div>
+                                 </div>
+
+                                 {pick.derivativeAlert && (
+                                     <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                         <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
+                                         <div>
+                                             <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
+                                             <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
+                                                 {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
+                                             </div>
+                                         </div>
+                                     </div>
+                                 )}
+
+                                 {pick.games_prediction?.pattern_warning && (
+                                      <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
+                                          <div>
+                                              <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
+                                              <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                  {pick.games_prediction.pattern_warning}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  )}
+
+                                  {pick.games_prediction?.pattern_boost && (
+                                      <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                          <div>
+                                              <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
+                                              <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                  {pick.games_prediction.pattern_boost}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  )}
+                                 
+                                 {pick.movement.hasMovement && !pick.derivativeAlert && (
+                                      <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
+                                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
+                                         <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                             {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                                             {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
+                                         </div>
+                                      </div>
+                                 )}
+                             </div>
+
+                             {/* THE ACTION TRAY */}
+                             <div className={`p-4 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
+                                 {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
+
+                                 <div className="flex items-center justify-between mb-4 relative z-10">
+                                     <div className="flex flex-col">
+                                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                              <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                  <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
+                                              </span>
+                                              {pick.games_prediction?.is_grand_slam && (
+                                                  <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
+                                                      🎾 Slam (Bo5)
+                                                  </span>
+                                              )}
+                                          </div>
+                                         <span className="text-xs font-black text-white truncate max-w-[180px] xs:max-w-[220px]" title={val.pickName}>
+                                             {displayPickName(val.pickName)}
+                                         </span>
+                                     </div>
+                                     
+                                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
+                                         <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
+                                         <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
+                                             {val.stake.toFixed(1)}u
+                                         </span>
+                                     </div>
+                                 </div>
+
+                                 <div className="grid grid-cols-2 gap-2.5 relative z-10">
+                                     <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
+                                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                             <Target size={8} /> Play At
+                                         </span>
+                                         <span className="text-sm font-mono font-black text-white leading-none">
+                                             @{val.marketOdds.toFixed(2)}
+                                         </span>
+                                     </div>
+                                     <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
+                                         <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                             <Zap size={8} /> True Edge
+                                         </span>
+                                         <span className="text-sm font-mono font-black text-blue-400 leading-none">
+                                             +{val.edge.toFixed(1)}%
+                                         </span>
+                                     </div>
+                                 </div>
+
+                                 <div className="mt-4 relative z-10 flex flex-col gap-1.5">
+                                     <a 
+                                         href={pick.games_prediction?.neo_betslip?.url 
+                                             ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                             : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
+                                         }
+                                         target="_blank" 
+                                         rel="noopener noreferrer"
+                                         className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5"
+                                     >
+                                         <Zap size={10} className="fill-current shrink-0" />
+                                         {t('picks.neobetCta', 'In den Wettschein')}
+                                     </a>
+                                     <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                         {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                     </div>
+                                 </div>
+                                 
+                                 {analysisData && (
+                                     <div className="mt-4 flex justify-center relative z-10">
+                                         <button 
+                                             onClick={() => setExpandedId(isExpanded ? null : pick.id)}
+                                             className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
+                                         >
+                                             <Brain size={12} className="text-purple-400" />
+                                             {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
+                                             {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                         </button>
+                                     </div>
+                                 )}
+                             </div>
+                             
+                             {isExpanded && analysisData && (
+                                 <div className="bg-black/50 border-t border-white/5 relative">
+                                     <div className="p-5 flex flex-col gap-4">
+                                         {analysisData.keyFactor && (
+                                             <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+                                                 <div className="flex items-center gap-1.5 mb-1.5">
+                                                     <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+                                                     <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                                 </div>
+                                                 <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
+                                             </div>
+                                         )}
+                                         
+                                         {analysisData.analysis && (
+                                             <div>
+                                                 <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                                     <AlignLeft size={10} /> Tactical Breakdown
+                                                 </span>
+                                                 <p className="text-xs text-gray-300 leading-relaxed text-justify">
+                                                     {analysisData.analysis}
+                                                 </p>
+                                             </div>
+                                         )}
+
+                                         {analysisData.bullets.length > 0 && (
+                                             <div>
+                                                 <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
+                                                     <Crosshair size={10} /> Edge Execution
+                                                 </span>
+                                                 <ul className="flex flex-col gap-1.5">
+                                                     {analysisData.bullets.map((bullet, idx) => (
+                                                         <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-400">
+                                                             <div className="w-1 h-1 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                             <span className="leading-snug">{bullet}</span>
+                                                         </li>
+                                                     ))}
+                                                 </ul>
+                                             </div>
+                                         )}
+                                     </div>
+                                 </div>
+                             )}
+                         </div>
+                     )
+                 })}
+             </div>
           ) : (
              <motion.div 
                 variants={containerVariants}
