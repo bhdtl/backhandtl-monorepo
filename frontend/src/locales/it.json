@@ -197,7 +197,18 @@
       "surface": "Realtà Superficie",
       "tactical": "Vantaggio Tattico",
       "verdict": "Il Verdetto"
-    }
+    },
+    "loadingInitializing": "Inizializzazione...",
+    "loadingNeuralCore": "Inizializzazione nucleo neurale...",
+    "loadingCourtMetrics": "Analisi delle metriche del campo (BSI)...",
+    "loadingFormBiometrics": "Verifica della forma del giocatore e biometria...",
+    "loadingSimulations": "Esecuzione di simulazioni tattiche...",
+    "loadingCached": "Caricamento dell'intelligence memorizzata...",
+    "loadingFinalizing": "Finalizzazione del rapporto...",
+    "currentForm": "Forma Attuale",
+    "vaultEmptyTitle": "La libreria è vuota",
+    "vaultEmptyDesc": "Non hai ancora salvato alcuna informazione tattica. Esegui un'analisi nello Scanner e salvala per costruire la tua libreria personale.",
+    "vaultReturnBtn": "Torna allo Scanner"
   },
   "matchupCard": {
     "labels": {
@@ -620,7 +631,16 @@
     "today": "Oggi",
     "tomorrow": "Domani",
     "newBadge": "NUOVO",
-    "floatingFreebet": "25€ Freebet"
+    "floatingFreebet": "25€ Freebet",
+    "promoTitleScanner": "Ricevi una scommessa gratuita di 25€ senza deposito",
+    "promoSubtitleScanner": "Freebet esclusiva senza deposito per i nostri segnali di valore.",
+    "unlockBonus": "Sblocca Bonus",
+    "matchupFreebetIntel": "Info Freebet Incontro",
+    "matchupFreebetDesc": "Piazza la tua scommessa gratuita esclusiva di 25€ su {{name}} presso il nostro partner NEO.bet:",
+    "estimatedOdds": "Quota stimata:",
+    "potentialPayout": "Vincita potenziale:",
+    "netProfitLabel": "Profitto netto:",
+    "secureFreebetWager": "Assicura la scommessa gratuita e scommetti"
   },
   "partner": {
     "officialPartner": "Partner Ufficiale",

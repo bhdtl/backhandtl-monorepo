@@ -1114,15 +1114,15 @@ export function ValueScanner() {
                             <div>
                                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
                                     <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
-                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">Partner Promotion</span>
+                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Partner Promotion')}</span>
                                 </div>
-                                <h3 className="text-sm font-black text-white uppercase tracking-tight">Sichere dir 25€ Gratiswette ohne Einzahlung</h3>
-                                <p className="text-[11px] text-gray-500 font-semibold mt-0.5">Exklusive Freebet ohne Einzahlung für unsere Value-Signale.</p>
+                                <h3 className="text-sm font-black text-white uppercase tracking-tight">{t('picks.promoTitleScanner', 'Sichere dir 25€ Gratiswette ohne Einzahlung')}</h3>
+                                <p className="text-[11px] text-gray-500 font-semibold mt-0.5">{t('picks.promoSubtitleScanner', 'Exklusive Freebet ohne Einzahlung für unsere Value-Signale.')}</p>
                             </div>
                         </div>
                         
                         <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
-                            <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">Bonus freischalten</span>
+                            <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">{t('picks.unlockBonus', 'Bonus freischalten')}</span>
                             <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </motion.div>

@@ -197,7 +197,18 @@
       "surface": "Belag-Realität",
       "tactical": "Taktischer Vorteil",
       "verdict": "Das Urteil"
-    }
+    },
+    "loadingInitializing": "Initialisiere...",
+    "loadingNeuralCore": "Initialisiere neuronalen Kern...",
+    "loadingCourtMetrics": "Analysiere Court-Metriken (BSI)...",
+    "loadingFormBiometrics": "Prüfe Spielerform & Biometrie...",
+    "loadingSimulations": "Führe taktische Simulationen aus...",
+    "loadingCached": "Lade gecachte Intelligenz...",
+    "loadingFinalizing": "Finalisiere Bericht...",
+    "currentForm": "Aktuelle Form",
+    "vaultEmptyTitle": "Die Bibliothek ist leer",
+    "vaultEmptyDesc": "Du hast noch keine taktischen Informationen gespeichert. Führe eine Analyse im Scanner aus und speichere sie, um deine persönliche Bibliothek aufzubauen.",
+    "vaultReturnBtn": "Zurück zum Scanner"
   },
   "matchupCard": {
     "labels": {
@@ -620,7 +631,16 @@
     "today": "Heute",
     "tomorrow": "Morgen",
     "newBadge": "NEU",
-    "floatingFreebet": "25€ Freebet"
+    "floatingFreebet": "25€ Freebet",
+    "promoTitleScanner": "Sichere dir 25€ Gratiswette ohne Einzahlung",
+    "promoSubtitleScanner": "Exklusive Freebet ohne Einzahlung für unsere Value-Signale.",
+    "unlockBonus": "Bonus freischalten",
+    "matchupFreebetIntel": "Matchup Freebet Intel",
+    "matchupFreebetDesc": "Platziere deine exklusive 25€ Freebet auf {{name}} bei unserem Partner NEO.bet:",
+    "estimatedOdds": "Errechnete Quote:",
+    "potentialPayout": "Mögl. Auszahlung:",
+    "netProfitLabel": "Netto-Reingewinn:",
+    "secureFreebetWager": "Freebet sichern & wetten"
   },
   "partner": {
     "officialPartner": "Offizieller Partner",

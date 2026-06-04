@@ -517,6 +517,7 @@ function OverlappingRadar({ skillsA, skillsB }: { skillsA: any, skillsB: any }) 
 
 // --- NEU: HEAD-TO-HEAD COMPARISON HUD (APPLE-STYLE SOTA) ---
 function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { playerAData: any, playerBData: any, surface: string }) {
+    const { t } = useTranslation();
     if (!playerAData || !playerBData) return null;
 
     const getPlayerElo = (skills: any, surf: string) => {
@@ -699,7 +700,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                             {formA.toFixed(1)} Form
                         </span>
                         <span className="text-gray-500 font-black tracking-widest text-[9px]">
-                            Current Form {parseFloat(formDiff) > 0 ? `(Δ ${formDiff})` : ''}
+                            {t('matchup.currentForm', 'Current Form')} {parseFloat(formDiff) > 0 ? `(Δ ${formDiff})` : ''}
                         </span>
                         <span className={formB >= formA ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
                             Form {formB.toFixed(1)}
@@ -919,6 +920,7 @@ interface NeoBetMatchupPromoProps {
 }
 
 function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimPromo }: NeoBetMatchupPromoProps) {
+  const { t } = useTranslation();
   if (!analysisResult || !playerAData || !playerBData) return null;
 
   const { winner_prediction: winnerName, probA } = analysisResult;
@@ -943,27 +945,27 @@ function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimP
           <div className="flex items-center justify-center gap-2 mb-3">
               <Gift size={14} className="text-tennis-lime animate-bounce" />
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">
-                  Matchup Freebet Intel
+                  {t('picks.matchupFreebetIntel', 'Matchup Freebet Intel')}
               </span>
           </div>
 
           <p className="text-[11px] text-gray-400 font-medium leading-relaxed mb-4">
-              Platziere deine exklusive <span className="text-white font-bold">25€ Freebet</span> auf <span className="text-tennis-lime font-black">{cleanWinnerName}</span> bei unserem Partner NEO.bet:
+              {t('picks.matchupFreebetDesc', 'Platziere deine exklusive 25€ Freebet auf {{name}} bei unserem Partner NEO.bet:', { name: cleanWinnerName })}
           </p>
 
           <div className="bg-black/30 rounded-2xl p-4 border border-white/5 space-y-2 mb-4">
               <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                  <span>Errechnete Quote:</span>
+                  <span>{t('picks.estimatedOdds', 'Errechnete Quote:')}</span>
                   <span className="font-mono text-white font-black">@{estOdds.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                  <span>Mögl. Auszahlung:</span>
+                  <span>{t('picks.potentialPayout', 'Mögl. Auszahlung:')}</span>
                   <span className="font-mono text-white font-black">{potentialPayout.toFixed(2)} €</span>
               </div>
               <div className="h-px bg-white/5 my-1" />
               <div className="flex justify-between items-center text-[10px]">
                   <span className="text-tennis-lime font-black uppercase tracking-wider flex items-center gap-1">
-                      <Zap size={10} /> Netto-Reingewinn:
+                      <Zap size={10} /> {t('picks.netProfitLabel', 'Netto-Reingewinn:')}
                   </span>
                   <span className="font-mono font-black text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-xl border border-tennis-lime/20 shadow-[0_0_10px_rgba(204,255,0,0.15)]">
                       {netProfit.toFixed(2)} €
@@ -976,7 +978,7 @@ function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimP
               className="w-full py-3 bg-white hover:bg-tennis-lime text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all flex items-center justify-center gap-1.5 transform-gpu"
           >
               <Zap size={10} className="fill-current" />
-              <span>Freebet sichern & wetten</span>
+              <span>{t('picks.secureFreebetWager', 'Freebet sichern & wetten')}</span>
           </button>
       </motion.div>
   );
@@ -1022,7 +1024,7 @@ export function MatchupAnalyzer() {
   const [showRequirementAlert, setShowRequirementAlert] = useState(false);
 
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingStatusText, setLoadingStatusText] = useState("Initializing..."); 
+  const [loadingStatusText, setLoadingStatusText] = useState(() => t('matchup.loadingInitializing', 'Initializing...')); 
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [accessInfo, setAccessInfo] = useState<any>(null); 
@@ -1215,7 +1217,7 @@ export function MatchupAnalyzer() {
 
     setAnalysisResult(null);
     setLoadingProgress(0);
-    setLoadingStatusText("Initializing Neural Core...");
+    setLoadingStatusText(t('matchup.loadingNeuralCore', 'Initializing Neural Core...'));
 
     const intervalId = setInterval(() => {
         setLoadingProgress((prev) => {
@@ -1227,10 +1229,10 @@ export function MatchupAnalyzer() {
             else if (prev < 99) increment = 0.05; 
             else increment = 0; 
             const next = Math.min(prev + increment, 99.5);
-            if (next < 25) setLoadingStatusText("Initializing Neural Core...");
-            else if (next < 50) setLoadingStatusText("Analyzing Court Metrics (BSI)...");
-            else if (next < 75) setLoadingStatusText("Checking Player Form & Biometrics...");
-            else setLoadingStatusText("Running Tactical Simulations...");
+            if (next < 25) setLoadingStatusText(t('matchup.loadingNeuralCore', 'Initializing Neural Core...'));
+            else if (next < 50) setLoadingStatusText(t('matchup.loadingCourtMetrics', 'Analyzing Court Metrics (BSI)...'));
+            else if (next < 75) setLoadingStatusText(t('matchup.loadingFormBiometrics', 'Checking Player Form & Biometrics...'));
+            else setLoadingStatusText(t('matchup.loadingSimulations', 'Running Tactical Simulations...'));
             return next;
         });
     }, 100); 
@@ -1268,13 +1270,13 @@ export function MatchupAnalyzer() {
       const minLoadingTime = 3000; 
       
       if (data._cached && elapsedTime < minLoadingTime) {
-          setLoadingStatusText("Loading Cached Intelligence...");
+          setLoadingStatusText(t('matchup.loadingCached', 'Loading Cached Intelligence...'));
           await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
       }
 
       if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
       setLoadingProgress(100);
-      setLoadingStatusText("Finalizing Report...");
+      setLoadingStatusText(t('matchup.loadingFinalizing', 'Finalizing Report...'));
       
       setTimeout(() => {
           setAnalysisResult({ 
@@ -1830,12 +1832,12 @@ export function MatchupAnalyzer() {
                       <div className="w-20 h-20 bg-black/50 rounded-full flex items-center justify-center mb-6 border border-white/5">
                           <Archive size={32} className="text-gray-600" />
                       </div>
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest mb-3">Vault is Empty</h3>
+                      <h3 className="text-xl font-black text-white uppercase tracking-widest mb-3">{t('matchup.vaultEmptyTitle', 'Vault is Empty')}</h3>
                       <p className="text-sm text-gray-500 font-medium max-w-md leading-relaxed">
-                          You haven't saved any tactical intel yet. Run an analysis in the Scanner and save it to build your personal library.
+                          {t('matchup.vaultEmptyDesc', "You haven't saved any tactical intel yet. Run an analysis in the Scanner and save it to build your personal library.")}
                       </p>
                       <button onClick={() => setActiveTab('scanner')} className="mt-8 px-8 py-4 bg-[#15171e] hover:border-tennis-lime border border-white/10 rounded-2xl text-xs font-black text-white hover:text-tennis-lime uppercase tracking-widest transition-all">
-                          Return to Scanner
+                          {t('matchup.vaultReturnBtn', 'Return to Scanner')}
                       </button>
                   </div>
               ) : (

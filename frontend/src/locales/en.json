@@ -197,7 +197,18 @@
       "surface": "Surface Reality",
       "tactical": "Tactical Edge",
       "verdict": "The Verdict"
-    }
+    },
+    "loadingInitializing": "Initializing...",
+    "loadingNeuralCore": "Initializing Neural Core...",
+    "loadingCourtMetrics": "Analyzing Court Metrics (BSI)...",
+    "loadingFormBiometrics": "Checking Player Form & Biometrics...",
+    "loadingSimulations": "Running Tactical Simulations...",
+    "loadingCached": "Loading Cached Intelligence...",
+    "loadingFinalizing": "Finalizing Report...",
+    "currentForm": "Current Form",
+    "vaultEmptyTitle": "Vault is Empty",
+    "vaultEmptyDesc": "You haven't saved any tactical intel yet. Run an analysis in the Scanner and save it to build your personal library.",
+    "vaultReturnBtn": "Return to Scanner"
   },
   "matchupCard": {
     "labels": {
@@ -621,7 +632,16 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "newBadge": "NEW",
-    "floatingFreebet": "€25 Freebet"
+    "floatingFreebet": "€25 Freebet",
+    "promoTitleScanner": "Get a free €25 bet without deposit",
+    "promoSubtitleScanner": "Exclusive freebet without deposit for our Value signals.",
+    "unlockBonus": "Unlock Bonus",
+    "matchupFreebetIntel": "Matchup Freebet Intel",
+    "matchupFreebetDesc": "Place your exclusive €25 freebet on {{name}} at our partner NEO.bet:",
+    "estimatedOdds": "Estimated Odds:",
+    "potentialPayout": "Potential Payout:",
+    "netProfitLabel": "Net Profit:",
+    "secureFreebetWager": "Secure Freebet & Bet"
   },
   "partner": {
     "officialPartner": "Official Partner",
