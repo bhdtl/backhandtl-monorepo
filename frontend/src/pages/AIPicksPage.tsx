@@ -515,95 +515,121 @@ export function AIPicksPage() {
               </div>
           </motion.div>
 
-          {/* 🚀 NEU: PICK OF THE DAY HERO CARD */}
+          {/* 🚀 NEU: PICK OF THE DAY HERO CARD (Premium Apple/Revolut Redesign) */}
           {pickOfTheDay && (
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-10 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1d1f27] to-[#111317] border border-tennis-lime/30 p-6 md:p-8 shadow-[0_0_50px_rgba(204,255,0,0.06)] group hover:border-tennis-lime/60 transition-all duration-300"
+                className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1b1d24] via-[#15171d] to-[#0f1115] border border-white/5 p-6 md:p-10 shadow-[0_30px_100px_rgba(0,0,0,0.6)] group hover:border-tennis-lime/30 transition-all duration-500"
               >
+                  {/* Subtle Background Glows */}
                   {isMobile ? (
-                    <>
-                      <div 
-                        className="absolute top-0 right-0 w-80 h-80 -z-10 pointer-events-none" 
-                        style={{
-                          background: 'radial-gradient(circle at top right, rgba(132, 204, 22, 0.04) 0%, rgba(132, 204, 22, 0) 70%)'
-                        }}
-                      />
-                      <div 
-                        className="absolute bottom-0 left-0 w-80 h-80 -z-10 pointer-events-none" 
-                        style={{
-                          background: 'radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.03) 0%, rgba(168, 85, 247, 0) 70%)'
-                        }}
-                      />
-                    </>
+                    <div 
+                      className="absolute top-0 right-0 w-80 h-80 -z-10 pointer-events-none" 
+                      style={{
+                        background: 'radial-gradient(circle at top right, rgba(132, 204, 22, 0.05) 0%, rgba(132, 204, 22, 0) 70%)'
+                      }}
+                    />
                   ) : (
                     <>
-                      <div className="absolute top-0 right-0 w-80 h-80 bg-tennis-lime/5 rounded-full blur-[90px] pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
-                      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-[90px] pointer-events-none" />
+                      <div className="absolute top-0 right-0 w-96 h-96 bg-tennis-lime/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-tennis-lime/8 transition-all duration-700" />
+                      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
                     </>
                   )}
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/5 relative z-10">
-                      <div className="flex items-center gap-2.5">
-                          <div className="flex h-2.5 w-2.5 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-tennis-lime"></span>
-                          </div>
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-tennis-lime">
-                              Pick of the Day / Premium Selection
+                  {/* Header: Sleek Glowing Badge & Metadata */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5 relative z-10">
+                      <div className="flex flex-wrap items-center gap-3">
+                          <span className="inline-flex items-center gap-2.5 px-3 py-1 bg-tennis-lime text-black rounded-full text-[9px] font-black tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(132,204,22,0.3)]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span>
+                              Pick of the Day
+                          </span>
+                          <span className="text-gray-600 hidden sm:inline">|</span>
+                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                              <MapPin size={12} className="text-gray-500" />
+                              {pickOfTheDay.tournament}
                           </span>
                       </div>
-                      <div className="flex items-center gap-2 self-start sm:self-auto text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                          <MapPin size={10} className="text-gray-400" />
-                          <span className="truncate max-w-[150px] uppercase tracking-wider">{pickOfTheDay.tournament}</span>
-                          <span className="text-gray-600">|</span>
-                          <Clock size={10} className="text-gray-400" />
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-gray-500">
+                          <Clock size={12} className="text-gray-600" />
                           <span>{new Date(pickOfTheDay.match_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-gray-700 mx-1">•</span>
+                          <span className="text-[10px] uppercase font-sans tracking-wider font-extrabold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/10">Premium</span>
                       </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-                      <div className="lg:col-span-7 flex flex-col justify-center">
-                          <div className="flex items-center justify-between px-4 md:px-8 mb-6">
-                              <div className={`flex flex-col items-center w-[40%] text-center gap-3 ${pickOfTheDay.isPlayer1Target ? 'opacity-100' : 'opacity-50'}`}>
-                                  <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player1_name)} isTarget={pickOfTheDay.isPlayer1Target} />
-                                  <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">
-                                      {pickOfTheDay.player1_name.split(' ').pop()}
+                  {/* Body Content */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch relative z-10">
+                      
+                      {/* Left Column: Matchup & Play Suggestion */}
+                      <div className="lg:col-span-7 flex flex-col justify-between gap-6">
+                          
+                          {/* Scorecard-style Matchup */}
+                          <div className="flex items-center justify-between bg-black/20 rounded-[1.5rem] p-6 border border-white/5 relative overflow-hidden">
+                              
+                              {/* Player 1 */}
+                              <div className={`flex flex-col items-center w-[42%] gap-2.5 transition-all ${pickOfTheDay.isPlayer1Target ? 'scale-105' : 'opacity-40 grayscale-[50%]'}`}>
+                                  <div className="relative">
+                                      <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player1_name)} isTarget={pickOfTheDay.isPlayer1Target} />
+                                      {pickOfTheDay.isPlayer1Target && (
+                                          <span className="absolute -top-1 -right-1 bg-tennis-lime text-black p-0.5 rounded-full border border-[#1b1d24] shadow">
+                                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                          </span>
+                                      )}
+                                  </div>
+                                  <span className="text-xs sm:text-sm font-black uppercase tracking-tight text-white leading-tight text-center max-w-full truncate px-1">
+                                      {pickOfTheDay.player1_name}
                                   </span>
                               </div>
-                              <div className="w-10 h-10 rounded-full bg-black/50 border border-white/10 flex items-center justify-center text-xs font-black text-gray-500 shadow-inner">
-                                  VS
+
+                              {/* Center VS Divider */}
+                              <div className="flex flex-col items-center justify-center">
+                                  <div className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[9px] font-black text-gray-500 uppercase tracking-widest shadow-inner">
+                                      VS
+                                  </div>
                               </div>
-                              <div className={`flex flex-col items-center w-[40%] text-center gap-3 ${!pickOfTheDay.isPlayer1Target ? 'opacity-100' : 'opacity-50'}`}>
-                                  <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player2_name)} isTarget={!pickOfTheDay.isPlayer1Target} />
-                                  <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">
-                                      {pickOfTheDay.player2_name.split(' ').pop()}
+
+                              {/* Player 2 */}
+                              <div className={`flex flex-col items-center w-[42%] gap-2.5 transition-all ${!pickOfTheDay.isPlayer1Target ? 'scale-105' : 'opacity-40 grayscale-[50%]'}`}>
+                                  <div className="relative">
+                                      <PlayerAvatar player={getPlayerDetails(pickOfTheDay.player2_name)} isTarget={!pickOfTheDay.isPlayer1Target} />
+                                      {!pickOfTheDay.isPlayer1Target && (
+                                          <span className="absolute -top-1 -right-1 bg-tennis-lime text-black p-0.5 rounded-full border border-[#1b1d24] shadow">
+                                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                          </span>
+                                      )}
+                                  </div>
+                                  <span className="text-xs sm:text-sm font-black uppercase tracking-tight text-white leading-tight text-center max-w-full truncate px-1">
+                                      {pickOfTheDay.player2_name}
                                   </span>
                               </div>
+
                           </div>
 
-                          <div className="bg-black/40 rounded-2xl p-4 border border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-                              <div>
-                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 font-mono">RECOMMENDED PLAY</div>
-                                  <div className="text-base font-black text-white uppercase tracking-tight">
+                          {/* Recommended Play Block */}
+                          <div className="bg-black/30 rounded-[1.5rem] p-5 border border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                              <div className="w-full sm:w-auto text-center sm:text-left">
+                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em] mb-1 font-mono">RECOMMENDED SELECTION</div>
+                                  <div className="text-lg font-black text-white uppercase tracking-tight">
                                       {displayPickName(pickOfTheDay.parsedVal.pickName)}
                                   </div>
                               </div>
-                              <div className="flex gap-4 shrink-0">
-                                  <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/5 flex flex-col items-center">
+                              <div className="flex gap-3 w-full sm:w-auto shrink-0 justify-center">
+                                  <div className="bg-white/[0.03] px-4 py-2.5 rounded-xl border border-white/5 flex flex-col items-center min-w-[70px]">
                                       <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Odds</span>
-                                      <span className="text-base font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
+                                      <span className="text-sm font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
                                   </div>
-                                  <div className="bg-tennis-lime/10 px-4 py-2 rounded-xl border border-tennis-lime/20 flex flex-col items-center">
+                                  <div className="bg-tennis-lime/10 px-4 py-2.5 rounded-xl border border-tennis-lime/20 flex flex-col items-center min-w-[70px]">
                                       <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">True Edge</span>
-                                      <span className="text-base font-mono font-black text-tennis-lime">+{pickOfTheDay.parsedVal.edge.toFixed(1)}%</span>
+                                      <span className="text-sm font-mono font-black text-tennis-lime">+{pickOfTheDay.parsedVal.edge.toFixed(1)}%</span>
                                   </div>
                               </div>
                           </div>
+
                       </div>
 
-                      <div className="lg:col-span-5 bg-black/40 rounded-3xl p-5 md:p-6 border border-white/5 flex flex-col justify-between h-full relative overflow-hidden group/calc">
+                      {/* Right Column: Revolut-Style Value Conversion Calculator */}
+                      <div className="lg:col-span-5 bg-black/40 rounded-[1.5rem] p-6 border border-white/5 flex flex-col justify-between gap-6 relative overflow-hidden group/calc">
                           {isMobile ? (
                               <div 
                                 className="absolute -top-10 -right-10 w-24 h-24 -z-10 pointer-events-none"
@@ -615,30 +641,32 @@ export function AIPicksPage() {
                               <div className="absolute -top-10 -right-10 w-24 h-24 bg-tennis-lime/10 rounded-full blur-xl pointer-events-none group-hover/calc:bg-tennis-lime/20 transition-all duration-300" />
                           )}
                           
-                          <div className="flex items-center gap-2 mb-4">
-                              <Gift size={16} className="text-tennis-lime animate-pulse" />
-                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">Freebet ROI Calculator</span>
-                          </div>
+                          <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                  <div className="p-1 bg-tennis-lime/10 rounded-lg border border-tennis-lime/20">
+                                      <Gift size={14} className="text-tennis-lime animate-pulse" />
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-tennis-lime">Freebet Value Calculator</span>
+                              </div>
+                              
+                              <p className="text-[11px] font-medium text-gray-400 mb-4 leading-relaxed">
+                                  Wende deine <strong>25€ Freiwette</strong> risikofrei auf diese Auswahl an und sichere dir einen garantierten Netto-Gewinn:
+                              </p>
 
-                          <div className="space-y-3 mb-6">
-                              <div className="flex justify-between items-center">
-                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Freebet-Einsatz:</span>
-                                  <span className="text-xs font-mono font-bold text-white bg-white/5 px-2.5 py-1 rounded">25.00 €</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Mögl. Auszahlung:</span>
-                                  <span className="text-xs font-mono font-black text-white bg-white/5 px-2.5 py-1 rounded">
-                                      {(25 * pickOfTheDay.parsedVal.marketOdds).toFixed(2)} €
-                                  </span>
-                              </div>
-                              <div className="h-px bg-white/5 my-1" />
-                              <div className="flex justify-between items-center">
-                                  <span className="text-[10px] text-tennis-lime font-black uppercase tracking-wider flex items-center gap-1">
-                                      <Zap size={10} /> Netto-Reingewinn:
-                                  </span>
-                                  <span className="text-lg font-mono font-black text-tennis-lime bg-tennis-lime/10 px-3 py-1.5 rounded-xl border border-tennis-lime/20 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
-                                      {(25 * (pickOfTheDay.parsedVal.marketOdds - 1)).toFixed(2)} €
-                                  </span>
+                              {/* Metric Cards Flow */}
+                              <div className="grid grid-cols-3 gap-2.5 mb-2">
+                                  <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">FREEBET</span>
+                                      <span className="text-xs font-mono font-black text-white">25 €</span>
+                                  </div>
+                                  <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
+                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">ODDS</span>
+                                      <span className="text-xs font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
+                                  </div>
+                                  <div className="bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_0_15px_rgba(132,204,22,0.05)]">
+                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-wider mb-1">NET PROFIT</span>
+                                      <span className="text-xs font-mono font-black text-tennis-lime">{(25 * (pickOfTheDay.parsedVal.marketOdds - 1)).toFixed(2)} €</span>
+                                  </div>
                               </div>
                           </div>
 
@@ -649,12 +677,14 @@ export function AIPicksPage() {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full py-3.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:scale-[1.01] active:scale-[0.99] transition-all hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] flex items-center justify-center gap-2 transform-gpu"
+                              className="w-full py-4 bg-gradient-to-r from-tennis-lime to-emerald-400 text-black font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu hover:scale-[1.01] active:scale-[0.99]"
                           >
-                              <Zap size={12} className="fill-current" />
-                              <span>Tipp platzieren mit 25€ Freebet</span>
+                              <Zap size={14} className="fill-current text-black" />
+                              <span>25€ Freebet einlösen</span>
                           </a>
+
                       </div>
+
                   </div>
               </motion.div>
           )}
