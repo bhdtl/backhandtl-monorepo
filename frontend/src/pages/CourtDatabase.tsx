@@ -158,15 +158,15 @@ export function CourtDatabase() {
             {t('courtDatabase.title')}
           </h1>
           <p className="text-gray-400 font-medium max-w-2xl text-sm md:text-base leading-relaxed">
-            AI analysed court speed index and tournament conditions.
+            {t('courtDatabase.subtitle')}
           </p>
         </div>
 
         <PremiumLock
           isLocked={!isElite}
           minTier="ELITE"
-          title="Elite Court Intelligence"
-          description="Access our comprehensive database of professional court surfaces and their unique characteristics. Upgrade to Elite for data-driven court analysis."
+          title={t('courtDatabase.premiumTitle')}
+          description={t('courtDatabase.premiumDesc')}
           blurAmount="blur-lg"
         >
         {/* CONTROLS SECTION - Responsive Layout */}
@@ -330,7 +330,7 @@ export function CourtDatabase() {
         
         <div className="mt-6 text-center">
             <p className="text-[#343a46] text-[10px] uppercase font-black tracking-[0.2em]">
-                Verified by Tennis AI Engine
+                {t('courtDatabase.verifiedBy')}
             </p>
         </div>
         </PremiumLock>

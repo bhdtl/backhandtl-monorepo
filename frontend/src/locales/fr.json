@@ -294,7 +294,12 @@
     "noData": {
       "title": "Pas encore de données",
       "message": "Dès que l'IA vérifiera les résultats, ils apparaîtront ici automatiquement."
-    }
+    },
+    "brierDesc": "Le score de Brier mesure l'étalonnage absolu de nos probabilités de cotes équitables. Il quantifie l'erreur de prédiction quadratique moyenne par rapport aux résultats réels du match.",
+    "brierFootnote": "Un score de Brier plus bas confirme que l'IA calcule des probabilités correspondant à la réalité mathématique.",
+    "pValueDesc": "La valeur p est basée sur le prestigieux test t de Buchdahl pour l'efficacité des paris. Elle calcule la probabilité que notre performance (ROI) soit le produit d'une pure chance ou d'une variance aléatoire.",
+    "pValueFootnote": "Notre certitude de compétence actuelle est de {{certainty}}%, ce qui prouve mathématiquement que nous battons le marché.",
+    "understood": "Compris"
   },
   "watchlist": {
     "loading": "Synchro Liste...",
@@ -338,7 +343,10 @@
       "details": "Détails"
     },
     "noResults": "Aucun tournoi trouvé",
-    "clearFilters": "Effacer les filtres"
+    "clearFilters": "Effacer les filtres",
+    "premiumTitle": "Intelligence de Court Élite",
+    "premiumDesc": "Accédez à notre base de données complète des surfaces de courts professionnels et de leurs caractéristiques uniques. Passez à Elite pour des analyses de courts basées sur les données.",
+    "verifiedBy": "Vérifié par le Moteur d'IA de Tennis"
   },
   "courtProfile": {
     "analyzing": "Analyse Physique du Court...",

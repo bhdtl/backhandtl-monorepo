@@ -294,7 +294,12 @@
     "noData": {
       "title": "No Data Yet",
       "message": "Once the AI verifies match results, they will appear here automatically."
-    }
+    },
+    "brierDesc": "The Brier score measures the absolute calibration of our fair odds probabilities. It quantifies the mean squared prediction error against actual match outcomes.",
+    "brierFootnote": "A lower Brier score confirms that the AI computes probabilities matching mathematical reality.",
+    "pValueDesc": "The p-value is based on the prestigious Buchdahl t-test for betting efficiency. It calculates the probability that our performance (ROI) is a product of pure luck or random variance.",
+    "pValueFootnote": "Our current skill certainty is {{certainty}}%, proving mathematically that we are beating the market.",
+    "understood": "Understood"
   },
   "watchlist": {
     "loading": "Syncing Watchlist...",
@@ -338,7 +343,10 @@
       "details": "Details"
     },
     "noResults": "No matching tournaments found",
-    "clearFilters": "Clear all filters"
+    "clearFilters": "Clear all filters",
+    "premiumTitle": "Elite Court Intelligence",
+    "premiumDesc": "Access our comprehensive database of professional court surfaces and their unique characteristics. Upgrade to Elite for data-driven court analysis.",
+    "verifiedBy": "Verified by Tennis AI Engine"
   },
   "courtProfile": {
     "analyzing": "Analyzing Court Physics...",

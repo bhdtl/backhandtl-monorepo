@@ -294,7 +294,12 @@
     "noData": {
       "title": "Noch keine Daten",
       "message": "Sobald die KI Spielergebnisse verifiziert, erscheinen sie hier automatisch."
-    }
+    },
+    "brierDesc": "Der Brier-Score misst die absolute Kalibrierung unserer Fair-Odds-Wahrscheinlichkeiten. Er quantifiziert den mittleren quadratischen Vorhersagefehler gegenüber den tatsächlichen Spielergebnissen.",
+    "brierFootnote": "Ein niedriger Brier-Score bestätigt, dass die KI Wahrscheinlichkeiten berechnet, die der mathematischen Realität entsprechen.",
+    "pValueDesc": "Der p-Wert basiert auf dem renommierten Buchdahl-t-Test für Sportwetten-Effizienz. Er berechnet die Wahrscheinlichkeit, dass unsere Rendite (ROI) durch reinen Zufall oder Glück zustande gekommen ist.",
+    "pValueFootnote": "Unsere aktuelle Skill-Sicherheit liegt bei {{certainty}}%, was bedeutet, dass der Markt statistisch nachweisbar geschlagen wird.",
+    "understood": "Verstanden"
   },
   "watchlist": {
     "loading": "Synchronisiere Watchlist...",
@@ -338,7 +343,10 @@
       "details": "Details"
     },
     "noResults": "Keine passenden Turniere gefunden",
-    "clearFilters": "Alle Filter zurücksetzen"
+    "clearFilters": "Alle Filter zurücksetzen",
+    "premiumTitle": "Elite Court Intelligence",
+    "premiumDesc": "Greife auf unsere umfassende Datenbank professioneller Tennisplätze und deren einzigartige Eigenschaften zu. Upgrade auf Elite für datengestützte Court-Analysen.",
+    "verifiedBy": "Verifiziert durch Tennis-KI-Engine"
   },
   "courtProfile": {
     "analyzing": "Analysiere Court-Physik...",

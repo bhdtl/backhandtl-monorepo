@@ -1447,14 +1447,12 @@ export function PerformancePage() {
                 </button>
               </div>
 
-              {/* Description */}
+               {/* Description */}
               <div className="space-y-4 text-xs leading-relaxed text-gray-300 font-medium">
                 {activeStatInfo === 'brier' ? (
                   <>
                     <p>
-                      {i18n.language.startsWith('de')
-                        ? 'Der Brier-Score misst die absolute Kalibrierung unserer Fair-Odds-Wahrscheinlichkeiten. Er quantifiziert den mittleren quadratischen Vorhersagefehler gegenüber den tatsächlichen Spielergebnissen.'
-                        : 'The Brier score measures the absolute calibration of our fair odds probabilities. It quantifies the mean squared prediction error against actual match outcomes.'}
+                      {t('performance.brierDesc')}
                     </p>
                     <div className="bg-black/30 border border-white/5 rounded-xl p-3 font-mono text-[10px] text-gray-400 text-center">
                       BS = (1/N) * Σ (p_t - o_t)²
@@ -1474,17 +1472,13 @@ export function PerformancePage() {
                       </div>
                     </div>
                     <p className="text-[10px] text-gray-500 italic">
-                      {i18n.language.startsWith('de')
-                        ? 'Ein niedriger Brier-Score bestätigt, dass die KI Wahrscheinlichkeiten berechnet, die der mathematischen Realität entsprechen.'
-                        : 'A lower Brier score confirms that the AI computes probabilities matching mathematical reality.'}
+                      {t('performance.brierFootnote')}
                     </p>
                   </>
                 ) : (
                   <>
                     <p>
-                      {i18n.language.startsWith('de')
-                        ? 'Der p-Wert basiert auf dem renommierten Buchdahl-t-Test für Sportwetten-Effizienz. Er berechnet die Wahrscheinlichkeit, dass unsere Rendite (ROI) durch reinen Zufall oder Glück zustande gekommen ist.'
-                        : 'The p-value is based on the prestigious Buchdahl t-test for betting efficiency. It calculates the probability that our performance (ROI) is a product of pure luck or random variance.'}
+                      {t('performance.pValueDesc')}
                     </p>
                     <div className="bg-black/30 border border-white/5 rounded-xl p-3 font-mono text-[10px] text-gray-400 text-center">
                       p-Wert = P(ROI_zufall ≥ ROI_beobachtet)
@@ -1500,9 +1494,7 @@ export function PerformancePage() {
                       </div>
                     </div>
                     <p className="text-[10px] text-gray-500 italic">
-                      {i18n.language.startsWith('de')
-                        ? 'Unsere aktuelle Skill-Sicherheit liegt bei ' + stats.skillCertainty.toFixed(2) + '%, was bedeutet, dass der Markt statistisch nachweisbar geschlagen wird.'
-                        : 'Our current skill certainty is ' + stats.skillCertainty.toFixed(2) + '%, proving mathematically that we are beating the market.'}
+                      {t('performance.pValueFootnote', { certainty: stats.skillCertainty.toFixed(2) })}
                     </p>
                   </>
                 )}
@@ -1513,7 +1505,7 @@ export function PerformancePage() {
                 onClick={() => setActiveStatInfo(null)}
                 className={`w-full mt-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs text-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg ${activeStatInfo === 'brier' ? 'bg-tennis-lime hover:bg-[#b5e000]' : 'bg-blue-400 hover:bg-blue-500'}`}
               >
-                {i18n.language.startsWith('de') ? 'Verstanden' : 'Understood'}
+                {t('performance.understood')}
               </button>
             </motion.div>
           </div>

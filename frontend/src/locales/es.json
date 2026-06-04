@@ -294,7 +294,12 @@
     "noData": {
       "title": "Aún sin datos",
       "message": "Una vez que la IA verifique los resultados, aparecerán aquí automáticamente."
-    }
+    },
+    "brierDesc": "El Brier score mide la calibración absoluta de nuestras probabilidades de cuotas justas. Cuantifica el error cuadrático medio de predicción frente a los resultados reales del partido.",
+    "brierFootnote": "Un Brier score más bajo confirma que la IA calcula probabilidades que coinciden con la realidad matemática.",
+    "pValueDesc": "El valor p se basa en la prestigiosa prueba t de Buchdahl para la eficiencia de las apuestas. Calcula la probabilidad de que nuestro rendimiento (ROI) sea producto de la pura suerte o de la varianza aleatoria.",
+    "pValueFootnote": "Nuestra certeza de habilidad actual es del {{certainty}}%, lo que demuestra matemáticamente que estamos superando al mercado.",
+    "understood": "Entendido"
   },
   "watchlist": {
     "loading": "Sincronizando Lista...",
@@ -338,7 +343,10 @@
       "details": "Detalles"
     },
     "noResults": "No se encontraron torneos",
-    "clearFilters": "Borrar filtros"
+    "clearFilters": "Borrar filtros",
+    "premiumTitle": "Inteligencia de Pistas de Élite",
+    "premiumDesc": "Acceda a nuestra base de datos completa de superficies de pistas profesionales y sus características únicas. Actualice a Elite para obtener análisis de pistas basados en datos.",
+    "verifiedBy": "Verificado por el Motor de IA de Tenis"
   },
   "courtProfile": {
     "analyzing": "Analizando Física de Pista...",

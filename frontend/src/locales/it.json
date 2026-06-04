@@ -294,7 +294,12 @@
     "noData": {
       "title": "Nessun dato ancora",
       "message": "Appena l'IA verificherà i risultati, appariranno qui automaticamente."
-    }
+    },
+    "brierDesc": "Il Brier score misura la calibrazione assoluta delle nostre probabilità di quote eque. Quantifica l'errore quadratico medio di previsione rispetto ai risultati effettivi dell'incontro.",
+    "brierFootnote": "Un Brier score inferiore conferma che l'IA calcola probabilità corrispondenti alla realtà matematica.",
+    "pValueDesc": "Il valore p si basa sul prestigioso t-test di Buchdahl per l'efficienza delle scommesse. Calcola la probabilità che il nostro rendimento (ROI) sia il prodotto di pura fortuna o di varianza casuale.",
+    "pValueFootnote": "La nostra attuale certezza di abilità è del {{certainty}}%, dimostrando matematicamente che stiamo battendo il mercato.",
+    "understood": "Capito"
   },
   "watchlist": {
     "loading": "Sincronizzazione...",
@@ -338,7 +343,10 @@
       "details": "Dettagli"
     },
     "noResults": "Nessun torneo trovato",
-    "clearFilters": "Cancella filtri"
+    "clearFilters": "Cancella filtri",
+    "premiumTitle": "Intelligence di Campi d'Élite",
+    "premiumDesc": "Accedi al nostro database completo delle superfici dei campi professionistici e delle loro caratteristiche uniche. Passa a Elite per analisi dei campi basate sui dati.",
+    "verifiedBy": "Verificato dal Motore di IA del Tennis"
   },
   "courtProfile": {
     "analyzing": "Analisi Fisica Campo...",
