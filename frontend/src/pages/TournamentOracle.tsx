@@ -87,8 +87,12 @@ style.textContent = `
     border-radius: 1.1rem;
     background: linear-gradient(90deg, rgba(132,204,22,0.1), rgba(132,204,22,0.8), rgba(132,204,22,0.1));
     background-size: 200% 200%;
-    animation: border-flow 3s ease infinite;
     z-index: -1;
+  }
+  @media (min-width: 768px) {
+    .liquid-winner-border::before {
+      animation: border-flow 3s ease infinite;
+    }
   }
   .liquid-winner-inner {
     background: #111318;
@@ -115,6 +119,14 @@ export function TournamentOracle() {
   const [draws, setDraws] = useState<OracleDraw[]>([]);
   const [playerDict, setPlayerDict] = useState<Map<string, PlayerInfo>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // States für Filter
   const [selectedDisplayTour, setSelectedDisplayTour] = useState<string | null>(null);
@@ -306,7 +318,7 @@ export function TournamentOracle() {
       <ScrollToTop />
       
       {/* Subtle Ambient Background */}
-      <div className="absolute top-0 right-0 w-[80vw] h-[80vh] bg-tennis-lime/5 blur-[200px] rounded-full -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[50vw] h-[50vh] md:w-[80vw] md:h-[80vh] bg-tennis-lime/5 blur-[100px] md:blur-[200px] rounded-full -z-10 pointer-events-none transform-gpu" />
 
       <div className="pt-24 px-0 md:px-4 max-w-5xl mx-auto">
         
@@ -427,7 +439,9 @@ export function TournamentOracle() {
                                       initial={{ opacity: 0, y: 20 }}
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, scale: 0.95 }}
-                                      transition={{ type: "spring", stiffness: 300, damping: 25, delay: idx * 0.05 }}
+                                      transition={isMobile 
+                                          ? { duration: 0.25, ease: "easeOut", delay: Math.min(idx * 0.02, 0.2) }
+                                          : { type: "spring", stiffness: 300, damping: 25, delay: idx * 0.05 }}
                                       key={match.id} 
                                       className="group bg-[#1a1d26] border border-white/5 hover:border-white/10 rounded-[2rem] p-5 md:p-6 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-lg"
                                   >
@@ -447,7 +461,7 @@ export function TournamentOracle() {
                                               <div className={`liquid-winner-inner flex items-center justify-between px-4 md:px-5 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p1Info?.profile_image_url ? (
-                                                          <img src={p1Info.profile_image_url} alt={match.player_a_name} className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                          <img src={p1Info.profile_image_url} alt={match.player_a_name} loading="lazy" className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
                                                       ) : (
                                                           <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
@@ -475,7 +489,7 @@ export function TournamentOracle() {
                                               <div className={`liquid-winner-inner flex items-center justify-between px-4 md:px-5 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p2Info?.profile_image_url ? (
-                                                          <img src={p2Info.profile_image_url} alt={match.player_b_name} className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
+                                                          <img src={p2Info.profile_image_url} alt={match.player_b_name} loading="lazy" className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover bg-black/40 border border-white/10" />
                                                       ) : (
                                                           <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
