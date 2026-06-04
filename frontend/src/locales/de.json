@@ -640,7 +640,9 @@
     "estimatedOdds": "Errechnete Quote:",
     "potentialPayout": "Mögl. Auszahlung:",
     "netProfitLabel": "Netto-Reingewinn:",
-    "secureFreebetWager": "Freebet sichern & wetten"
+    "secureFreebetWager": "Freebet sichern & wetten",
+    "historicalPatternRisk": "Historisches Musterrisiko",
+    "historicalPatternEdge": "Historischer Mustervorteil"
   },
   "partner": {
     "officialPartner": "Offizieller Partner",

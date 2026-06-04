@@ -921,7 +921,7 @@ export function AIPicksPage() {
                                                   <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
                                                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
                                                       <div>
-                                                          <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
+                                                          <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
                                                           <div className="text-[10px] text-red-100/80 font-medium leading-snug">
                                                               {pick.games_prediction.pattern_warning}
                                                           </div>
@@ -933,7 +933,7 @@ export function AIPicksPage() {
                                                   <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
                                                       <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
                                                       <div>
-                                                          <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
+                                                          <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
                                                           <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
                                                               {pick.games_prediction.pattern_boost}
                                                           </div>
@@ -1193,28 +1193,28 @@ export function AIPicksPage() {
                                                  )}
 
                                                  {pick.games_prediction?.pattern_warning && (
-                                                      <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
-                                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
-                                                          <div>
-                                                              <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
-                                                              <div className="text-[10px] text-red-100/80 font-medium leading-snug">
-                                                                  {pick.games_prediction.pattern_warning}
-                                                              </div>
-                                                          </div>
-                                                      </div>
-                                                  )}
+                                                     <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                         <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
+                                                         <div>
+                                                             <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
+                                                             <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                                 {pick.games_prediction.pattern_warning}
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 )}
 
-                                                  {pick.games_prediction?.pattern_boost && (
-                                                      <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
-                                                          <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
-                                                          <div>
-                                                              <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
-                                                              <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
-                                                                  {pick.games_prediction.pattern_boost}
-                                                              </div>
-                                                          </div>
-                                                      </div>
-                                                  )}
+                                                 {pick.games_prediction?.pattern_boost && (
+                                                     <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                         <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                         <div>
+                                                             <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
+                                                             <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                                 {pick.games_prediction.pattern_boost}
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 )}
                                                  
                                                  {/* Line Movement Alert */}
                                                  {pick.movement.hasMovement && !pick.derivativeAlert && (

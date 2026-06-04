@@ -929,7 +929,7 @@ export function ValueScanner() {
                             <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3 shadow-inner">
                                 <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
                                 <div>
-                                    <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Historical Pattern Risk</div>
+                                    <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
                                     <div className="text-xs text-red-100 font-medium leading-snug">{match.games_prediction.pattern_warning}</div>
                                 </div>
                             </div>
@@ -939,7 +939,7 @@ export function ValueScanner() {
                             <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/30 rounded-lg p-3 flex items-start gap-3 shadow-inner">
                                 <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
                                 <div>
-                                    <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">Historical Pattern Edge</div>
+                                    <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
                                     <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{match.games_prediction.pattern_boost}</div>
                                 </div>
                             </div>

@@ -640,7 +640,9 @@
     "estimatedOdds": "Cote estimée :",
     "potentialPayout": "Gain potentiel :",
     "netProfitLabel": "Bénéfice net :",
-    "secureFreebetWager": "Sécuriser le pari gratuit et parier"
+    "secureFreebetWager": "Sécuriser le pari gratuit et parier",
+    "historicalPatternRisk": "Risque de modèle historique",
+    "historicalPatternEdge": "Avantage du modèle historique"
   },
   "partner": {
     "officialPartner": "Partenaire Officiel",

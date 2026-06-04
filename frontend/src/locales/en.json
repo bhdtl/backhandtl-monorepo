@@ -641,7 +641,9 @@
     "estimatedOdds": "Estimated Odds:",
     "potentialPayout": "Potential Payout:",
     "netProfitLabel": "Net Profit:",
-    "secureFreebetWager": "Secure Freebet & Bet"
+    "secureFreebetWager": "Secure Freebet & Bet",
+    "historicalPatternRisk": "Historical Pattern Risk",
+    "historicalPatternEdge": "Historical Pattern Edge"
   },
   "partner": {
     "officialPartner": "Official Partner",

@@ -640,7 +640,9 @@
     "estimatedOdds": "Quota stimata:",
     "potentialPayout": "Vincita potenziale:",
     "netProfitLabel": "Profitto netto:",
-    "secureFreebetWager": "Assicura la scommessa gratuita e scommetti"
+    "secureFreebetWager": "Assicura la scommessa gratuita e scommetti",
+    "historicalPatternRisk": "Rischio pattern storico",
+    "historicalPatternEdge": "Vantaggio pattern storico"
   },
   "partner": {
     "officialPartner": "Partner Ufficiale",
