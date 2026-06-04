@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumLock } from '../components/PremiumLock';
 import { useAccess } from '../hooks/useAccess';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
+import { localizeBackendText } from '../utils/localizer';
 
 // --- TYPES ---
 interface Player {
@@ -911,7 +912,7 @@ export function AIPicksPage() {
                                                      <div>
                                                          <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
                                                          <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
-                                                             {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
+                                                             {localizeBackendText(pick.derivativeAlert, t)}
                                                          </div>
                                                      </div>
                                                  </div>
@@ -923,7 +924,7 @@ export function AIPicksPage() {
                                                       <div>
                                                           <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
                                                           <div className="text-[10px] text-red-100/80 font-medium leading-snug">
-                                                              {pick.games_prediction.pattern_warning}
+                                                              {localizeBackendText(pick.games_prediction.pattern_warning, t)}
                                                           </div>
                                                       </div>
                                                   </div>
@@ -935,7 +936,7 @@ export function AIPicksPage() {
                                                       <div>
                                                           <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
                                                           <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
-                                                              {pick.games_prediction.pattern_boost}
+                                                              {localizeBackendText(pick.games_prediction.pattern_boost, t)}
                                                           </div>
                                                       </div>
                                                   </div>
@@ -1186,7 +1187,7 @@ export function AIPicksPage() {
                                                          <div>
                                                              <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
                                                              <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
-                                                                 {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
+                                                                 {localizeBackendText(pick.derivativeAlert, t)}
                                                              </div>
                                                          </div>
                                                      </div>
@@ -1198,7 +1199,7 @@ export function AIPicksPage() {
                                                          <div>
                                                              <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
                                                              <div className="text-[10px] text-red-100/80 font-medium leading-snug">
-                                                                 {pick.games_prediction.pattern_warning}
+                                                                 {localizeBackendText(pick.games_prediction.pattern_warning, t)}
                                                              </div>
                                                          </div>
                                                      </div>
@@ -1210,7 +1211,7 @@ export function AIPicksPage() {
                                                          <div>
                                                              <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
                                                              <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
-                                                                 {pick.games_prediction.pattern_boost}
+                                                                 {localizeBackendText(pick.games_prediction.pattern_boost, t)}
                                                              </div>
                                                          </div>
                                                      </div>

@@ -9,6 +9,7 @@ import {
 import { ScrollToTop } from '../components/ScrollToTop';
 import { LoadingScreen } from '../components/LoadingScreen'; 
 import { useTranslation } from 'react-i18next';
+import { localizeBackendText } from '../utils/localizer';
 import { useAccess } from '../hooks/useAccess';
 import { motion } from 'framer-motion';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
@@ -920,7 +921,7 @@ export function ValueScanner() {
                                 <AlertTriangle className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
                                 <div>
                                     <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Derivative Edge Detected</div>
-                                    <div className="text-xs text-orange-100 font-medium leading-snug">{match.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', '').replace('🔥 MASSIVE UNDER EDGE:', '').trim()}</div>
+                                    <div className="text-xs text-orange-100 font-medium leading-snug">{localizeBackendText(match.derivativeAlert, t)}</div>
                                 </div>
                             </div>
                         )}
@@ -930,7 +931,7 @@ export function ValueScanner() {
                                 <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
                                 <div>
                                     <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
-                                    <div className="text-xs text-red-100 font-medium leading-snug">{match.games_prediction.pattern_warning}</div>
+                                    <div className="text-xs text-red-100 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_warning, t)}</div>
                                 </div>
                             </div>
                         )}
@@ -940,7 +941,7 @@ export function ValueScanner() {
                                 <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
                                 <div>
                                     <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
-                                    <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{match.games_prediction.pattern_boost}</div>
+                                    <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_boost, t)}</div>
                                 </div>
                             </div>
                         )}

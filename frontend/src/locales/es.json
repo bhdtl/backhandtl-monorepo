@@ -642,7 +642,22 @@
     "netProfitLabel": "Beneficio neto:",
     "secureFreebetWager": "Asegurar apuesta gratuita y apostar",
     "historicalPatternRisk": "Riesgo de patrón histórico",
-    "historicalPatternEdge": "Ventaja de patrón histórico"
+    "historicalPatternEdge": "Ventaja de patrón histórico",
+    "clay": "Tierra batida",
+    "hard": "Pista dura",
+    "grass": "Hierba",
+    "carpet": "Moqueta",
+    "over": "MÁS",
+    "under": "MENOS",
+    "patternLowDataSparse": "Advertencia de datos escasos: {{name}} tiene datos históricos escasos en {{surface}} ({{wins}}V-{{losses}}D), reduciendo la apuesta en un 30%.",
+    "patternLowDataNoProfile": "Advertencia de datos escasos: {{name}} no tiene perfil histórico en {{surface}}, reduciendo la apuesta en un 30%.",
+    "patternCaliberWarning": "Advertencia de nivel de oponente: {{name}} tiene dificultades contra oponentes con ELO similar en {{surface}} con una tasa de victorias del {{winRate}} ({{wins}}V-{{losses}}D) y un margen de {{margin}} juegos.",
+    "patternSurfaceStrength": "Especialista en superficie: {{name}} tiene una fuerte tasa de victorias del {{winRate}} ({{wins}}V-{{losses}}D) en {{surface}}.",
+    "patternSurfaceProfile": "Perfil de superficie: {{name}} tiene una tasa de victorias del {{winRate}} ({{wins}}V-{{losses}}D) en {{surface}}.",
+    "patternCaliberStrength": "Rendimiento contra nivel similar: {{name}} ha ganado el {{winRate}} ({{wins}}V-{{losses}}D) contra oponentes con ELO similar ({{elo1}}-{{elo2}}) en {{surface}}, cubriendo por {{margin}} juegos.",
+    "patternCoverRisk": "Riesgo de cobertura histórico: {{name}} ha cubierto el hándicap {{spread}} en solo el {{winRate}} de los partidos recientes en {{surface}}.",
+    "patternCoverRate": "Tasa de cobertura histórica: {{name}} ha cubierto el hándicap {{spread}} en el {{winRate}} de los partidos recientes en {{surface}}.",
+    "patternMassiveEdge": "VENTAJA {{type}} MASIVA: El modelo y la historia proyectan {{projected}} juegos frente a la línea de la casa de apuestas de {{line}}."
   },
   "partner": {
     "officialPartner": "Socio Oficial",

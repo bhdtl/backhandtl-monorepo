@@ -643,7 +643,22 @@
     "netProfitLabel": "Net Profit:",
     "secureFreebetWager": "Secure Freebet & Bet",
     "historicalPatternRisk": "Historical Pattern Risk",
-    "historicalPatternEdge": "Historical Pattern Edge"
+    "historicalPatternEdge": "Historical Pattern Edge",
+    "clay": "Clay",
+    "hard": "Hard",
+    "grass": "Grass",
+    "carpet": "Carpet",
+    "over": "OVER",
+    "under": "UNDER",
+    "patternLowDataSparse": "Low Data Warning: {{name}} has sparse historical data on {{surface}} ({{wins}}W-{{losses}}L), scaling down stake by 30%.",
+    "patternLowDataNoProfile": "Low Data Warning: {{name}} has no historical profile on {{surface}}, scaling down stake by 30%.",
+    "patternCaliberWarning": "Caliber Matchup Warning: {{name}} struggles against similarly rated ELO opponents on {{surface}} with a {{winRate}} win rate ({{wins}}W-{{losses}}L) and margin of {{margin}} games.",
+    "patternSurfaceStrength": "Player Surface Strength: {{name}} has a strong win rate of {{winRate}} ({{wins}}W-{{losses}}L) on {{surface}}.",
+    "patternSurfaceProfile": "Player Surface Profile: {{name}} has a win rate of {{winRate}} ({{wins}}W-{{losses}}L) on {{surface}}.",
+    "patternCaliberStrength": "Caliber Matchup Strength: {{name}} has won {{winRate}} ({{wins}}W-{{losses}}L) against similarly rated ELO opponents ({{elo1}}-{{elo2}}) on {{surface}}, covering by {{margin}} games.",
+    "patternCoverRisk": "Historical Cover Risk: {{name}} has covered the {{spread}} spread in only {{winRate}} of recent matches on {{surface}}.",
+    "patternCoverRate": "Historical Cover Rate: {{name}} has covered the {{spread}} spread in {{winRate}} of recent matches on {{surface}}.",
+    "patternMassiveEdge": "MASSIVE {{type}} EDGE: Model & History project {{projected}} games against bookmaker line {{line}}."
   },
   "partner": {
     "officialPartner": "Official Partner",

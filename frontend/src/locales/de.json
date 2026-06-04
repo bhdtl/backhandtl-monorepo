@@ -642,7 +642,22 @@
     "netProfitLabel": "Netto-Reingewinn:",
     "secureFreebetWager": "Freebet sichern & wetten",
     "historicalPatternRisk": "Historisches Musterrisiko",
-    "historicalPatternEdge": "Historischer Mustervorteil"
+    "historicalPatternEdge": "Historischer Mustervorteil",
+    "clay": "Sand",
+    "hard": "Hartplatz",
+    "grass": "Rasen",
+    "carpet": "Teppich",
+    "over": "ÜBER",
+    "under": "UNTER",
+    "patternLowDataSparse": "Warnung bei geringer Datenmenge: {{name}} hat nur spärliche historische Daten auf {{surface}} ({{wins}}S-{{losses}}N), Einsatz um 30% reduziert.",
+    "patternLowDataNoProfile": "Warnung bei geringer Datenmenge: {{name}} hat kein historisches Profil auf {{surface}}, Einsatz um 30% reduziert.",
+    "patternCaliberWarning": "Gegner-Kaliber-Warnung: {{name}} tut sich schwer gegen ELO-ähnliche Gegner auf {{surface}} mit einer Siegquote von {{winRate}} ({{wins}}S-{{losses}}N) und einer Differenz von {{margin}} Spielen.",
+    "patternSurfaceStrength": "Belag-Spezialist: {{name}} hat eine starke Siegquote von {{winRate}} ({{wins}}S-{{losses}}N) auf {{surface}}.",
+    "patternSurfaceProfile": "Belag-Profil: {{name}} hat eine Siegquote von {{winRate}} ({{wins}}S-{{losses}}N) auf {{surface}}.",
+    "patternCaliberStrength": "Stärke bei ähnlichen Gegnern: {{name}} hat {{winRate}} ({{wins}}S-{{losses}}N) gegen ELO-ähnliche Gegner ({{elo1}}-{{elo2}}) auf {{surface}} gewonnen und das Handicap im Schnitt um {{margin}} Spiele abgedeckt.",
+    "patternCoverRisk": "Historisches Cover-Risiko: {{name}} hat das {{spread}} Handicap in nur {{winRate}} der jüngsten Spiele auf {{surface}} abgedeckt.",
+    "patternCoverRate": "Historische Cover-Quote: {{name}} hat das {{spread}} Handicap in {{winRate}} der jüngsten Spiele auf {{surface}} abgedeckt.",
+    "patternMassiveEdge": "RIESIGER {{type}} VORTEIL: Modell & Historie prognostizieren {{projected}} Spiele gegenüber der Buchmacher-Linie von {{line}}."
   },
   "partner": {
     "officialPartner": "Offizieller Partner",

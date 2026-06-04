@@ -642,7 +642,22 @@
     "netProfitLabel": "Profitto netto:",
     "secureFreebetWager": "Assicura la scommessa gratuita e scommetti",
     "historicalPatternRisk": "Rischio pattern storico",
-    "historicalPatternEdge": "Vantaggio pattern storico"
+    "historicalPatternEdge": "Vantaggio pattern storico",
+    "clay": "Terra battuta",
+    "hard": "Cemento",
+    "grass": "Erba",
+    "carpet": "Sintetico",
+    "over": "OVER",
+    "under": "UNDER",
+    "patternLowDataSparse": "Dati insufficienti: {{name}} ha dati storici scarsi su {{surface}} ({{wins}}V-{{losses}}P), riduzione della puntata del 30%.",
+    "patternLowDataNoProfile": "Dati insufficienti: {{name}} non ha un profilo storico su {{surface}}, riduzione della puntata del 30%.",
+    "patternCaliberWarning": "Avviso calibro avversario: {{name}} fatica contro avversari di ELO simile su {{surface}} con una percentuale di scommesse vinte del {{winRate}} ({{wins}}V-{{losses}}P) e un margine di {{margin}} game.",
+    "patternSurfaceStrength": "Forza sulla superficie: {{name}} ha una forte percentuale di vittorie del {{winRate}} ({{wins}}V-{{losses}}P) su {{surface}}.",
+    "patternSurfaceProfile": "Profilo sulla superficie: {{name}} ha una percentuale di vittorie del {{winRate}} ({{wins}}V-{{losses}}P) su {{surface}}.",
+    "patternCaliberStrength": "Forza contro pari livello: {{name}} ha vinto il {{winRate}} ({{wins}}V-{{losses}}P) contro avversari di ELO simile ({{elo1}}-{{elo2}}) su {{surface}}, coprendo di {{margin}} game.",
+    "patternCoverRisk": "Rischio di copertura storico: {{name}} ha coperto l'handicap {{spread}} solo nel {{winRate}} delle partite recenti su {{surface}}.",
+    "patternCoverRate": "Tasso di copertura storico: {{name}} ha coperto l'handicap {{spread}} nel {{winRate}} delle partite recenti su {{surface}}.",
+    "patternMassiveEdge": "MASSIMO VANTAGGIO {{type}}: Il modello e lo storico prevedono {{projected}} game rispetto alla linea del bookmaker di {{line}}."
   },
   "partner": {
     "officialPartner": "Partner Ufficiale",

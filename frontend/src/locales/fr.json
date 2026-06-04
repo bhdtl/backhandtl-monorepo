@@ -642,7 +642,22 @@
     "netProfitLabel": "Bénéfice net :",
     "secureFreebetWager": "Sécuriser le pari gratuit et parier",
     "historicalPatternRisk": "Risque de modèle historique",
-    "historicalPatternEdge": "Avantage du modèle historique"
+    "historicalPatternEdge": "Avantage du modèle historique",
+    "clay": "Terre battue",
+    "hard": "Dur",
+    "grass": "Gazon",
+    "carpet": "Moquette",
+    "over": "PLUS",
+    "under": "MOINS",
+    "patternLowDataSparse": "Données insuffisantes : {{name}} a peu de données historiques sur {{surface}} ({{wins}}V-{{losses}}D), réduction de la mise de 30%.",
+    "patternLowDataNoProfile": "Données insuffisantes : {{name}} n'a pas de profil historique sur {{surface}}, réduction de la mise de 30%.",
+    "patternCaliberWarning": "Alerte calibre de l'adversaire : {{name}} est en difficulté contre des adversaires d'ELO similaire sur {{surface}} avec un taux de victoire de {{winRate}} ({{wins}}V-{{losses}}D) et une marge de {{margin}} jeux.",
+    "patternSurfaceStrength": "Force sur surface : {{name}} a un fort taux de victoire de {{winRate}} ({{wins}}V-{{losses}}D) sur {{surface}}.",
+    "patternSurfaceProfile": "Profil sur surface : {{name}} a un taux de victoire de {{winRate}} ({{wins}}V-{{losses}}D) sur {{surface}}.",
+    "patternCaliberStrength": "Performance contre calibre similaire : {{name}} a gagné {{winRate}} ({{wins}}V-{{losses}}D) contre des adversaires d'ELO similaire ({{elo1}}-{{elo2}}) sur {{surface}}, couvrant de {{margin}} jeux.",
+    "patternCoverRisk": "Risque de couverture historique : {{name}} n'a couvert le handicap {{spread}} que dans {{winRate}} des matchs récents sur {{surface}}.",
+    "patternCoverRate": "Taux de couverture historique : {{name}} a couvert le handicap {{spread}} dans {{winRate}} des matchs récents sur {{surface}}.",
+    "patternMassiveEdge": "ÉCART MAJEUR {{type}} : Le modèle et l'historique prévoient {{projected}} jeux contre une ligne de bookmaker de {{line}}."
   },
   "partner": {
     "officialPartner": "Partenaire Officiel",
