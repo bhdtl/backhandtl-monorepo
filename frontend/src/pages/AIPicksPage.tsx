@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   Target, Zap, Clock, Shield, Flame, Wallet, ArrowRight, Layers, Activity, CheckCircle2, TrendingUp, TrendingDown, MapPin,
-  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Gift
+  Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Gift, Search, X, Calendar
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
@@ -225,6 +225,17 @@ export function AIPicksPage() {
   const [timeFilter, setTimeFilter] = useState<'ALL' | '30MIN'>('ALL');
   const [isMobile, setIsMobile] = useState(false);
   
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'VALUE' | 'TIME'>('VALUE');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+  
   // 🚀 SOTA: State für das Expandieren der KI Analyse
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
@@ -370,8 +381,70 @@ export function AIPicksPage() {
           });
       }
       
-      return list.filter(pick => !pick.parsedVal.type.toLowerCase().includes('live'));
-  }, [activePicks, timeFilter]);
+      // Live filter bypass
+      list = list.filter(pick => !pick.parsedVal.type.toLowerCase().includes('live'));
+
+      // 🔍 Search Bar Filter: player names or tournament
+      if (debouncedSearchTerm) {
+          const term = debouncedSearchTerm.toLowerCase();
+          list = list.filter(pick => 
+              pick.player1_name.toLowerCase().includes(term) ||
+              pick.player2_name.toLowerCase().includes(term) ||
+              (pick.tournament && pick.tournament.toLowerCase().includes(term))
+          );
+      }
+
+      // ⚡ Sorting
+      if (sortBy === 'VALUE') {
+          list.sort((a, b) => {
+              if (b.parsedVal.stake !== a.parsedVal.stake) {
+                  return b.parsedVal.stake - a.parsedVal.stake;
+              }
+              return b.parsedVal.edge - a.parsedVal.edge;
+          });
+      } else {
+          list.sort((a, b) => new Date(a.match_time).getTime() - new Date(b.match_time).getTime());
+      }
+      
+      return list;
+  }, [activePicks, timeFilter, debouncedSearchTerm, sortBy]);
+
+  // Helper to group picks by date
+  const getGroupKey = (timeStr: string) => {
+      const date = new Date(timeStr);
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      const isToday = date.toDateString() === today.toDateString();
+      const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+      if (isToday) return 'Heute';
+      if (isTomorrow) return 'Morgen';
+
+      return date.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' });
+  };
+
+  const groupedPicks = useMemo(() => {
+      const groups: { [key: string]: any[] } = {};
+      
+      displayedPicks.forEach(pick => {
+          const key = getGroupKey(pick.match_time);
+          if (!groups[key]) {
+              groups[key] = [];
+          }
+          groups[key].push(pick);
+      });
+
+      // Sort date groups chronologically by the first matchup time
+      return Object.entries(groups)
+          .map(([dateKey, picks]) => ({ dateKey, picks }))
+          .sort((a, b) => {
+              const timeA = new Date(a.picks[0].match_time).getTime();
+              const timeB = new Date(b.picks[0].match_time).getTime();
+              return timeA - timeB;
+          });
+  }, [displayedPicks]);
 
   const pickOfTheDay = useMemo(() => {
       if (displayedPicks.length === 0) return null;
@@ -424,22 +497,69 @@ export function AIPicksPage() {
         description="The AI Picks Portfolio is strictly reserved for Elite members. Upgrade to unlock exact Kelly stakes and real-time Action Lists."
         blurAmount="blur-xl"
       >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">Picks Stream</h2>
-              <div className="flex items-center bg-[#15171e] p-1 rounded-xl border border-white/5 self-start sm:self-auto shadow-inner w-full sm:w-auto">
-                  <button
-                      onClick={() => setTimeFilter('ALL')}
-                      className={`flex-1 sm:flex-none px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${timeFilter === 'ALL' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
-                  >
-                      All Plays
-                  </button>
-                  <button
-                      onClick={() => setTimeFilter('30MIN')}
-                      className={`flex-1 sm:flex-none px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 ${timeFilter === '30MIN' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-                  >
-                      <Flame size={12} className={timeFilter === '30MIN' ? 'animate-pulse' : ''} />
-                      Last 30 Min
-                  </button>
+          {/* Clean Search & Filter Panel (Apple/Revolut-Style) */}
+          <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <h2 className="text-lg font-black text-white uppercase tracking-wider pl-1">Picks Stream</h2>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                      
+                      {/* Time Filter Toggle */}
+                      <div className="flex bg-[#15171e] p-1 rounded-xl border border-white/5 shadow-inner">
+                          <button
+                              onClick={() => setTimeFilter('ALL')}
+                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${timeFilter === 'ALL' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                              All Plays
+                          </button>
+                          <button
+                              onClick={() => setTimeFilter('30MIN')}
+                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1 ${timeFilter === '30MIN' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                              <Flame size={10} className={timeFilter === '30MIN' ? 'animate-pulse' : ''} />
+                              Last 30 Min
+                          </button>
+                      </div>
+
+                      {/* Sort Option Toggle */}
+                      <div className="flex bg-[#15171e] p-1 rounded-xl border border-white/5 shadow-inner">
+                          <button
+                              onClick={() => setSortBy('VALUE')}
+                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'VALUE' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                              <TrendingUp size={10} />
+                              Value Sort
+                          </button>
+                          <button
+                              onClick={() => setSortBy('TIME')}
+                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'TIME' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                              <Clock size={10} />
+                              Time Sort
+                          </button>
+                      </div>
+
+                  </div>
+              </div>
+
+              {/* Search Bar Input Row */}
+              <div className="relative w-full group">
+                  <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={16} />
+                  <input
+                      type="text"
+                      placeholder="Matchups suchen nach Spielername oder Turnier..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-11 pr-10 py-3 bg-[#15171e] border border-white/5 rounded-2xl focus:outline-none focus:border-tennis-lime focus:bg-black/20 text-white placeholder-gray-500 text-xs transition-all shadow-inner"
+                  />
+                  {searchTerm && (
+                      <button 
+                          onClick={() => setSearchTerm('')}
+                          className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                      >
+                          <X size={16} />
+                      </button>
+                  )}
               </div>
           </div>
 
@@ -706,524 +826,553 @@ export function AIPicksPage() {
                 </p>
              </motion.div>
           ) : isMobile ? (
-             /* Mobile Grid: No Framer Motion animations for maximum scrolling speed */
-             <div className="grid grid-cols-1 gap-5">
-                 {displayedPicks.map((pick) => {
-                     const val = pick.parsedVal;
-                     const matchDate = new Date(pick.match_time);
-                     const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                     
-                     const isMaxBomb = val.stake >= 2.5;
-                     const p1IsTarget = pick.isPlayer1Target; 
-                     
-                     const p1Data = getPlayerDetails(pick.player1_name);
-                     const p2Data = getPlayerDetails(pick.player2_name);
-
-                     const diffInMinutes = Math.floor((new Date().getTime() - new Date(pick.relevantTime).getTime()) / 60000);
-                     const isHotDrop = diffInMinutes <= 30;
-                     
-                     const tagClasses = getLabelStyle(val.type, isMaxBomb);
-                     const analysisData = parseAiAnalysis(pick.ai_analysis_text);
-                     const isExpanded = expandedId === pick.id;
-
-                     return (
-                         <div 
-                             key={pick.id}
-                             className={`relative flex flex-col bg-[#15171e] rounded-[2rem] border ${isMaxBomb ? 'border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.08)]' : 'border-white/5 shadow-xl'} overflow-hidden group`}
-                         >
-                             {/* Top Banner: Tournament & Time */}
-                             <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
-                                 <div className="flex items-center gap-1.5 overflow-hidden pr-2">
-                                     <MapPin size={10} className="text-gray-500 shrink-0" />
-                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
-                                         {pick.tournament}
-                                     </span>
-                                 </div>
-                                 <div className="flex items-center gap-2 shrink-0">
-                                     {isHotDrop && (
-                                         <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                             <Flame size={8} /> New
-                                         </span>
-                                     )}
-                                     <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
-                                         <Clock size={10} /> {timeString}
-                                     </div>
-                                 </div>
-                             </div>
-
-                             {/* Core Matchup */}
-                             <div className="p-5 flex-grow flex flex-col cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : pick.id)}>
-                                 <div className="flex items-center justify-between mb-6">
-                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
-                                         <PlayerAvatar player={p1Data} isTarget={p1IsTarget} />
-                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
-                                             {pick.player1_name.split(' ').pop()}
-                                         </span>
-                                     </div>
-                                     <div className="flex flex-col items-center justify-center w-[20%]">
-                                         <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
-                                             VS
-                                         </div>
-                                     </div>
-                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${!p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
-                                         <PlayerAvatar player={p2Data} isTarget={!p1IsTarget} />
-                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${!p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
-                                             {pick.player2_name.split(' ').pop()}
-                                         </span>
-                                     </div>
-                                 </div>
-
-                                 {pick.derivativeAlert && (
-                                     <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
-                                         <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
-                                         <div>
-                                             <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
-                                             <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
-                                                 {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
-                                             </div>
-                                         </div>
-                                     </div>
-                                 )}
-
-                                 {pick.games_prediction?.pattern_warning && (
-                                      <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
-                                          <div>
-                                              <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
-                                              <div className="text-[10px] text-red-100/80 font-medium leading-snug">
-                                                  {pick.games_prediction.pattern_warning}
-                                              </div>
-                                          </div>
-                                      </div>
-                                  )}
-
-                                  {pick.games_prediction?.pattern_boost && (
-                                      <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
-                                          <div>
-                                              <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
-                                              <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
-                                                  {pick.games_prediction.pattern_boost}
-                                              </div>
-                                          </div>
-                                      </div>
-                                  )}
+             /* Mobile Grid: Grouped by Date (No Framer Motion animations for maximum scrolling speed) */
+             <div className="flex flex-col gap-8 animate-in fade-in duration-300">
+                 {groupedPicks.map((group) => (
+                     <div key={group.dateKey} className="flex flex-col gap-4">
+                         <h3 className="text-xs font-black uppercase tracking-wider text-gray-500 pl-1 flex items-center gap-2">
+                             <Calendar size={12} className="text-gray-500" />
+                             <span>{group.dateKey}</span>
+                             <span className="text-[9px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                 {group.picks.length}
+                             </span>
+                         </h3>
+                         
+                         <div className="grid grid-cols-1 gap-5">
+                             {group.picks.map((pick) => {
+                                 const val = pick.parsedVal;
+                                 const matchDate = new Date(pick.match_time);
+                                 const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                  
-                                 {pick.movement.hasMovement && !pick.derivativeAlert && (
-                                      <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
-                                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
-                                         <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
-                                             {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
-                                             {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
-                                         </div>
-                                      </div>
-                                 )}
-                             </div>
+                                 const isMaxBomb = val.stake >= 2.5;
+                                 const p1IsTarget = pick.isPlayer1Target; 
+                                 
+                                 const p1Data = getPlayerDetails(pick.player1_name);
+                                 const p2Data = getPlayerDetails(pick.player2_name);
 
-                             {/* THE ACTION TRAY */}
-                             <div className={`p-4 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
-                                 {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
+                                 const diffInMinutes = Math.floor((new Date().getTime() - new Date(pick.relevantTime).getTime()) / 60000);
+                                 const isHotDrop = diffInMinutes <= 30;
+                                 
+                                 const tagClasses = getLabelStyle(val.type, isMaxBomb);
+                                 const analysisData = parseAiAnalysis(pick.ai_analysis_text);
+                                 const isExpanded = expandedId === pick.id;
 
-                                 <div className="flex items-center justify-between mb-4 relative z-10">
-                                     <div className="flex flex-col">
-                                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                              <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
-                                                  <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
-                                              </span>
-                                              {pick.games_prediction?.is_grand_slam && (
-                                                  <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
-                                                      🎾 Slam (Bo5)
-                                                  </span>
-                                              )}
-                                          </div>
-                                         <span className="text-xs font-black text-white truncate max-w-[180px] xs:max-w-[220px]" title={val.pickName}>
-                                             {displayPickName(val.pickName)}
-                                         </span>
-                                     </div>
-                                     
-                                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
-                                         <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
-                                         <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
-                                             {val.stake.toFixed(1)}u
-                                         </span>
-                                     </div>
-                                 </div>
-
-                                 <div className="grid grid-cols-2 gap-2.5 relative z-10">
-                                     <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
-                                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                             <Target size={8} /> Play At
-                                         </span>
-                                         <span className="text-sm font-mono font-black text-white leading-none">
-                                             @{val.marketOdds.toFixed(2)}
-                                         </span>
-                                     </div>
-                                     <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
-                                         <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                             <Zap size={8} /> True Edge
-                                         </span>
-                                         <span className="text-sm font-mono font-black text-blue-400 leading-none">
-                                             +{val.edge.toFixed(1)}%
-                                         </span>
-                                     </div>
-                                 </div>
-
-                                 <div className="mt-4 relative z-10 flex flex-col gap-1.5">
-                                     <a 
-                                         href={pick.games_prediction?.neo_betslip?.url 
-                                             ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
-                                             : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
-                                         }
-                                         target="_blank" 
-                                         rel="noopener noreferrer"
-                                         className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5"
+                                 return (
+                                     <div 
+                                         key={pick.id}
+                                         className={`relative flex flex-col bg-[#15171e] rounded-[2rem] border ${isMaxBomb ? 'border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.08)]' : 'border-white/5 shadow-xl'} overflow-hidden group`}
                                      >
-                                         <Zap size={10} className="fill-current shrink-0" />
-                                         {t('picks.neobetCta', 'In den Wettschein')}
-                                     </a>
-                                     <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
-                                         {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
-                                     </div>
-                                 </div>
-                                 
-                                 {analysisData && (
-                                     <div className="mt-4 flex justify-center relative z-10">
-                                         <button 
-                                             onClick={() => setExpandedId(isExpanded ? null : pick.id)}
-                                             className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
-                                         >
-                                             <Brain size={12} className="text-purple-400" />
-                                             {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
-                                             {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                         </button>
-                                     </div>
-                                 )}
-                             </div>
-                             
-                             {isExpanded && analysisData && (
-                                 <div className="bg-black/50 border-t border-white/5 relative">
-                                     <div className="p-5 flex flex-col gap-4">
-                                         {analysisData.keyFactor && (
-                                             <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
-                                                 <div className="flex items-center gap-1.5 mb-1.5">
-                                                     <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                                                     <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                         {/* Top Banner: Tournament & Time */}
+                                         <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                                             <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+                                                 <MapPin size={10} className="text-gray-500 shrink-0" />
+                                                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                                     {pick.tournament}
+                                                 </span>
+                                             </div>
+                                             <div className="flex items-center gap-2 shrink-0">
+                                                 {isHotDrop && (
+                                                     <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                         <Flame size={8} /> New
+                                                     </span>
+                                                 )}
+                                                 <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
+                                                     <Clock size={10} /> {timeString}
                                                  </div>
-                                                 <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
                                              </div>
-                                         )}
-                                         
-                                         {analysisData.analysis && (
-                                             <div>
-                                                 <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                                     <AlignLeft size={10} /> Tactical Breakdown
-                                                 </span>
-                                                 <p className="text-xs text-gray-300 leading-relaxed text-justify">
-                                                     {analysisData.analysis}
-                                                 </p>
-                                             </div>
-                                         )}
+                                         </div>
 
-                                         {analysisData.bullets.length > 0 && (
-                                             <div>
-                                                 <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
-                                                     <Crosshair size={10} /> Edge Execution
-                                                 </span>
-                                                 <ul className="flex flex-col gap-1.5">
-                                                     {analysisData.bullets.map((bullet, idx) => (
-                                                         <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-400">
-                                                             <div className="w-1 h-1 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
-                                                             <span className="leading-snug">{bullet}</span>
-                                                         </li>
-                                                     ))}
-                                                 </ul>
+                                         {/* Core Matchup */}
+                                         <div className="p-5 flex-grow flex flex-col cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : pick.id)}>
+                                             <div className="flex items-center justify-between mb-6">
+                                                 <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                                     <PlayerAvatar player={p1Data} isTarget={p1IsTarget} />
+                                                     <span className={`text-xs font-black uppercase tracking-tight leading-tight ${p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                                         {pick.player1_name.split(' ').pop()}
+                                                     </span>
+                                                 </div>
+                                                 <div className="flex flex-col items-center justify-center w-[20%]">
+                                                     <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
+                                                         VS
+                                                     </div>
+                                                 </div>
+                                                 <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${!p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                                     <PlayerAvatar player={p2Data} isTarget={!p1IsTarget} />
+                                                     <span className={`text-xs font-black uppercase tracking-tight leading-tight ${!p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                                         {pick.player2_name.split(' ').pop()}
+                                                     </span>
+                                                 </div>
+                                             </div>
+
+                                             {pick.derivativeAlert && (
+                                                 <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                     <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
+                                                     <div>
+                                                         <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
+                                                         <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
+                                                             {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             )}
+
+                                             {pick.games_prediction?.pattern_warning && (
+                                                  <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
+                                                      <div>
+                                                          <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
+                                                          <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                              {pick.games_prediction.pattern_warning}
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              )}
+
+                                              {pick.games_prediction?.pattern_boost && (
+                                                  <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                      <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                      <div>
+                                                          <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
+                                                          <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                              {pick.games_prediction.pattern_boost}
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              )}
+                                             
+                                             {pick.movement.hasMovement && !pick.derivativeAlert && (
+                                                  <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
+                                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
+                                                     <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                                         {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                                                         {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
+                                                     </div>
+                                                  </div>
+                                             )}
+                                         </div>
+
+                                         {/* THE ACTION TRAY */}
+                                         <div className={`p-4 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
+                                             {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
+
+                                             <div className="flex items-center justify-between mb-4 relative z-10">
+                                                 <div className="flex flex-col">
+                                                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                              <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
+                                                          </span>
+                                                          {pick.games_prediction?.is_grand_slam && (
+                                                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
+                                                                  🎾 Slam (Bo5)
+                                                              </span>
+                                                          )}
+                                                      </div>
+                                                     <span className="text-xs font-black text-white truncate max-w-[180px] xs:max-w-[220px]" title={val.pickName}>
+                                                         {displayPickName(val.pickName)}
+                                                     </span>
+                                                 </div>
+                                                 
+                                                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
+                                                     <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
+                                                     <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
+                                                         {val.stake.toFixed(1)}u
+                                                     </span>
+                                                 </div>
+                                             </div>
+
+                                             <div className="grid grid-cols-2 gap-2.5 relative z-10">
+                                                 <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
+                                                     <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                         <Target size={8} /> Play At
+                                                     </span>
+                                                     <span className="text-sm font-mono font-black text-white leading-none">
+                                                         @{val.marketOdds.toFixed(2)}
+                                                     </span>
+                                                 </div>
+                                                 <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
+                                                     <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                         <Zap size={8} /> True Edge
+                                                     </span>
+                                                     <span className="text-sm font-mono font-black text-blue-400 leading-none">
+                                                         +{val.edge.toFixed(1)}%
+                                                     </span>
+                                                 </div>
+                                             </div>
+
+                                             <div className="mt-4 relative z-10 flex flex-col gap-1.5">
+                                                 <a 
+                                                     href={pick.games_prediction?.neo_betslip?.url 
+                                                         ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                                         : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
+                                                     }
+                                                     target="_blank" 
+                                                     rel="noopener noreferrer"
+                                                     className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5"
+                                                 >
+                                                     <Zap size={10} className="fill-current shrink-0" />
+                                                     {t('picks.neobetCta', 'In den Wettschein')}
+                                                 </a>
+                                                 <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                     {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                                 </div>
+                                             </div>
+                                             
+                                             {analysisData && (
+                                                 <div className="mt-4 flex justify-center relative z-10">
+                                                     <button 
+                                                         onClick={() => setExpandedId(isExpanded ? null : pick.id)}
+                                                         className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
+                                                     >
+                                                         <Brain size={12} className="text-purple-400" />
+                                                         {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
+                                                         {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                     </button>
+                                                 </div>
+                                             )}
+                                         </div>
+                                         
+                                         {isExpanded && analysisData && (
+                                             <div className="bg-black/50 border-t border-white/5 relative">
+                                                 <div className="p-5 flex flex-col gap-4">
+                                                     {analysisData.keyFactor && (
+                                                         <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+                                                             <div className="flex items-center gap-1.5 mb-1.5">
+                                                                 <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+                                                                 <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                                             </div>
+                                                             <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
+                                                         </div>
+                                                     )}
+                                                     
+                                                     {analysisData.analysis && (
+                                                         <div>
+                                                             <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                                                 <AlignLeft size={10} /> Tactical Breakdown
+                                                             </span>
+                                                             <p className="text-xs text-gray-300 leading-relaxed text-justify">
+                                                                 {analysisData.analysis}
+                                                             </p>
+                                                         </div>
+                                                     )}
+
+                                                     {analysisData.bullets.length > 0 && (
+                                                         <div>
+                                                             <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
+                                                                 <Crosshair size={10} /> Edge Execution
+                                                             </span>
+                                                             <ul className="flex flex-col gap-1.5">
+                                                                 {analysisData.bullets.map((bullet, idx) => (
+                                                                     <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-400">
+                                                                         <div className="w-1 h-1 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                                         <span className="leading-snug">{bullet}</span>
+                                                                     </li>
+                                                                 ))}
+                                                             </ul>
+                                                         </div>
+                                                     )}
+                                                 </div>
                                              </div>
                                          )}
                                      </div>
-                                 </div>
-                             )}
+                                 );
+                             })}
                          </div>
-                     )
-                 })}
+                     </div>
+                 ))}
              </div>
           ) : (
+             /* Desktop Grid: Grouped by Date (Apple-Style Grouping and Animation Layout) */
              <motion.div 
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"
+                className="flex flex-col gap-10"
              >
-                <AnimatePresence>
-                    {displayedPicks.map((pick) => {
-                        const val = pick.parsedVal;
-                        const matchDate = new Date(pick.match_time);
-                        const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        
-                        const isMaxBomb = val.stake >= 2.5;
-                        const p1IsTarget = pick.isPlayer1Target; 
-                        
-                        const p1Data = getPlayerDetails(pick.player1_name);
-                        const p2Data = getPlayerDetails(pick.player2_name);
+                 {groupedPicks.map((group) => (
+                     <div key={group.dateKey} className="flex flex-col gap-4">
+                         <h3 className="text-sm font-black uppercase tracking-wider text-gray-500 pl-1 flex items-center gap-2">
+                             <Calendar size={14} className="text-gray-500" />
+                             <span>{group.dateKey}</span>
+                             <span className="text-[10px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                 {group.picks.length} {group.picks.length === 1 ? 'Spiel' : 'Spiele'}
+                             </span>
+                         </h3>
 
-                        // Nutzt exaktes Live-Timing für das "NEW" Badge
-                        const diffInMinutes = Math.floor((new Date().getTime() - new Date(pick.relevantTime).getTime()) / 60000);
-                        const isHotDrop = diffInMinutes <= 30;
-                        
-                        // Dynamisches Styling für die neuen Elite-Kategorien
-                        const tagClasses = getLabelStyle(val.type, isMaxBomb);
-                        
-                        // 🚀 SOTA: Parse Gil Gross Analysis Text
-                        const analysisData = parseAiAnalysis(pick.ai_analysis_text);
-                        const isExpanded = expandedId === pick.id;
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                             <AnimatePresence mode="popLayout">
+                                 {group.picks.map((pick) => {
+                                     const val = pick.parsedVal;
+                                     const matchDate = new Date(pick.match_time);
+                                     const timeString = matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                     
+                                     const isMaxBomb = val.stake >= 2.5;
+                                     const p1IsTarget = pick.isPlayer1Target; 
+                                     
+                                     const p1Data = getPlayerDetails(pick.player1_name);
+                                     const p2Data = getPlayerDetails(pick.player2_name);
 
-                        return (
-                            <motion.div 
-                                key={pick.id}
-                                variants={itemVariants}
-                                initial="hidden"
-                                animate="show"
-                                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                                className={`relative flex flex-col bg-[#15171e] rounded-[2rem] border ${isMaxBomb ? 'border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.08)]' : 'border-white/5 shadow-xl'} overflow-hidden group`}
-                            >
-                                {/* Top Banner: Tournament & Time */}
-                                <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5 overflow-hidden pr-2">
-                                        <MapPin size={10} className="text-gray-500 shrink-0" />
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
-                                            {pick.tournament}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        {isHotDrop && (
-                                            <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                                <Flame size={8} /> New
-                                            </span>
-                                        )}
-                                        <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
-                                            <Clock size={10} /> {timeString}
-                                        </div>
-                                    </div>
-                                </div>
+                                     // Nutzt exaktes Live-Timing für das "NEW" Badge
+                                     const diffInMinutes = Math.floor((new Date().getTime() - new Date(pick.relevantTime).getTime()) / 60000);
+                                     const isHotDrop = diffInMinutes <= 30;
+                                     
+                                     // Dynamisches Styling für die neuen Elite-Kategorien
+                                     const tagClasses = getLabelStyle(val.type, isMaxBomb);
+                                     
+                                     // 🚀 SOTA: Parse Gil Gross Analysis Text
+                                     const analysisData = parseAiAnalysis(pick.ai_analysis_text);
+                                     const isExpanded = expandedId === pick.id;
 
-                                {/* Core Matchup (Avatars & Names) */}
-                                <div className="p-5 flex-grow flex flex-col cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : pick.id)}>
-                                    <div className="flex items-center justify-between mb-6">
-                                        {/* Player 1 */}
-                                        <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
-                                            <PlayerAvatar player={p1Data} isTarget={p1IsTarget} />
-                                            <span className={`text-xs font-black uppercase tracking-tight leading-tight ${p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
-                                                {pick.player1_name.split(' ').pop()}
-                                            </span>
-                                        </div>
-
-                                        {/* VS Badge */}
-                                        <div className="flex flex-col items-center justify-center w-[20%]">
-                                            <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
-                                                VS
-                                            </div>
-                                        </div>
-
-                                        {/* Player 2 */}
-                                        <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${!p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
-                                            <PlayerAvatar player={p2Data} isTarget={!p1IsTarget} />
-                                            <span className={`text-xs font-black uppercase tracking-tight leading-tight ${!p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
-                                                {pick.player2_name.split(' ').pop()}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* SOTA Derivative Alert (Wong's Exploit) */}
-                                    {pick.derivativeAlert && (
-                                        <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
-                                            <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
-                                            <div>
-                                                <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
-                                                <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
-                                                    {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {pick.games_prediction?.pattern_warning && (
-                                         <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
-                                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
-                                             <div>
-                                                 <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
-                                                 <div className="text-[10px] text-red-100/80 font-medium leading-snug">
-                                                     {pick.games_prediction.pattern_warning}
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     )}
-
-                                     {pick.games_prediction?.pattern_boost && (
-                                         <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
-                                             <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
-                                             <div>
-                                                 <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
-                                                 <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
-                                                     {pick.games_prediction.pattern_boost}
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     )}
-                                    
-                                    {/* Line Movement Alert */}
-                                    {pick.movement.hasMovement && !pick.derivativeAlert && (
-                                         <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
-                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
-                                            <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
-                                                {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
-                                                {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
-                                            </div>
-                                         </div>
-                                    )}
-                                </div>
-
-                                {/* THE ACTION TRAY */}
-                                <div className={`p-4 md:p-5 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
-                                    
-                                    {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
-
-                                    <div className="flex items-center justify-between mb-4 relative z-10">
-                                        <div className="flex flex-col">
-                                             {/* Dynamic Type Tag */}
-                                             <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                                 <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
-                                                     <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
-                                                 </span>
-                                                 {pick.games_prediction?.is_grand_slam && (
-                                                     <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
-                                                         🎾 Slam (Bo5)
+                                     return (
+                                         <motion.div 
+                                             key={pick.id}
+                                             variants={itemVariants}
+                                             initial="hidden"
+                                             animate="show"
+                                             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                                             className={`relative flex flex-col bg-[#15171e] rounded-[2rem] border ${isMaxBomb ? 'border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.08)]' : 'border-white/5 shadow-xl'} overflow-hidden group`}
+                                         >
+                                             {/* Top Banner: Tournament & Time */}
+                                             <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                                                 <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+                                                     <MapPin size={10} className="text-gray-500 shrink-0" />
+                                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                                         {pick.tournament}
                                                      </span>
+                                                 </div>
+                                                 <div className="flex items-center gap-2 shrink-0">
+                                                     {isHotDrop && (
+                                                         <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                             <Flame size={8} /> New
+                                                         </span>
+                                                     )}
+                                                     <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
+                                                         <Clock size={10} /> {timeString}
+                                                     </div>
+                                                 </div>
+                                             </div>
+
+                                             {/* Core Matchup (Avatars & Names) */}
+                                             <div className="p-5 flex-grow flex flex-col cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : pick.id)}>
+                                                 <div className="flex items-center justify-between mb-6">
+                                                     {/* Player 1 */}
+                                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                                         <PlayerAvatar player={p1Data} isTarget={p1IsTarget} />
+                                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                                             {pick.player1_name.split(' ').pop()}
+                                                         </span>
+                                                     </div>
+
+                                                     {/* VS Badge */}
+                                                     <div className="flex flex-col items-center justify-center w-[20%]">
+                                                         <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
+                                                             VS
+                                                         </div>
+                                                     </div>
+
+                                                     {/* Player 2 */}
+                                                     <div className={`flex flex-col items-center w-[40%] text-center gap-2 ${!p1IsTarget ? 'opacity-100' : 'opacity-60'}`}>
+                                                         <PlayerAvatar player={p2Data} isTarget={!p1IsTarget} />
+                                                         <span className={`text-xs font-black uppercase tracking-tight leading-tight ${!p1IsTarget ? 'text-white' : 'text-gray-400'}`}>
+                                                             {pick.player2_name.split(' ').pop()}
+                                                         </span>
+                                                     </div>
+                                                 </div>
+
+                                                 {/* SOTA Derivative Alert (Wong's Exploit) */}
+                                                 {pick.derivativeAlert && (
+                                                     <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                         <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
+                                                         <div>
+                                                             <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
+                                                             <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
+                                                                 {pick.derivativeAlert.replace('🔥 MASSIVE OVER EDGE:', 'OVER').replace('🔥 MASSIVE UNDER EDGE:', 'UNDER').trim()}
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 )}
+
+                                                 {pick.games_prediction?.pattern_warning && (
+                                                      <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
+                                                          <div>
+                                                              <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">Historical Pattern Risk</div>
+                                                              <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                                  {pick.games_prediction.pattern_warning}
+                                                              </div>
+                                                          </div>
+                                                      </div>
+                                                  )}
+
+                                                  {pick.games_prediction?.pattern_boost && (
+                                                      <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
+                                                          <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                          <div>
+                                                              <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">Historical Pattern Edge</div>
+                                                              <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                                  {pick.games_prediction.pattern_boost}
+                                                              </div>
+                                                          </div>
+                                                      </div>
+                                                  )}
+                                                 
+                                                 {/* Line Movement Alert */}
+                                                 {pick.movement.hasMovement && !pick.derivativeAlert && (
+                                                      <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
+                                                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
+                                                         <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                                             {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                                                             {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
+                                                         </div>
+                                                      </div>
                                                  )}
                                              </div>
-                                            <span className="text-xs md:text-sm font-black text-white truncate max-w-[180px] xs:max-w-[220px] sm:max-w-[280px] md:max-w-none" title={val.pickName}>
-                                                {displayPickName(val.pickName)}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* THE KELLY STAKE BADGE */}
-                                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
-                                            <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
-                                            <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
-                                                {val.stake.toFixed(1)}u
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-2 gap-2.5 relative z-10">
-                                        <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
-                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                <Target size={8} /> Play At
-                                            </span>
-                                            <span className="text-sm md:text-base font-mono font-black text-white leading-none">
-                                                @{val.marketOdds.toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
-                                            <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                <Zap size={8} /> True Edge
-                                            </span>
-                                            <span className="text-sm md:text-base font-mono font-black text-blue-400 leading-none">
-                                                +{val.edge.toFixed(1)}%
-                                            </span>
-                                        </div>
-                                    </div>
+                                             {/* THE ACTION TRAY */}
+                                             <div className={`p-4 md:p-5 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
+                                                 
+                                                 {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
 
-                                    {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
-                                    <div className="mt-4 relative z-10 flex flex-col gap-1.5">
-                                        <a 
-                                            href={pick.games_prediction?.neo_betslip?.url 
-                                                ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
-                                                : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
-                                            }
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
-                                        >
-                                            <Zap size={10} className="fill-current shrink-0" />
-                                            {t('picks.neobetCta', 'In den Wettschein')}
-                                        </a>
-                                        <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
-                                            {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
-                                        </div>
-                                    </div>
-                                    
-                                    {/* 🚀 SOTA: EXPAND BUTTON FOR AI ANALYSIS */}
-                                    {analysisData && (
-                                        <div className="mt-4 flex justify-center relative z-10">
-                                            <button 
-                                                onClick={() => setExpandedId(isExpanded ? null : pick.id)}
-                                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
-                                            >
-                                                <Brain size={12} className="text-purple-400" />
-                                                {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
-                                                {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                {/* 🚀 SOTA: EXPANDABLE AI ANALYSIS PANEL (APPLE STYLE) */}
-                                <AnimatePresence>
-                                    {isExpanded && analysisData && (
-                                        <motion.div 
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="bg-black/50 border-t border-white/5 relative"
-                                        >
-                                            <div className="p-5 flex flex-col gap-4">
-                                                {/* Key Factor */}
-                                                {analysisData.keyFactor && (
-                                                    <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
-                                                        <div className="flex items-center gap-1.5 mb-1.5">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                                                            <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
-                                                        </div>
-                                                        <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Deep Dive Text */}
-                                                {analysisData.analysis && (
-                                                    <div>
-                                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                                            <AlignLeft size={10} /> Tactical Breakdown
-                                                        </span>
-                                                        <p className="text-xs text-gray-300 leading-relaxed text-justify">
-                                                            {analysisData.analysis}
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                 <div className="flex items-center justify-between mb-4 relative z-10">
+                                                     <div className="flex flex-col">
+                                                          {/* Dynamic Type Tag */}
+                                                          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                                              <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                                  <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
+                                                              </span>
+                                                              {pick.games_prediction?.is_grand_slam && (
+                                                                  <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
+                                                                      🎾 Slam (Bo5)
+                                                                  </span>
+                                                              )}
+                                                          </div>
+                                                         <span className="text-xs md:text-sm font-black text-white truncate max-w-[180px] xs:max-w-[220px] sm:max-w-[280px] md:max-w-none" title={val.pickName}>
+                                                             {displayPickName(val.pickName)}
+                                                         </span>
+                                                     </div>
+                                                     
+                                                     {/* THE KELLY STAKE BADGE */}
+                                                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
+                                                         <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
+                                                         <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
+                                                             {val.stake.toFixed(1)}u
+                                                         </span>
+                                                     </div>
+                                                 </div>
 
-                                                {/* Bullets */}
-                                                {analysisData.bullets.length > 0 && (
-                                                    <div>
-                                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
-                                                            <Crosshair size={10} /> Edge Execution
-                                                        </span>
-                                                        <ul className="flex flex-col gap-1.5">
-                                                            {analysisData.bullets.map((bullet, idx) => (
-                                                                <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-400">
-                                                                    <div className="w-1 h-1 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
-                                                                    <span className="leading-snug">{bullet}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                                 <div className="grid grid-cols-2 gap-2.5 relative z-10">
+                                                     <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
+                                                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                             <Target size={8} /> Play At
+                                                         </span>
+                                                         <span className="text-sm md:text-base font-mono font-black text-white leading-none">
+                                                             @{val.marketOdds.toFixed(2)}
+                                                         </span>
+                                                     </div>
+                                                     <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
+                                                         <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                             <Zap size={8} /> True Edge
+                                                         </span>
+                                                         <span className="text-sm md:text-base font-mono font-black text-blue-400 leading-none">
+                                                             +{val.edge.toFixed(1)}%
+                                                         </span>
+                                                     </div>
+                                                 </div>
 
-                            </motion.div>
-                        )
-                    })}
-                </AnimatePresence>
+                                                 {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
+                                                 <div className="mt-4 relative z-10 flex flex-col gap-1.5">
+                                                     <a 
+                                                         href={pick.games_prediction?.neo_betslip?.url 
+                                                             ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                                             : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
+                                                         }
+                                                         target="_blank" 
+                                                         rel="noopener noreferrer"
+                                                         className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
+                                                     >
+                                                         <Zap size={10} className="fill-current shrink-0" />
+                                                         {t('picks.neobetCta', 'In den Wettschein')}
+                                                     </a>
+                                                     <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                         {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                                     </div>
+                                                 </div>
+                                                 
+                                                 {/* 🚀 SOTA: EXPAND BUTTON FOR AI ANALYSIS */}
+                                                 {analysisData && (
+                                                     <div className="mt-4 flex justify-center relative z-10">
+                                                         <button 
+                                                             onClick={() => setExpandedId(isExpanded ? null : pick.id)}
+                                                             className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
+                                                         >
+                                                             <Brain size={12} className="text-purple-400" />
+                                                             {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
+                                                             {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                         </button>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                             
+                                             {/* 🚀 SOTA: EXPANDABLE AI ANALYSIS PANEL (APPLE STYLE) */}
+                                             <AnimatePresence>
+                                                 {isExpanded && analysisData && (
+                                                     <motion.div 
+                                                         initial={{ height: 0, opacity: 0 }}
+                                                         animate={{ height: 'auto', opacity: 1 }}
+                                                         exit={{ height: 0, opacity: 0 }}
+                                                         className="bg-black/50 border-t border-white/5 relative"
+                                                     >
+                                                         <div className="p-5 flex flex-col gap-4">
+                                                             {/* Key Factor */}
+                                                             {analysisData.keyFactor && (
+                                                                 <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+                                                                     <div className="flex items-center gap-1.5 mb-1.5">
+                                                                         <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+                                                                         <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                                                     </div>
+                                                                     <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
+                                                                 </div>
+                                                             )}
+                                                             
+                                                             {/* Deep Dive Text */}
+                                                             {analysisData.analysis && (
+                                                                 <div>
+                                                                     <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                                                         <AlignLeft size={10} /> Tactical Breakdown
+                                                                     </span>
+                                                                     <p className="text-xs text-gray-300 leading-relaxed text-justify">
+                                                                         {analysisData.analysis}
+                                                                     </p>
+                                                                 </div>
+                                                             )}
+
+                                                             {/* Bullets */}
+                                                             {analysisData.bullets.length > 0 && (
+                                                                 <div>
+                                                                     <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
+                                                                         <Crosshair size={10} /> Edge Execution
+                                                                     </span>
+                                                                     <ul className="flex flex-col gap-1.5">
+                                                                         {analysisData.bullets.map((bullet, idx) => (
+                                                                             <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-400">
+                                                                                 <div className="w-1 h-1 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
+                                                                                 <span className="leading-snug">{bullet}</span>
+                                                                             </li>
+                                                                         ))}
+                                                                     </ul>
+                                                                 </div>
+                                                             )}
+                                                         </div>
+                                                     </motion.div>
+                                                 )}
+                                             </AnimatePresence>
+
+                                         </motion.div>
+                                     )
+                                 })}
+                             </AnimatePresence>
+                         </div>
+                     </div>
+                 ))}
              </motion.div>
           )}
       </PremiumLock>
