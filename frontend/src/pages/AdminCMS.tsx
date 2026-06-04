@@ -19,7 +19,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { PromoCodeManager } from '../components/PromoCodeManager'; 
 import { CardGallery } from '../components/CardGallery';
 import { SmartArticleRenderer } from '../components/SmartArticleRenderer';
-import { AdminPartnerManager } from '../components/AdminPartnerManager'; // 🚀 SOTA FIX: Partner Manager Import
+
 
 // --- STYLES: SOTA SCROLLBARS & UTILS ---
 const style = document.createElement('style');
@@ -185,8 +185,7 @@ export function AdminCMS() {
   const { user } = useAuth();
   const { isAdmin, isFounder, loading: accessLoading } = useAccess();
   
-  // 🚀 SOTA FIX: Typ-Erweiterung für 'partners' Tab
-  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'partners'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support'>('players');
   
   // DATA STATES
   const [players, setPlayers] = useState<Player[]>([]);
@@ -621,13 +620,11 @@ export function AdminCMS() {
     </div>
   );
 
-  // 🚀 SOTA FIX: Partner Tab hinzugefügt
   const tabs = [
       { id: 'players', label: 'Players', icon: Users },
       { id: 'courts', label: 'Courts', icon: LayoutGrid },
       { id: 'intelligence', label: 'Intelligence', icon: Sparkles },
       { id: 'metrics', label: 'Metrics', icon: BarChart3 },
-      { id: 'partners', label: 'Partners', icon: Briefcase }, // NEU!
       { id: 'promos', label: 'Promos', icon: Ticket },
       { id: 'designs', label: 'Designs', icon: Palette },
       { id: 'support', label: 'Support & Ops', icon: LifeBuoy },
@@ -640,7 +637,6 @@ export function AdminCMS() {
       case 'courts': return <CourtsManager />;
       case 'promos': return <PromoCodeManager />;
       case 'designs': return <CardGallery />;
-      case 'partners': return <AdminPartnerManager />; // 🚀 SOTA FIX: Rendert den Partner Manager
       case 'support':
         return (
           <div className="space-y-6 animate-in fade-in">

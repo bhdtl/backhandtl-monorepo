@@ -117,7 +117,6 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
     { id: 'oracle', label: t('mobileMenu.nav.tournamentOracle', { defaultValue: 'Tournament Oracle' }), icon: Radar },
     { id: 'courts', label: t('mobileMenu.nav.bsiCourtIndex'), icon: Gauge },
     { id: 'performance', label: t('mobileMenu.nav.aiPerformance'), icon: TrendingUp },
-    { id: 'partner', label: t('mobileMenu.nav.partnerProgram', { defaultValue: 'Partner Program' }), icon: DollarSign, badge: 'EARN' },
     { id: 'support', label: t('mobileMenu.nav.supportIdeas'), icon: LifeBuoy, badge: t('mobileMenu.badges.help') },
   ];
 
