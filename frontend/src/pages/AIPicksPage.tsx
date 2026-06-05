@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumLock } from '../components/PremiumLock';
 import { useAccess } from '../hooks/useAccess';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
+import { OddsMovementModal } from '../components/OddsMovementModal';
 import { localizeBackendText } from '../utils/localizer';
 
 // --- TYPES ---
@@ -41,6 +42,60 @@ const isPlayer1Target = (pickName: string, p1Name: string) => {
     if (p1First && p1First.length >= 2 && pickWords.includes(p1First)) return true;
     
     return false;
+};
+
+const getClosingOddsForPlay = (pickName: string, match: any): number => {
+    if (!pickName || !match) return 0;
+    const pick = pickName.trim();
+    const lowerPick = pick.toLowerCase();
+    const p1 = match.player1_name || match.p1Name || "";
+    const p2 = match.player2_name || match.p2Name || "";
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        const boundaryMatch = pick.match(/[\d.]+/);
+        if (!boundaryMatch) return 0;
+        const boundary = parseFloat(boundaryMatch[0]);
+        const ouList = match.neobet_over_unders;
+        if (Array.isArray(ouList)) {
+            const ouObj = ouList.find(ou => ou && Math.abs((parseFloat(ou.boundary) || 0) - boundary) < 0.01);
+            if (ouObj) {
+                if (lowerPick.includes("over")) {
+                    return parseFloat(ouObj.over) || 0;
+                } else if (lowerPick.includes("under")) {
+                    return parseFloat(ouObj.under) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 2. HANDICAP GAMES
+    else if (pick.match(/[+-]\s*\d+(?:\.\d+)?/)) {
+        const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!signNumMatch) return 0;
+        const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
+        const isP1 = isPlayer1Target(pick, p1);
+        const spList = match.neobet_spreads;
+        if (Array.isArray(spList)) {
+            const targetHandicap = isP1 ? handicap : -handicap;
+            const spObj = spList.find(sp => sp && Math.abs((parseFloat(sp.handicap) || 0) - targetHandicap) < 0.01);
+            if (spObj) {
+                if (isP1) {
+                    return parseFloat(spObj.odds1) || 0;
+                } else {
+                    return parseFloat(spObj.odds2) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    else {
+        const isP1 = isPlayer1Target(pick, p1);
+        return isP1 ? parseFloat(match.odds1 || match.liveOdds1) || 0 : parseFloat(match.odds2 || match.liveOdds2) || 0;
+    }
 };
 
 const parseValueFromText = (text: string | undefined) => {
@@ -251,6 +306,7 @@ export function AIPicksPage() {
   // 🚀 SOTA: State für das Expandieren der KI Analyse
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   
   // Realtime Debounce Ref
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -301,7 +357,7 @@ export function AIPicksPage() {
         // Filtert Matches für heute & Zukunft
         const { data, error } = await supabase
             .from('market_odds')
-            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, match_time, last_update, created_at, is_visible_in_scanner, tournament, games_prediction, neo_contest_id, api_match_key')
+            .select('id, player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, ai_analysis_text, actual_winner_name, score, match_time, last_update, created_at, is_visible_in_scanner, tournament, games_prediction, neo_contest_id, api_match_key, neobet_spreads, neobet_over_unders')
             .eq('is_visible_in_scanner', true)
             .is('actual_winner_name', null)
             .gte('match_time', new Date(new Date().setHours(0,0,0,0)).toISOString())
@@ -326,8 +382,15 @@ export function AIPicksPage() {
 
                     const p1IsPick = isPlayer1Target(valInfo.pickName, match.player1_name);
                     
-                    const activePickOpenOdds = p1IsPick ? match.opening_odds1 : match.opening_odds2;
-                    const activePickCurrentOdds = p1IsPick ? match.odds1 : match.odds2;
+                    let activePickOpenOdds = valInfo.pickName ? (valInfo.marketOdds || valInfo.fairOdds || 0) : (p1IsPick ? match.opening_odds1 : match.opening_odds2);
+                    let activePickCurrentOdds = valInfo.pickName ? getClosingOddsForPlay(valInfo.pickName, match) : (p1IsPick ? match.odds1 : match.odds2);
+
+                    if (!activePickOpenOdds) {
+                        activePickOpenOdds = p1IsPick ? match.opening_odds1 : match.opening_odds2;
+                    }
+                    if (!activePickCurrentOdds) {
+                        activePickCurrentOdds = p1IsPick ? match.odds1 : match.odds2;
+                    }
                     
                     // SOTA Line Movement Fix: Prozentual statt absolut (3% Schwellenwert)
                     let hasMovement = false;
@@ -348,6 +411,7 @@ export function AIPicksPage() {
                         ...match,
                         relevantTime: relevantTime,
                         parsedVal: valInfo,
+                        betInfo: valInfo,
                         derivativeAlert,
                         movement: { hasMovement, openOdds: activePickOpenOdds, currentOdds: activePickCurrentOdds, isSharpDumping },
                         isPlayer1Target: p1IsPick
@@ -954,7 +1018,13 @@ export function AIPicksPage() {
                                               )}
                                              
                                              {pick.movement.hasMovement && !pick.derivativeAlert && (
-                                                  <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
+                                                  <div 
+                                                      onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          setSelectedMatch(pick);
+                                                      }}
+                                                      className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/5 hover:border-white/10 transition-colors"
+                                                  >
                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
                                                      <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
                                                          {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
@@ -1230,7 +1300,13 @@ export function AIPicksPage() {
                                                  
                                                  {/* Line Movement Alert */}
                                                  {pick.movement.hasMovement && !pick.derivativeAlert && (
-                                                      <div className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between">
+                                                      <div 
+                                                          onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              setSelectedMatch(pick);
+                                                          }}
+                                                          className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/5 hover:border-white/10 transition-colors"
+                                                      >
                                                          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
                                                          <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
                                                              {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
@@ -1399,6 +1475,14 @@ export function AIPicksPage() {
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
+
+      {selectedMatch && (
+        <OddsMovementModal
+          match={selectedMatch}
+          isOpen={!!selectedMatch}
+          onClose={() => setSelectedMatch(null)}
+        />
+      )}
     </div>
   );
 }

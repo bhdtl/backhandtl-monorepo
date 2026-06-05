@@ -59,6 +59,13 @@ export interface LiveValueMatch {
   
   status: 'PENDING' | 'WON' | 'LOST' | 'VOID';
   
+  neobet_spreads?: any[];
+  neobet_over_unders?: any[];
+  openOdds1?: number;
+  openOdds2?: number;
+  player1_name?: string;
+  player2_name?: string;
+  
   // WICHTIG: Die Verknüpfung zur Prediction
   games_prediction?: GamesPrediction; 
 }

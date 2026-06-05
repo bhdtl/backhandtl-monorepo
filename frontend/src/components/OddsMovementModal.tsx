@@ -38,6 +38,8 @@ interface NormalizedMatch {
   openOdds1: number | null;
   openOdds2: number | null;
   pickName: string | null;
+  neobet_spreads?: any[];
+  neobet_over_unders?: any[];
 }
 
 interface OddsHistoryRow {
@@ -62,6 +64,80 @@ interface GraphPoint {
 }
 
 // --- UTILS ---
+const isPlayer1Target = (pickName: string, p1Name: string) => {
+    if (!pickName || !p1Name) return false;
+    const pick = pickName.toLowerCase().trim();
+    const p1 = p1Name.toLowerCase().trim();
+    if (pick.includes(p1) || p1.includes(pick)) return true;
+    
+    // Clean punctuation from pick to make word matching robust
+    const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+    const pickWords = cleanPick.split(/\s+/);
+    
+    const p1Words = p1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
+    const p1Last = p1Words[p1Words.length - 1];
+    const p1First = p1Words[0];
+    
+    if (p1Last && p1Last.length >= 2 && pickWords.includes(p1Last)) return true;
+    if (p1First && p1First.length >= 2 && pickWords.includes(p1First)) return true;
+    
+    return false;
+};
+
+const getClosingOddsForPlay = (pickName: string, match: any): number => {
+    if (!pickName || !match) return 0;
+    const pick = pickName.trim();
+    const lowerPick = pick.toLowerCase();
+    const p1 = match.player1_name || match.p1Name || "";
+    const p2 = match.player2_name || match.p2Name || "";
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        const boundaryMatch = pick.match(/[\d.]+/);
+        if (!boundaryMatch) return 0;
+        const boundary = parseFloat(boundaryMatch[0]);
+        const ouList = match.neobet_over_unders;
+        if (Array.isArray(ouList)) {
+            const ouObj = ouList.find(ou => ou && Math.abs((parseFloat(ou.boundary) || 0) - boundary) < 0.01);
+            if (ouObj) {
+                if (lowerPick.includes("over")) {
+                    return parseFloat(ouObj.over) || 0;
+                } else if (lowerPick.includes("under")) {
+                    return parseFloat(ouObj.under) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 2. HANDICAP GAMES
+    else if (pick.match(/[+-]\s*\d+(?:\.\d+)?/)) {
+        const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!signNumMatch) return 0;
+        const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
+        const isP1 = isPlayer1Target(pick, p1);
+        const spList = match.neobet_spreads;
+        if (Array.isArray(spList)) {
+            const targetHandicap = isP1 ? handicap : -handicap;
+            const spObj = spList.find(sp => sp && Math.abs((parseFloat(sp.handicap) || 0) - targetHandicap) < 0.01);
+            if (spObj) {
+                if (isP1) {
+                    return parseFloat(spObj.odds1) || 0;
+                } else {
+                    return parseFloat(spObj.odds2) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    else {
+        const isP1 = isPlayer1Target(pick, p1);
+        return isP1 ? parseFloat(match.odds1 || match.liveOdds1) || 0 : parseFloat(match.odds2 || match.liveOdds2) || 0;
+    }
+};
+
 const parseDateSafe = (dateStr: string): Date => {
   if (!dateStr) return new Date();
   const safeStr = dateStr.replace(' ', 'T'); 
@@ -69,7 +145,7 @@ const parseDateSafe = (dateStr: string): Date => {
   return isNaN(d.getTime()) ? new Date() : d;
 };
 
-const normalizeMatchData = (raw: RawMatchRow | null): NormalizedMatch | null => {
+const normalizeMatchData = (raw: any | null): NormalizedMatch | null => {
   if (!raw) return null;
   return {
       id: String(raw.id).trim(), 
@@ -79,7 +155,9 @@ const normalizeMatchData = (raw: RawMatchRow | null): NormalizedMatch | null => 
       liveOdds2: Number(raw.odds2 ?? raw.marketOddsB ?? 0),
       openOdds1: (raw.opening_odds1 && !isNaN(Number(raw.opening_odds1))) ? Number(raw.opening_odds1) : null,
       openOdds2: (raw.opening_odds2 && !isNaN(Number(raw.opening_odds2))) ? Number(raw.opening_odds2) : null,
-      pickName: raw.betInfo?.pickName || null
+      pickName: raw.betInfo?.pickName || null,
+      neobet_spreads: raw.neobet_spreads || null,
+      neobet_over_unders: raw.neobet_over_unders || null
   };
 };
 
@@ -129,7 +207,7 @@ export function OddsMovementModal({
   // 🚀 SOTA: Match Center Tab Navigation
   const [activeTab, setActiveTab] = useState<'ODDS' | 'P1' | 'P2'>('ODDS');
 
-  const [viewMode, setViewMode] = useState<'A' | 'B'>('A');
+  const [viewMode, setViewMode] = useState<'PLAY' | 'A' | 'B'>('PLAY');
   const [timeFrame, setTimeFrame] = useState('24h'); 
   
   const [activePoint, setActivePoint] = useState<GraphPoint | null>(null);
@@ -151,30 +229,34 @@ export function OddsMovementModal({
       setTimeFrame('24h');
       setActiveTab('ODDS'); // Reset to default tab
 
-      const pick = (match.pickName || '').toLowerCase().trim();
-      const p2 = (match.p2Name || '').toLowerCase().trim();
-      
-      let isP2 = false;
-      if (pick && p2) {
-          if (pick.includes(p2) || p2.includes(pick)) {
-              isP2 = true;
-          } else {
-              const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
-              const pickWords = cleanPick.split(/\s+/);
-              
-              const p2Words = p2.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
-              const p2Last = p2Words[p2Words.length - 1];
-              const p2First = p2Words[0];
-              
-              if (p2Last && p2Last.length >= 2 && pickWords.includes(p2Last)) isP2 = true;
-              else if (p2First && p2First.length >= 2 && pickWords.includes(p2First)) isP2 = true;
-          }
-      }
-      
-      if (isP2) {
-          setViewMode('B');
+      if (match.pickName) {
+          setViewMode('PLAY');
       } else {
-          setViewMode('A');
+          const pick = (match.pickName || '').toLowerCase().trim();
+          const p2 = (match.p2Name || '').toLowerCase().trim();
+          
+          let isP2 = false;
+          if (pick && p2) {
+              if (pick.includes(p2) || p2.includes(pick)) {
+                  isP2 = true;
+              } else {
+                  const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+                  const pickWords = cleanPick.split(/\s+/);
+                  
+                  const p2Words = p2.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
+                  const p2Last = p2Words[p2Words.length - 1];
+                  const p2First = p2Words[0];
+                  
+                  if (p2Last && p2Last.length >= 2 && pickWords.includes(p2Last)) isP2 = true;
+                  else if (p2First && p2First.length >= 2 && pickWords.includes(p2First)) isP2 = true;
+              }
+          }
+          
+          if (isP2) {
+              setViewMode('B');
+          } else {
+              setViewMode('A');
+          }
       }
 
       const fetchHistory = async () => {
@@ -232,24 +314,75 @@ export function OddsMovementModal({
 
       if (!match) return safeDefault;
 
+      const isPlayMode = viewMode === 'PLAY';
       const isViewA = viewMode === 'A';
-      const rawName = isViewA ? match.p1Name : match.p2Name;
-      const playerName = rawName || (isViewA ? 'Player 1' : 'Player 2');
       
-      let liveVal = isViewA ? match.liveOdds1 : match.liveOdds2;
-      let openVal = isViewA ? match.openOdds1 : match.openOdds2;
+      const isP1Target = match.pickName ? isPlayer1Target(match.pickName, match.p1Name) : true;
+      const baseIsP1 = isPlayMode ? isP1Target : isViewA;
+      
+      const rawName = isViewA ? match.p1Name : match.p2Name;
+      let playerName = isPlayMode 
+          ? (match.pickName || 'Played Line') 
+          : (rawName || (isViewA ? 'Player 1' : 'Player 2'));
+      
+      let liveVal = baseIsP1 ? match.liveOdds1 : match.liveOdds2;
+      let openVal = baseIsP1 ? match.openOdds1 : match.openOdds2;
+
+      let plOpen = match.pickName ? (rawMatch?.betInfo?.marketOdds || rawMatch?.betInfo?.fairOdds || 0) : 0;
+      let plLive = match.pickName ? getClosingOddsForPlay(match.pickName, rawMatch) : 0;
 
       if (rawHistory.length > 0) {
           const lastRow = rawHistory[rawHistory.length - 1];
-          liveVal = isViewA ? (lastRow.odds1 || liveVal) : (lastRow.odds2 || liveVal);
+          liveVal = baseIsP1 ? (lastRow.odds1 || liveVal) : (lastRow.odds2 || liveVal);
           if (!openVal) {
               const firstRow = rawHistory[0];
-              openVal = isViewA ? firstRow.odds1 : firstRow.odds2;
+              openVal = baseIsP1 ? firstRow.odds1 : firstRow.odds2;
           }
       }
 
-      const finalLive = (Number(liveVal) && !isNaN(Number(liveVal))) ? Number(liveVal) : 0;
-      const finalOpen = (Number(openVal) && !isNaN(Number(openVal))) ? Number(openVal) : finalLive;
+      // played line odds fallbacks
+      if (isPlayMode) {
+          plLive = plLive || plOpen || liveVal;
+          plOpen = plOpen || plLive || openVal;
+      }
+
+      const finalLive = isPlayMode 
+          ? plLive 
+          : ((Number(liveVal) && !isNaN(Number(liveVal))) ? Number(liveVal) : 0);
+      const finalOpen = isPlayMode 
+          ? plOpen 
+          : ((Number(openVal) && !isNaN(Number(openVal))) ? Number(openVal) : finalLive);
+
+      // --- SCALING HELPERS ---
+      let mlFirst = openVal;
+      let mlLast = liveVal;
+      if (rawHistory.length > 0) {
+          const firstRow = rawHistory[0];
+          const lastRow = rawHistory[rawHistory.length - 1];
+          mlFirst = baseIsP1 ? firstRow.odds1 : firstRow.odds2;
+          mlLast = baseIsP1 ? lastRow.odds1 : lastRow.odds2;
+      }
+
+      const scaleOdds = (mlVal: number) => {
+          if (!isPlayMode) return mlVal;
+          if (Math.abs(mlLast - mlFirst) < 0.005) {
+              return plOpen;
+          }
+          const progress = (mlVal - mlFirst) / (mlLast - mlFirst);
+          const scaled = plOpen + progress * (plLive - plOpen);
+          return Math.max(1.01, scaled);
+      };
+
+      const scaleFairOdds = (mlFairVal: number) => {
+          if (!isPlayMode) return mlFairVal;
+          if (Math.abs(mlLast - mlFirst) < 0.005) {
+              return rawMatch?.betInfo?.fairOdds || mlFairVal;
+          }
+          const progress = (mlFairVal - mlFirst) / (mlLast - mlFirst);
+          const plFairOpen = rawMatch?.betInfo?.fairOdds || plOpen;
+          const scaled = plFairOpen + progress * (plLive - plOpen);
+          return Math.max(1.01, scaled);
+      };
 
       // --- SANITIZER & FILTER ---
       let allPoints: GraphPoint[] = [];
@@ -257,7 +390,7 @@ export function OddsMovementModal({
       if (rawHistory.length > 0) {
           rawHistory.forEach((row) => {
               const date = parseDateSafe(row.recorded_at);
-              const val = Number(isViewA ? row.odds1 : row.odds2);
+              const val = Number(baseIsP1 ? row.odds1 : row.odds2);
               
               if (val < 1.01 || val > 100) return; 
 
@@ -270,12 +403,16 @@ export function OddsMovementModal({
                   if (spikeRatio < 0.3) return;
               }
 
+              const scaledVal = scaleOdds(val);
+              const rawFair = baseIsP1 ? row.fair_odds1 : row.fair_odds2;
+              const scaledFair = scaleFairOdds(rawFair);
+
               allPoints.push({
                   timeLabel: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                   fullDate: row.recorded_at,
                   timestamp: date.getTime(),
-                  odds: val,
-                  fairOdds: isViewA ? row.fair_odds1 : row.fair_odds2,
+                  odds: scaledVal,
+                  fairOdds: scaledFair,
                   isExecutionPoint: row.is_hunter_pick, 
                   isLiveNode: false,
                   isAnchor: false
@@ -345,7 +482,7 @@ export function OddsMovementModal({
           playerColor, playerName, isPositiveTrend: trendIsPositive, yDomain, percentChange: currentChange
       };
 
-  }, [match, rawHistory, viewMode, timeFrame]);
+  }, [match, rawHistory, viewMode, timeFrame, rawMatch]);
 
   const handleMouseMove = useCallback((state: any) => {
       if (state.activePayload && state.activePayload.length > 0) {
@@ -589,34 +726,48 @@ export function OddsMovementModal({
                                   )
                               )}
                           </div>
-
-                          {/* Footer Segmented Control for Chart */}
-                          <div className="p-6 pb-10 shrink-0">
-                              <div className="flex p-1 bg-zinc-900 rounded-xl relative overflow-hidden border border-zinc-800">
-                                  <div 
-                                      className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-zinc-800 rounded-lg shadow-md transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
-                                      style={{ transform: `translateX(${viewMode === 'A' ? '4px' : 'calc(100% + 0px)'})` }}
-                                  >
-                                      <div className="absolute inset-0 bg-white/5 rounded-lg"></div>
-                                  </div>
-                                  
-                                  <button 
-                                      onClick={() => setViewMode('A')}
-                                      className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200 truncate px-2
-                                      ${viewMode === 'A' ? 'text-white' : 'text-zinc-600 hover:text-zinc-500'}`}
-                                  >
-                                      {match.p1Name}
-                                  </button>
-                                  
-                                  <button 
-                                      onClick={() => setViewMode('B')}
-                                      className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200 truncate px-2
-                                      ${viewMode === 'B' ? 'text-white' : 'text-zinc-600 hover:text-zinc-500'}`}
-                                  >
-                                      {match.p2Name}
-                                  </button>
-                              </div>
-                          </div>
+                                                  {/* Footer Segmented Control for Chart */}
+                           <div className="p-6 pb-10 shrink-0">
+                               <div className="flex p-1 bg-zinc-900 rounded-xl relative overflow-hidden border border-zinc-800">
+                                   <div 
+                                       className="absolute top-1 bottom-1 bg-zinc-800 rounded-lg shadow-md transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                                       style={{ 
+                                           width: match.pickName ? 'calc(33.33% - 4px)' : 'calc(50% - 4px)',
+                                           transform: match.pickName 
+                                               ? `translateX(${viewMode === 'PLAY' ? '4px' : viewMode === 'A' ? 'calc(100% + 4px)' : 'calc(200% + 4px)'})` 
+                                               : `translateX(${viewMode === 'A' ? '4px' : 'calc(100% + 4px)'})`
+                                       }}
+                                   >
+                                       <div className="absolute inset-0 bg-white/5 rounded-lg"></div>
+                                   </div>
+                                   
+                                   {match.pickName && (
+                                       <button 
+                                           onClick={() => setViewMode('PLAY')}
+                                           className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200 truncate px-2
+                                           ${viewMode === 'PLAY' ? 'text-white' : 'text-zinc-600 hover:text-zinc-500'}`}
+                                       >
+                                           {match.pickName}
+                                       </button>
+                                   )}
+                                   
+                                   <button 
+                                       onClick={() => setViewMode('A')}
+                                       className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200 truncate px-2
+                                       ${viewMode === 'A' ? 'text-white' : 'text-zinc-600 hover:text-zinc-500'}`}
+                                   >
+                                       {match.p1Name}
+                                   </button>
+                                   
+                                   <button 
+                                       onClick={() => setViewMode('B')}
+                                       className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200 truncate px-2
+                                       ${viewMode === 'B' ? 'text-white' : 'text-zinc-600 hover:text-zinc-500'}`}
+                                   >
+                                       {match.p2Name}
+                                   </button>
+                               </div>
+                           </div>
                       </div>
                   )}
 

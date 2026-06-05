@@ -109,6 +109,80 @@ function findBestPlayerMatch(scrapedName: string, allPlayers: Player[]): Player 
   return allPlayers.find(p => `${p.first_name} ${p.last_name}`.toLowerCase() === cleanScrape);
 }
 
+const isPlayer1Target = (pickName: string, p1Name: string) => {
+    if (!pickName || !p1Name) return false;
+    const pick = pickName.toLowerCase().trim();
+    const p1 = p1Name.toLowerCase().trim();
+    if (pick.includes(p1) || p1.includes(pick)) return true;
+    
+    // Clean punctuation from pick to make word matching robust
+    const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+    const pickWords = cleanPick.split(/\s+/);
+    
+    const p1Words = p1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
+    const p1Last = p1Words[p1Words.length - 1];
+    const p1First = p1Words[0];
+    
+    if (p1Last && p1Last.length >= 2 && pickWords.includes(p1Last)) return true;
+    if (p1First && p1First.length >= 2 && pickWords.includes(p1First)) return true;
+    
+    return false;
+};
+
+const getClosingOddsForPlay = (pickName: string, match: any): number => {
+    if (!pickName || !match) return 0;
+    const pick = pickName.trim();
+    const lowerPick = pick.toLowerCase();
+    const p1 = match.player1_name || match.playerA?.last_name || "";
+    const p2 = match.player2_name || match.playerB?.last_name || "";
+    
+    // 1. OVER / UNDER GAMES
+    if (lowerPick.includes("over") || lowerPick.includes("under")) {
+        const boundaryMatch = pick.match(/[\d.]+/);
+        if (!boundaryMatch) return 0;
+        const boundary = parseFloat(boundaryMatch[0]);
+        const ouList = match.neobet_over_unders;
+        if (Array.isArray(ouList)) {
+            const ouObj = ouList.find(ou => ou && Math.abs((parseFloat(ou.boundary) || 0) - boundary) < 0.01);
+            if (ouObj) {
+                if (lowerPick.includes("over")) {
+                    return parseFloat(ouObj.over) || 0;
+                } else if (lowerPick.includes("under")) {
+                    return parseFloat(ouObj.under) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 2. HANDICAP GAMES
+    else if (pick.match(/[+-]\s*\d+(?:\.\d+)?/)) {
+        const signNumMatch = pick.match(/([+-]\s*\d+(?:\.\d+)?)/);
+        if (!signNumMatch) return 0;
+        const handicap = parseFloat(signNumMatch[1].replace(/\s+/g, ''));
+        const isP1 = isPlayer1Target(pick, p1);
+        const spList = match.neobet_spreads;
+        if (Array.isArray(spList)) {
+            const targetHandicap = isP1 ? handicap : -handicap;
+            const spObj = spList.find(sp => sp && Math.abs((parseFloat(sp.handicap) || 0) - targetHandicap) < 0.01);
+            if (spObj) {
+                if (isP1) {
+                    return parseFloat(spObj.odds1) || 0;
+                } else {
+                    return parseFloat(spObj.odds2) || 0;
+                }
+            }
+        }
+        return 0;
+    }
+    
+    // 3. MONEYLINE / MATCH WINNER
+    else {
+        const isP1 = isPlayer1Target(pick, p1);
+        return isP1 ? parseFloat(match.odds1 || match.marketOddsA || match.baseOddsA) || 0 : parseFloat(match.odds2 || match.marketOddsB || match.baseOddsB) || 0;
+    }
+};
+
 // --- TIME AGO CALCULATOR ---
 function formatTimeAgo(dateString: string | undefined): { text: string, isHot: boolean, isWarm: boolean } {
   if (!dateString) return { text: '', isHot: false, isWarm: false };
@@ -414,12 +488,16 @@ export function ValueScanner() {
             id: row.id, 
             playerA, 
             playerB, 
+            player1_name: row.player1_name,
+            player2_name: row.player2_name,
             baseOddsA,
             baseOddsB, 
             openOdds1: row.opening_odds1,
             openOdds2: row.opening_odds2,
             betInfo: betInfo, 
             derivativeAlert: derivativeAlert,
+            neobet_spreads: row.neobet_spreads,
+            neobet_over_unders: row.neobet_over_unders,
             tournament: (row.tournament || 'Unknown').replace(/[A-Z0-9]{6,}$/, '').trim(),
             commencing: commencingTime, 
             matchDate: mDate,
@@ -749,8 +827,17 @@ export function ValueScanner() {
                 const edgeColorClass = getEdgeColorClass(safeEdge);
 
                 // Line Movement
-                const activePickOpenOdds = p1IsPick ? match.openOdds1 : match.openOdds2;
-                const activePickCurrentOdds = p1IsPick ? match.marketOddsA : match.marketOddsB;
+                const vsIsP1 = analysis.pickName ? isPlayer1Target(analysis.pickName, safePlayerAName) : p1IsPick;
+                let activePickOpenOdds = analysis.pickName ? (analysis.marketOdds || analysis.fairOdds || 0) : (vsIsP1 ? match.openOdds1 : match.openOdds2);
+                let activePickCurrentOdds = analysis.pickName ? getClosingOddsForPlay(analysis.pickName, match) : (vsIsP1 ? match.marketOddsA : match.marketOddsB);
+
+                if (!activePickOpenOdds) {
+                    activePickOpenOdds = vsIsP1 ? match.openOdds1 : match.openOdds2;
+                }
+                if (!activePickCurrentOdds) {
+                    activePickCurrentOdds = vsIsP1 ? match.marketOddsA : match.marketOddsB;
+                }
+
                 const hasMovement = activePickOpenOdds && activePickOpenOdds > 0 && Math.abs(activePickOpenOdds - activePickCurrentOdds) > 0.02;
                 const isSharpDumping = activePickCurrentOdds < activePickOpenOdds; 
 
