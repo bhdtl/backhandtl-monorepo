@@ -681,5 +681,22 @@
     "premiumPartner": "Socio Premium Oficial",
     "description": "Cuotas exclusivas, interfaz en tiempo real y colocación de boletas de apuestas ultrarrápida para el máximo rendimiento.",
     "licensedRegulated": "Licenciado y Regulado (Lista Blanca)"
+  },
+  "playStyle": {
+    "Aggressive Baseliner": "Jugador de Línea de Fondo Agresivo",
+    "Counter Puncher": "Contraatacador",
+    "Serve & Volley": "Saque y Volea",
+    "All Court": "Jugador de Toda la Pista",
+    "Big Server": "Gran Sacador",
+    "Flat Hitter": "Golpeador Plano",
+    "Grinder": "Luchador de Fondo",
+    "Junk Baller": "Jugador Táctico Disruptivo",
+    "Lefty": "Zurdo",
+    "Net Rusher": "Atacante de Red",
+    "All-Rounder": "Jugador Completo",
+    "Unknown Style": "Estilo Desconocido",
+    "Balanced": "Equilibrado",
+    "Versatile": "Versátil",
+    "Dominant Style": "Estilo Dominante"
   }
 }

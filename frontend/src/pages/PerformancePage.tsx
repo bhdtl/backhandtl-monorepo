@@ -23,15 +23,16 @@ const isPlayer1Target = (pickName: string, p1Name: string) => {
     const p1 = p1Name.toLowerCase().trim();
     if (pick.includes(p1) || p1.includes(pick)) return true;
     
-    // Check if player's surname (last word) is in pick name
-    const p1Words = p1.split(/\s+/);
-    const p1Last = p1Words[p1Words.length - 1];
-    if (p1Last && p1Last.length > 2 && pick.includes(p1Last)) return true;
+    // Clean punctuation from pick to make word matching robust
+    const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+    const pickWords = cleanPick.split(/\s+/);
     
-    // Check first word of pick against player parts
-    const pickWords = pick.split(/\s+/);
-    const pickFirst = pickWords[0];
-    if (pickFirst && pickFirst.length > 2 && p1.includes(pickFirst)) return true;
+    const p1Words = p1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
+    const p1Last = p1Words[p1Words.length - 1];
+    const p1First = p1Words[0];
+    
+    if (p1Last && p1Last.length >= 2 && pickWords.includes(p1Last)) return true;
+    if (p1First && p1First.length >= 2 && pickWords.includes(p1First)) return true;
     
     return false;
 };

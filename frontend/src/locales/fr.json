@@ -681,5 +681,22 @@
     "premiumPartner": "Partenaire Premium Officiel",
     "description": "Cotes exclusives, interface en temps réel et placement ultra-rapide des coupons de pari pour une performance maximale.",
     "licensedRegulated": "Agréé et Réglementé (Liste Blanche)"
+  },
+  "playStyle": {
+    "Aggressive Baseliner": "Attaquant de Fond de Court",
+    "Counter Puncher": "Contre-Attaquant",
+    "Serve & Volley": "Service-Volée",
+    "All Court": "Joueur de Tout Court",
+    "Big Server": "Grand Serveur",
+    "Flat Hitter": "Frappeur à Plat",
+    "Grinder": "Défenseur de Fond",
+    "Junk Baller": "Joueur de Rhythme Disruptif",
+    "Lefty": "Gaucher",
+    "Net Rusher": "Joueur au Filet",
+    "All-Rounder": "Polyvalent",
+    "Unknown Style": "Style Inconnu",
+    "Balanced": "Équilibré",
+    "Versatile": "Polyvalent",
+    "Dominant Style": "Style Dominant"
   }
 }

@@ -682,5 +682,22 @@
     "premiumPartner": "Official Premium Partner",
     "description": "Exclusive odds, real-time interface & lightning-fast betslip placement for maximum performance.",
     "licensedRegulated": "Licensed & Regulated (Whitelist)"
+  },
+  "playStyle": {
+    "Aggressive Baseliner": "Aggressive Baseliner",
+    "Counter Puncher": "Counter Puncher",
+    "Serve & Volley": "Serve & Volley",
+    "All Court": "All Court",
+    "Big Server": "Big Server",
+    "Flat Hitter": "Flat Hitter",
+    "Grinder": "Grinder",
+    "Junk Baller": "Junk Baller",
+    "Lefty": "Lefty",
+    "Net Rusher": "Net Rusher",
+    "All-Rounder": "All-Rounder",
+    "Unknown Style": "Unknown Style",
+    "Balanced": "Balanced",
+    "Versatile": "Versatile",
+    "Dominant Style": "Dominant Style"
   }
 }

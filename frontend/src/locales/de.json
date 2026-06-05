@@ -681,5 +681,22 @@
     "premiumPartner": "Offizieller Premium Partner",
     "description": "Exklusive Quoten, Echtzeit-Schnittstelle & blitzschnelle Wettschein-Abgabe für maximale Performance.",
     "licensedRegulated": "Lizenziert & Reguliert (Whitelist)"
+  },
+  "playStyle": {
+    "Aggressive Baseliner": "Aggressiver Grundlinienspieler",
+    "Counter Puncher": "Konterspieler",
+    "Serve & Volley": "Aufschlag & Volleyspieler",
+    "All Court": "All-Court-Spieler",
+    "Big Server": "Aufschlagspezialist",
+    "Flat Hitter": "Flachschläger",
+    "Grinder": "Zermürber",
+    "Junk Baller": "Rhythmusstörer",
+    "Lefty": "Linkshänder",
+    "Net Rusher": "Netzstürmer",
+    "All-Rounder": "Allrounder",
+    "Unknown Style": "Unbekannter Spielstil",
+    "Balanced": "Ausgewogen",
+    "Versatile": "Vielseitig",
+    "Dominant Style": "Dominanter Spielstil"
   }
 }

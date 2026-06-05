@@ -151,9 +151,27 @@ export function OddsMovementModal({
       setTimeFrame('24h');
       setActiveTab('ODDS'); // Reset to default tab
 
-      const pick = (match.pickName || '').toLowerCase();
+      const pick = (match.pickName || '').toLowerCase().trim();
+      const p2 = (match.p2Name || '').toLowerCase().trim();
       
-      if (pick && match.p2Name && pick.includes(match.p2Name.toLowerCase())) {
+      let isP2 = false;
+      if (pick && p2) {
+          if (pick.includes(p2) || p2.includes(pick)) {
+              isP2 = true;
+          } else {
+              const cleanPick = pick.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+              const pickWords = cleanPick.split(/\s+/);
+              
+              const p2Words = p2.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ').split(/\s+/);
+              const p2Last = p2Words[p2Words.length - 1];
+              const p2First = p2Words[0];
+              
+              if (p2Last && p2Last.length >= 2 && pickWords.includes(p2Last)) isP2 = true;
+              else if (p2First && p2First.length >= 2 && pickWords.includes(p2First)) isP2 = true;
+          }
+      }
+      
+      if (isP2) {
           setViewMode('B');
       } else {
           setViewMode('A');

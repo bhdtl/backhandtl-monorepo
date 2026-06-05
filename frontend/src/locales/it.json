@@ -681,5 +681,22 @@
     "premiumPartner": "Partner Premium Ufficiale",
     "description": "Quote esclusive, interfaccia in tempo reale e piazzamento ultrarapido della schedina per le massime prestazioni.",
     "licensedRegulated": "Licenziato e Regolamentato (Lista Bianca)"
+  },
+  "playStyle": {
+    "Aggressive Baseliner": "Aggressore da Fondocampo",
+    "Counter Puncher": "Contrattaccante",
+    "Serve & Volley": "Serve & Volley",
+    "All Court": "Giocatore a Tutto Campo",
+    "Big Server": "Grande Battitore",
+    "Flat Hitter": "Colpitore Piatto",
+    "Grinder": "Regolarista da Fondo",
+    "Junk Baller": "Giocatore Tattico di Variazione",
+    "Lefty": "Mancino",
+    "Net Rusher": "Giocatore di Rete",
+    "All-Rounder": "Giocatore Completo",
+    "Unknown Style": "Stile Sconosciuto",
+    "Balanced": "Equilibrato",
+    "Versatile": "Versatile",
+    "Dominant Style": "Stile Dominante"
   }
 }

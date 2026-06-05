@@ -59,6 +59,14 @@ import { Gift } from 'lucide-react';
 const FUNCTION_URL = "https://suoaznisiowoolxilaju.supabase.co/functions/v1/smart-api";
 
 // --- VETERAN UPGRADE: COMPLETE TENNIS GEO-MAP (V2.0 - Bugfixes & Expansion) ---
+const translatePlayStyle = (styleStr: string | undefined | null, t: any) => {
+  if (!styleStr) return t('playStyle.Unknown Style', 'Unknown Style');
+  return styleStr.split(',').map(s => {
+    const trimmed = s.trim();
+    return t(`playStyle.${trimmed}`, trimmed);
+  }).join(', ');
+};
+
 const getCountryISO = (country: string) => {
   if (!country) return 'un';
   
@@ -369,6 +377,7 @@ function PlayerSlot({ label, player, onClick, onClear, isError }: any) {
 
 // --- NEU: APPLE-LIKE PLAYER INTEL BADGES ---
 function PlayerIntelBadges({ player, surface }: { player: any, surface: string }) {
+    const { t } = useTranslation();
     if (!player) return null;
 
     const safeParse = (str: any) => {
@@ -407,7 +416,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
                     <div className="flex items-center gap-1.5 bg-[#15171e] border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-lg">
                         <Target size={10} className="text-gray-400" />
                         <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-200 max-w-[100px] md:max-w-[140px] truncate">
-                            {player.play_style.split(',')[0]}
+                            {translatePlayStyle(player.play_style, t)}
                         </span>
                     </div>
                 )}
@@ -454,7 +463,7 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
               </div> 
               <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-2 md:space-y-3 custom-scrollbar"> 
                   {filtered.map((p: Player) => {
-                      const pStyle = p.play_style ? p.play_style.split(',')[0] : null; 
+                      const pStyle = p.play_style ? translatePlayStyle(p.play_style.split(',')[0], t) : null; 
                       return ( 
                           <button key={p.id} onClick={() => { onSelect(p); onClose(); setSearch(''); }} className="w-full flex items-center gap-4 md:gap-5 p-3 md:p-4 hover:bg-white/5 rounded-xl md:rounded-[1.5rem] transition-all text-left group border border-transparent hover:border-white/5"> 
                               {p.profile_image_url ? <img src={p.profile_image_url} className="h-16 w-12 md:h-18 md:w-14 rounded-lg md:rounded-2xl object-cover bg-gray-800 border border-white/10 group-hover:scale-105 transition-transform" /> : <div className="h-16 w-12 md:h-18 md:w-14 rounded-lg md:rounded-2xl bg-gray-800 border border-white/10 flex items-center justify-center text-[10px] font-black tracking-widest uppercase">{t('matchup.modal.noImg')}</div>} 
@@ -727,15 +736,15 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
             {/* 3. TACTICAL COMBAT PROFILE (SIDE-BY-SIDE INLINE CARDS) */}
             <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/5">
                 <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
-                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> Dominant Style</div>
-                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{playerAData.player.play_style?.split(',')[0] || 'All-Rounder'}</div>
+                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{translatePlayStyle(playerAData.player.play_style || 'All-Rounder', t)}</div>
                     <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
                         {playerAData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
                     </div>
                 </div>
                 <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
-                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> Dominant Style</div>
-                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{playerBData.player.play_style?.split(',')[0] || 'All-Rounder'}</div>
+                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{translatePlayStyle(playerBData.player.play_style || 'All-Rounder', t)}</div>
                     <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
                         {playerBData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
                     </div>
@@ -923,63 +932,47 @@ function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimP
   const { t } = useTranslation();
   if (!analysisResult || !playerAData || !playerBData) return null;
 
-  const { winner_prediction: winnerName, probA } = analysisResult;
+  const { winner_prediction: winnerName } = analysisResult;
   const cleanWinnerName = winnerName.split(' ').pop() || winnerName;
-
-  const isWinnerA = winnerName.toLowerCase().includes(playerAData.player.last_name.toLowerCase().trim());
-  const winProb = isWinnerA ? probA : (1 - probA);
-
-  // Calculate estimated odds with a standard 5% margin
-  const estOdds = Math.max(1.10, Math.min(10.0, (1 / winProb) * 0.95));
-  const potentialPayout = 25 * estOdds;
-  const netProfit = 25 * (estOdds - 1);
 
   return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[380px] md:max-w-[400px] mx-auto bg-gradient-to-br from-[#1a1d24] to-[#111317] border border-tennis-lime/20 rounded-[2rem] p-5 shadow-xl mt-6 relative overflow-hidden group text-center"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        onClick={onClaimPromo}
+        className="w-full max-w-[550px] mx-auto relative overflow-hidden rounded-[1.5rem] border border-white/5 bg-gradient-to-r from-[#1d1f27] to-[#15171e] hover:border-tennis-lime/20 cursor-pointer shadow-xl transition-all duration-300 p-5 group flex flex-col sm:flex-row gap-5 items-center justify-between text-left mt-8"
       >
-          <div className="absolute top-0 right-0 w-24 h-24 bg-tennis-lime/5 rounded-full blur-xl pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-300" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
           
-          <div className="flex items-center justify-center gap-2 mb-3">
-              <Gift size={14} className="text-tennis-lime animate-bounce" />
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-tennis-lime">
-                  {t('picks.matchupFreebetIntel', 'Matchup Freebet Intel')}
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime shrink-0">
+                  <Gift size={22} className="animate-pulse" />
+              </div>
+              <div>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
+                      <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+                      </span>
+                      <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">
+                          {t('picks.partnerPromo', 'Partner Promotion')}
+                      </span>
+                  </div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-tight">
+                      {t('picks.promoTitleScanner', 'Sichere dir 25€ Gratiswette ohne Einzahlung')}
+                  </h3>
+                  <p className="text-[11px] text-gray-500 font-semibold mt-0.5 leading-relaxed">
+                      {t('picks.matchupFreebetDesc', 'Platziere deine exklusive 25€ Freebet auf {{name}} bei unserem Partner NEO.bet:', { name: cleanWinnerName })}
+                  </p>
+              </div>
+          </div>
+          
+          <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
+              <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">
+                  {t('picks.unlockBonus', 'Bonus freischalten')}
               </span>
+              <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
           </div>
-
-          <p className="text-[11px] text-gray-400 font-medium leading-relaxed mb-4">
-              {t('picks.matchupFreebetDesc', 'Platziere deine exklusive 25€ Freebet auf {{name}} bei unserem Partner NEO.bet:', { name: cleanWinnerName })}
-          </p>
-
-          <div className="bg-black/30 rounded-2xl p-4 border border-white/5 space-y-2 mb-4">
-              <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                  <span>{t('picks.estimatedOdds', 'Errechnete Quote:')}</span>
-                  <span className="font-mono text-white font-black">@{estOdds.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                  <span>{t('picks.potentialPayout', 'Mögl. Auszahlung:')}</span>
-                  <span className="font-mono text-white font-black">{potentialPayout.toFixed(2)} €</span>
-              </div>
-              <div className="h-px bg-white/5 my-1" />
-              <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-tennis-lime font-black uppercase tracking-wider flex items-center gap-1">
-                      <Zap size={10} /> {t('picks.netProfitLabel', 'Netto-Reingewinn:')}
-                  </span>
-                  <span className="font-mono font-black text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-xl border border-tennis-lime/20 shadow-[0_0_10px_rgba(204,255,0,0.15)]">
-                      {netProfit.toFixed(2)} €
-                  </span>
-              </div>
-          </div>
-
-          <button
-              onClick={onClaimPromo}
-              className="w-full py-3 bg-white hover:bg-tennis-lime text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all flex items-center justify-center gap-1.5 transform-gpu"
-          >
-              <Zap size={10} className="fill-current" />
-              <span>{t('picks.secureFreebetWager', 'Freebet sichern & wetten')}</span>
-          </button>
       </motion.div>
   );
 }
@@ -1038,7 +1031,7 @@ export function MatchupAnalyzer() {
   // --- INIT ---
   useEffect(() => {
     Promise.all([
-        supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour').order('last_name'), 
+        supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour, play_style').order('last_name'), 
         supabase.from('tournaments').select('id, name, location, surface, bsi_rating').order('name')
     ]).then(([p, t]) => {
       if(p.data) setPlayers(p.data); 
@@ -1090,7 +1083,7 @@ export function MatchupAnalyzer() {
   const fetchDeepData = async (id: string, setter: any) => {
     setDataLoading(true);
     try {
-        const { data: p } = await supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour, surface_ratings').eq('id', id).single();
+        const { data: p } = await supabase.from('players').select('id, first_name, last_name, country, profile_image_url, tour, surface_ratings, play_style').eq('id', id).single();
         const { data: s } = await supabase.from('player_skills').select('player_id, overall_rating, serve, power, forehand, backhand, volley, speed, stamina, mental, elo_metrics, advanced_stats, sackmann_metrics').eq('player_id', id).maybeSingle();
         const { data: r } = await supabase.from('scouting_reports').select('player_id, strengths, weaknesses').eq('player_id', id).maybeSingle();
         setter({ player: p, skills: s, report: r });
@@ -1584,8 +1577,8 @@ export function MatchupAnalyzer() {
                                         <div className="flex justify-center items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-2">
                                             <Target size={10} className={activeMobilePlayer === 'A' ? 'text-tennis-lime' : 'text-blue-500'} />
                                             {activeMobilePlayer === 'A' 
-                                                ? (playerAData.player.play_style?.split(',')[0] || 'Unknown Style')
-                                                : (playerBData.player.play_style?.split(',')[0] || 'Unknown Style')}
+                                                ? translatePlayStyle(playerAData.player.play_style, t)
+                                                : translatePlayStyle(playerBData.player.play_style, t)}
                                         </div>
                                     </div>
 
@@ -1746,7 +1739,7 @@ export function MatchupAnalyzer() {
                                       <div className="flex items-center justify-between px-2">
                                           <span className="text-sm font-black text-white uppercase tracking-wider">{playerAData.player.last_name}</span>
                                           <span className="text-[9px] font-bold text-tennis-lime uppercase tracking-widest flex items-center gap-1.5">
-                                              <Target size={12}/> {playerAData.player.play_style?.split(',')[0] || 'Unknown Style'}
+                                              <Target size={12}/> {translatePlayStyle(playerAData.player.play_style, t)}
                                           </span>
                                       </div>
                                       <div className="relative group flex-1">
@@ -1776,7 +1769,7 @@ export function MatchupAnalyzer() {
                                       <div className="flex items-center justify-between px-2">
                                           <span className="text-sm font-black text-white uppercase tracking-wider">{playerBData.player.last_name}</span>
                                           <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
-                                              <Target size={12}/> {playerBData.player.play_style?.split(',')[0] || 'Unknown Style'}
+                                              <Target size={12}/> {translatePlayStyle(playerBData.player.play_style, t)}
                                           </span>
                                       </div>
                                       <div className="relative group flex-1">
