@@ -98,6 +98,28 @@ SURFACE_STATS_CACHE: Dict[str, float] = {}
 METADATA_CACHE: Dict[str, Any] = {} 
 WEATHER_CACHE: Dict[str, Any] = {} 
 GLOBAL_SURFACE_MAP: Dict[str, str] = {} 
+
+CLAY_CITIES = {
+    'rome', 'roma', 'madrid', 'barcelona', 'munich', 'muenchen', 'estoril', 'geneva', 'geneve', 'lyon', 
+    'hamburg', 'bastad', 'gstaad', 'kitzbuhel', 'kitzbuehel', 'umag', 'marrakech', 'houston', 
+    'buenos aires', 'rio', 'santiago', 'cordoba', 'palermo', 'rabat', 'strasbourg', 'bogota', 
+    'iasi', 'prague', 'praha', 'warsaw', 'warszawa', 'lausanne', 'budapest', 'oeiras', 'francavilla', 
+    'cagliari', 'bordeaux', 'torino', 'turin', 'heilbronn', 'perugia', 'bratislava', 'poznan', 
+    'sassuolo', 'modena', 'milano', 'milan', 'san benedetto', 'verona', 'amersfoort', 'zug', 
+    'tampere', 'luedenscheid', 'liberec', 'meerbusch', 'banja luka', 'todi', 'como', 'genoa', 
+    'genova', 'sevilla', 'seville', 'szczecin', 'bad waltersdorf', 'sibiu', 'lisbon', 'lisboa', 
+    'braga', 'alicante', 'valencia', 'malaga', 'split', 'zadar', 'shymkent', 'concepcion', 
+    'vicenza', 'prostejov', 'blois', 'skopje', 'troisdorf', 'kigali', 'bucaramanga', 'santo domingo', 
+    'campinas', 'curitiba', 'sao paulo', 'villa maria', 'coquimbo', 'antofagasta', 'lima', 
+    'guayaquil', 'montevideo', 'temuco', 'florence', 'firenze', 'naples', 'napoli', 'parma', 
+    'ancona', 'trento', 'pula', 'roquebrune', 'cap-martin', 'monte carlo'
+}
+
+GRASS_CITIES = {
+    'wimbledon', 'halle', 'queen', 'queens', 'hertogenbosch', 'rosmalen', 'eastbourne', 
+    'nottingham', 'birmingham', 'newport', 'mallorca', 'ilkley', 'surbiton', 'gaiba'
+}
+
 TML_MATCH_CACHE: List[Dict] = [] 
 
 _PATTERN_CACHE = {}
@@ -414,28 +436,39 @@ def find_player_smart(scraped_name_raw: str, db_players: List[Dict], report_ids:
     return candidates[0][0]
 
 def calculate_fuzzy_score(scraped_name: str, db_name: str) -> int:
-    s_norm = normalize_text(scraped_name).lower()
-    d_norm = normalize_text(db_name).lower()
+    s_norm = normalize_text(scraped_name).lower().strip()
+    d_norm = normalize_text(db_name).lower().strip()
     
-    if d_norm in s_norm and len(d_norm) > 3: 
-        return 100
-        
-    s_tokens = set(re.findall(r'\w+', s_norm))
-    d_tokens = set(re.findall(r'\w+', d_norm))
-    stop_words = {'atp', 'wta', 'open', 'tour', '2025', '2026', 'challenger', 'itf', 'world', 'tennis'}
+    stop_words = {
+        'atp', 'wta', 'open', 'tour', '2025', '2026', 'challenger', 'itf', 'world', 'tennis',
+        'sport', 'sports', 'bet', 'championship', 'championships', 'qualification',
+        'qualifying', 'qual', 'q', 'singles', 'doubles', 'men', 'women'
+    }
     
-    s_tokens -= stop_words
-    d_tokens -= stop_words
+    s_tokens = [w for w in re.findall(r'\w+', s_norm) if w not in stop_words]
+    d_tokens = [w for w in re.findall(r'\w+', d_norm) if w not in stop_words]
     
-    if not s_tokens or not d_tokens: 
+    s_clean = " ".join(s_tokens)
+    d_clean = " ".join(d_tokens)
+    
+    # 1. Direct Substring Check (e.g. "Stuttgart" in "Stuttgart (Indoor Clay)")
+    if s_clean and d_clean:
+        if (d_clean in s_clean or s_clean in d_clean) and min(len(d_clean), len(s_clean)) > 3:
+            return 100
+            
+    # 2. Token Intersection Check
+    s_set = set(s_tokens)
+    d_set = set(d_tokens)
+    if not s_set or not d_set:
         return 0
         
-    common = s_tokens.intersection(d_tokens)
-    score = len(common) * 15
+    common = s_set.intersection(d_set)
+    # Give higher weight to allow single unique token matches (e.g., Oeiras)
+    score = len(common) * 25
     
-    if "indoor" in s_tokens and "indoor" in d_tokens: 
+    if "indoor" in s_set and "indoor" in d_set: 
         score += 20
-    if "canberra" in s_tokens and "canberra" in d_tokens: 
+    if "canberra" in s_set and "canberra" in d_set: 
         score += 30
         
     return score
@@ -1089,6 +1122,16 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
     try:
         combined = []
         for m in live:
+            t_name = clean_tournament_name(m.get("tournament") or "")
+            t_name_lower = t_name.lower()
+            surf = GLOBAL_SURFACE_MAP.get(t_name_lower)
+            if not surf:
+                if 'clay' in t_name_lower or any(city in t_name_lower for city in CLAY_CITIES):
+                    surf = 'Red Clay'
+                elif 'grass' in t_name_lower or any(city in t_name_lower for city in GRASS_CITIES):
+                    surf = 'Grass Court Outdoor'
+                else:
+                    surf = 'Hard Court Outdoor'
             combined.append({
                 "player1_name": m["player1_name"],
                 "player2_name": m["player2_name"],
@@ -1098,10 +1141,23 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
                 "odds1": m.get("odds1", 1.85),
                 "odds2": m.get("odds2", 1.85),
                 "tournament": m.get("tournament", ""),
+                "surface": surf,
                 "best_of": 5 if any(kw in (m.get("tournament") or "").lower() for kw in ["australian open", "roland garros", "french open", "wimbledon", "us open"]) else 3
             })
             
         for m in hist:
+            surf = m.get("surface")
+            if not surf:
+                t_name = clean_tournament_name(m.get("tourney_name") or "")
+                t_name_lower = t_name.lower()
+                surf = GLOBAL_SURFACE_MAP.get(t_name_lower)
+                if not surf:
+                    if 'clay' in t_name_lower or any(city in t_name_lower for city in CLAY_CITIES):
+                        surf = 'Red Clay'
+                    elif 'grass' in t_name_lower or any(city in t_name_lower for city in GRASS_CITIES):
+                        surf = 'Grass Court Outdoor'
+                    else:
+                        surf = 'Hard Court Outdoor'
             combined.append({
                 "player1_name": m["winner_name"],
                 "player2_name": m["loser_name"],
@@ -1112,7 +1168,7 @@ async def fetch_player_history_extended(player_last_name: str, limit: int = 20) 
                 "odds2": 1.85,
                 "tourney_name": m.get("tourney_name", ""),
                 "best_of": int(m.get("best_of") or 3),
-                "surface": m.get("surface", "")
+                "surface": surf
             })
 
         combined.sort(key=lambda x: str(x["created_at"]), reverse=True)
@@ -1638,14 +1694,18 @@ def calculate_caliber_performance(
     
     for m in player_history:
         m_surf = (m.get("surface") or "").lower()
-        if not m_surf and m.get("tournament"):
-            t_name = clean_tournament_name(m.get("tournament") or "")
-            m_surf = GLOBAL_SURFACE_MAP.get(t_name.lower(), "hard")
-        else:
-            m_surf = (m_surf or '').lower()
-            if 'clay' in m_surf: m_surf = 'clay'
-            elif 'grass' in m_surf: m_surf = 'grass'
-            else: m_surf = 'hard'
+        if not m_surf:
+            t_name = m.get("tournament") or m.get("tourney_name") or ""
+            if t_name:
+                t_name_clean = clean_tournament_name(t_name)
+                m_surf = GLOBAL_SURFACE_MAP.get(t_name_clean.lower(), "hard")
+            else:
+                m_surf = "hard"
+                
+        m_surf = m_surf.lower()
+        if 'clay' in m_surf: m_surf = 'clay'
+        elif 'grass' in m_surf: m_surf = 'grass'
+        else: m_surf = 'hard'
             
         if m_surf != surf:
             continue
@@ -1944,6 +2004,23 @@ async def resolve_ambiguous_tournament(p1, p2, scraped_name, p1_country, p2_coun
 async def find_best_court_match_smart(tour, db_tours, p1, p2, p1_country="Unknown", p2_country="Unknown", match_date: datetime = None): 
     s_low = clean_tournament_name(tour).lower().strip()
     
+    # Ensure match_date is a datetime object
+    if not isinstance(match_date, datetime):
+        match_date = datetime.now()
+        
+    # 0. Seasonal Location Overrides (e.g. Stuttgart ATP in June is Grass, WTA in April is Clay)
+    if 'stuttgart' in s_low:
+        if match_date.month == 6:
+            return 'Grass Court Outdoor', 8.2, 'Stuttgart Grass Season Override', 'Stuttgart', 'Stuttgart Grass'
+        else:
+            return 'Red Clay', 3.8, 'Stuttgart Clay Season Override', 'Stuttgart', 'Stuttgart Clay'
+            
+    if 'oeiras' in s_low:
+        if match_date.month in [1, 2, 11, 12]:
+            return 'Hard Court Indoor', 7.5, 'Oeiras Indoor Season Override', 'Oeiras', 'Oeiras Indoor'
+        else:
+            return 'Red Clay', 3.8, 'Oeiras Clay Season Override', 'Oeiras', 'Oeiras Clay'
+
     best_match = None
     best_score = 0
     
@@ -1957,6 +2034,39 @@ async def find_best_court_match_smart(tour, db_tours, p1, p2, p1_country="Unknow
         loc = best_match.get('location', '')
         city_for_weather = loc.split(',')[0] if loc else best_match['name']
         return best_match['surface'], best_match['bsi_rating'], best_match.get('notes', ''), city_for_weather, best_match['name']
+    
+    # Fallback 1: Famous slam/tournament names & venues
+    if 'roland garros' in s_low or 'french open' in s_low:
+        return 'Red Clay', 4.1, 'Roland Garros (Paris)', 'Paris', 'French Open'
+    elif 'wimbledon' in s_low:
+        return 'Grass Court Outdoor', 8.2, 'Wimbledon (London)', 'London', 'Wimbledon'
+    elif 'australian open' in s_low:
+        return 'Hard Court Outdoor', 6.8, 'Australian Open (Melbourne)', 'Melbourne', 'Australian Open'
+    elif 'us open' in s_low:
+        return 'Hard Court Outdoor', 6.5, 'US Open (New York)', 'New York', 'US Open'
+        
+    # Fallback 2: Known surface city keyword matching
+    for city in CLAY_CITIES:
+        if city in s_low:
+            return 'Red Clay', 3.8, 'Known Clay City Override', city.capitalize(), tour
+            
+    for city in GRASS_CITIES:
+        if city in s_low:
+            return 'Grass Court Outdoor', 8.2, 'Known Grass City Override', city.capitalize(), tour
+            
+    # Fallback 3: Direct surface keyword matching in scraped tournament name
+    city_guess = tour.split()[0] if tour else 'Unknown'
+    if tour and '.' in tour:
+        parts = [p.strip() for p in tour.split('.') if p.strip()]
+        if len(parts) > 1 and parts[0].upper() in ['ATP', 'WTA', 'ITF']:
+            city_guess = re.sub(r'\d+', '', parts[1]).strip()
+            
+    if 'clay' in s_low or 'sand' in s_low or 'erde' in s_low or 'terre' in s_low:
+        return 'Red Clay', 3.8, 'Fallback Keyword Matching', city_guess, tour
+    elif 'grass' in s_low or 'rasen' in s_low:
+        return 'Grass Court Outdoor', 8.2, 'Fallback Keyword Matching', city_guess, tour
+    elif 'hard' in s_low or 'carpet' in s_low or 'acrylic' in s_low:
+        return 'Hard Court Outdoor', 6.5, 'Fallback Keyword Matching', city_guess, tour
     
     ai_loc = await resolve_ambiguous_tournament(p1, p2, tour, p1_country, p2_country)
     ai_loc = ensure_dict(ai_loc)
