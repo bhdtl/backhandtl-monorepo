@@ -1,3 +1,4 @@
+// Vercel deployment cache trigger comment
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, Save, X, Sliders, Award, Zap, Search, Upload, 
