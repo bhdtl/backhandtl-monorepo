@@ -1760,6 +1760,7 @@ def calculate_value_metrics(
     player_elo: float = None,
     opponent_elo: float = None,
     player_history: List[Dict] = None,
+    opponent_history: List[Dict] = None,
     players_list: List[Dict] = None,
     all_skills: Dict[str, Dict] = None
 ) -> Dict[str, Any]:
@@ -1866,17 +1867,54 @@ def calculate_value_metrics(
                 players_list=players_list,
                 all_skills=all_skills
             )
-            if cal_perf["n"] >= 3:
-                c_wr = cal_perf["win_rate"]
-                c_margin = cal_perf["avg_margin"]
-                c_wins = cal_perf["wins"]
-                c_losses = cal_perf["losses"]
-                if c_wr >= 0.60:
-                    pattern_multiplier *= 1.10
-                    pattern_boost = f"🚀 Caliber Matchup Strength: {player_name} has won {c_wr:.0%} ({c_wins}W-{c_losses}L) against similarly rated ELO opponents ({int(opponent_elo-150)}-{int(opponent_elo+150)}) on {surf.upper()}, covering by {c_margin:+.1f} games."
-                elif c_wr < 0.40:
-                    pattern_multiplier *= 0.80
+            
+            opp_cal_perf = None
+            if opponent_history and player_elo:
+                opp_cal_perf = calculate_caliber_performance(
+                    player_name=opponent_name,
+                    target_opponent_elo=player_elo,
+                    surf=surf,
+                    player_history=opponent_history,
+                    players_list=players_list,
+                    all_skills=all_skills
+                )
+                
+            c_n = cal_perf["n"]
+            c_wr = cal_perf["win_rate"]
+            c_margin = cal_perf["avg_margin"]
+            c_wins = cal_perf["wins"]
+            c_losses = cal_perf["losses"]
+            
+            opp_c_n = opp_cal_perf["n"] if opp_cal_perf else 0
+            opp_c_wr = opp_cal_perf["win_rate"] if opp_cal_perf else 0.5
+            opp_c_margin = opp_cal_perf["avg_margin"] if opp_cal_perf else 0.0
+            opp_c_wins = opp_cal_perf["wins"] if opp_cal_perf else 0
+            opp_c_losses = opp_cal_perf["losses"] if opp_cal_perf else 0
+            
+            # Combine the two caliber records
+            if c_n >= 3:
+                # Player has poor record
+                if c_wr < 0.35 or (c_wr < 0.40 and c_margin < -2.0):
+                    pattern_multiplier *= 0.75
                     pattern_warning = f"⚠️ Caliber Matchup Warning: {player_name} struggles against similarly rated ELO opponents on {surf.upper()} with a {c_wr:.0%} win rate ({c_wins}W-{c_losses}L) and margin of {c_margin:+.1f} games."
+                    if opp_c_n >= 3 and opp_c_wr >= 0.65:
+                        pattern_multiplier *= 0.80
+                        pattern_warning += f" Opponent {opponent_name} dominates similarly rated opponents with a {opp_c_wr:.0%} win rate ({opp_c_wins}W-{opp_c_losses}L)."
+                # Player has strong record
+                elif c_wr >= 0.60:
+                    pattern_multiplier *= 1.10
+                    pattern_boost = f"🚀 Caliber Matchup Strength: {player_name} has won {c_wr:.0%} ({c_wins}W-{c_losses}L) against similarly rated ELO opponents on {surf.upper()}, covering by {c_margin:+.1f} games."
+                    if opp_c_n >= 3 and opp_c_wr < 0.35:
+                        pattern_multiplier *= 1.15
+                        pattern_boost += f" Opponent {opponent_name} struggles against this caliber with a {opp_c_wr:.0%} win rate ({opp_c_wins}W-{opp_c_losses}L)."
+            elif opp_c_n >= 3:
+                # Opponent history available but player history is not
+                if opp_c_wr >= 0.65:
+                    pattern_multiplier *= 0.80
+                    pattern_warning = f"⚠️ Caliber Matchup Warning: Opponent {opponent_name} excels against similarly rated ELO opponents on {surf.upper()} with a {opp_c_wr:.0%} win rate ({opp_c_wins}W-{opp_c_losses}L) and margin of {opp_c_margin:+.1f} games."
+                elif opp_c_wr < 0.35:
+                    pattern_multiplier *= 1.10
+                    pattern_boost = f"🚀 Caliber Matchup Strength: Opponent {opponent_name} struggles against similarly rated ELO opponents on {surf.upper()} with a {opp_c_wr:.0%} win rate ({opp_c_wins}W-{opp_c_losses}L)."
 
         # 3. Fallback to generic category bias (Quantitative only, no warning/boost strings!)
         if not veto_bet:
@@ -2599,8 +2637,8 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
 
                     
                     value_tag = ""
@@ -2766,8 +2804,8 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
 
 
                     candidate_picks = []
@@ -2825,8 +2863,8 @@ async def run_pipeline():
                         fair_home_sp = round(1/p_home_sp_final, 2) if p_home_sp_final > 0.01 else 99
                         fair_away_sp = round(1/p_away_sp_final, 2) if p_away_sp_final > 0.01 else 99
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, players_list=players, all_skills=all_skills)
-                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, players_list=players, all_skills=all_skills)
+                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
+                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
 
                         
                         sign1 = "+" if hc > 0 else ""
@@ -2921,9 +2959,45 @@ async def run_pipeline():
                             }
                         })
 
-                    # Filter and Sort Value Picks by Edge Percent to find the maximum math edge
+                    # Filter and Sort Value Picks by confidence-adjusted edge (edge_percent * pattern_multiplier)
                     value_picks = [c for c in candidate_picks if c["value_metrics"]["is_value"]]
-                    value_picks.sort(key=lambda x: x["value_metrics"]["edge_percent"], reverse=True)
+                    value_picks.sort(key=lambda x: x["value_metrics"]["edge_percent"] * x["value_metrics"].get("pattern_multiplier", 1.0), reverse=True)
+
+                    # 🚀 SOTA: Underdog Handicap Caliber Pivot/Veto
+                    # If the best pick is a Handicap bet on the underdog, check for caliber risk.
+                    if value_picks:
+                        best_pick = value_picks[0]
+                        if best_pick["market_type"] == "HANDICAP":
+                            pick_name = best_pick.get("pick_name", "")
+                            is_dog_hc = "+" in pick_name
+                            
+                            warning_str = best_pick["value_metrics"].get("pattern_warning") or ""
+                            has_caliber_warning = "Caliber Matchup Warning" in warning_str
+                            
+                            if is_dog_hc and has_caliber_warning:
+                                # Look for a TOTALS Over pick in value_picks
+                                over_pick = None
+                                for vp in value_picks[1:]:
+                                    if vp["market_type"] == "TOTALS" and "Over " in vp["pick_name"]:
+                                        over_pick = vp
+                                        break
+                                
+                                if over_pick:
+                                    # Pivot: move the Over pick to the front!
+                                    value_picks.remove(over_pick)
+                                    value_picks.insert(0, over_pick)
+                                    # Update warning to document the pivot
+                                    over_pick["value_metrics"]["pattern_warning"] = (
+                                        f"🔄 PIVOTED FROM HANDICAP TO OVER: {pick_name} had a Caliber Matchup Warning ({warning_str}). "
+                                        f"Pivoted to {over_pick['pick_name']} for structural safety."
+                                    )
+                                else:
+                                    # Veto: no Over value available, veto this handicap bet!
+                                    best_pick["value_metrics"]["is_value"] = False
+                                    best_pick["value_metrics"]["type"] = "🛑 CALIBER VETO (NO OVER VALUE)"
+                                    # Re-filter and re-sort
+                                    value_picks = [c for c in candidate_picks if c["value_metrics"]["is_value"]]
+                                    value_picks.sort(key=lambda x: x["value_metrics"]["edge_percent"] * x["value_metrics"].get("pattern_multiplier", 1.0), reverse=True)
 
                     value_tag = ""
                     best_betslip = None
