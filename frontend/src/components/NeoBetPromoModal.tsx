@@ -70,7 +70,9 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-black/85 backdrop-blur-2xl"
-                  {/* Modal Container */}
+          />
+
+          {/* Modal Container */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
