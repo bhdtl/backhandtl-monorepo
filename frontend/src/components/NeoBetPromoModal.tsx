@@ -34,7 +34,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
     },
     {
       title: t('picks.promoStep3Title', 'Win with AI Picks'),
-      desc: t('picks.promoStep3Desc', 'Place the Freebet on our mathematically validated AI Picks to turn it into risk-free cash.')
+      desc: t('picks.promoStep3Desc', 'Place the Freebet on our mathematically validated AI Picks and seize the opportunity for cash payouts.')
     }
   ];
 
@@ -159,7 +159,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
                   <span>{t('partner.licensedRegulated', 'Licensed & Regulated (Whitelist)')}</span>
                 </div>
                 <p className="text-[8.5px] font-bold text-gray-600 leading-none tracking-wide uppercase">
-                  18+ | Suchtrisiken | Hilfe unter buwei.de
+                  Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00
                 </p>
               </div>
             </div>

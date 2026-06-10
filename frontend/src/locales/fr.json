@@ -606,8 +606,8 @@
   },
   "picks": {
     "neobetCta": "Ajouter au coupon",
-    "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
-    "footerDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
+    "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
+    "footerDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "streamTitle": "Flux de Picks",
     "allPlays": "Tous les Picks",
     "last30Min": "Dernières 30 Min",
@@ -617,7 +617,7 @@
     "activePlays": "Picks Actifs",
     "riskSizing": "Dimensionnement du Risque",
     "maxEdge": "Avantage Max",
-    "partnerPromo": "Promotion Partenaire",
+    "partnerPromo": "Publicité | Promotion Partenaire",
     "promoTitle": "Obtenez 25€ de crédit de pari gratuit",
     "promoSubtitle": "Pari gratuit exclusif sans dépôt pour nos AI Picks.",
     "unlockPromo": "Débloquer la Promo",
@@ -627,7 +627,7 @@
     "odds": "Cotes",
     "trueEdge": "Véritable Avantage",
     "freebetCalculator": "Calculateur de Valeur Freebet",
-    "freebetCalculatorDesc": "Appliquez votre pari gratuit de 25€ sans risque à cette sélection et assurez un gain net garanti :",
+    "freebetCalculatorDesc": "Appliquez votre pari gratuit de 25€ à cette sélection et estimez votre gain net potentiel :",
     "freebet": "PARI GRATUIT",
     "oddsLabel": "COTES",
     "netProfit": "GAIN NET",
@@ -671,15 +671,15 @@
     "promoStep2Title": "Obtenez 25€ de pari gratuit",
     "promoStep2Desc": "Un pari gratuit de 25€ sera crédité instantanément sur votre compte – sans aucun dépôt !",
     "promoStep3Title": "Gagnez avec AI Picks",
-    "promoStep3Desc": "Placez le pari gratuit sur nos AI Picks validés mathématiquement pour le convertir en argent réel sans risque.",
+    "promoStep3Desc": "Placez le pari gratuit sur nos AI Picks validés mathématiquement et profitez de l'opportunité de remporter des gains en argent réel.",
     "promoClaim": "Profiter des 25€ de pari gratuit maintenant",
     "exclusiveVoucher": "Bon exclusif",
     "promoSubtitleModal": "Offre partenaire exclusive pour Backhand.dtl. Aucun dépôt requis !"
   },
   "partner": {
     "officialPartner": "Partenaire Officiel",
-    "premiumPartner": "Partenaire Premium Officiel",
-    "description": "Cotes exclusives, interface en temps réel et placement ultra-rapide des coupons de pari pour une performance maximale.",
+    "premiumPartner": "Publicité | Partenaire Premium Officiel",
+    "description": "Cotes exclusives, interface en tempo réel et placement ultra-rapide des coupons de pari pour une performance maximale.",
     "licensedRegulated": "Agréé et Réglementé (Liste Blanche)"
   },
   "playStyle": {

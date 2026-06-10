@@ -847,7 +847,7 @@ export function AIPicksPage() {
                               </div>
                               
                               <p className="text-[11px] font-medium text-gray-400 mb-4 leading-relaxed">
-                                  {t('picks.freebetCalculatorDesc', 'Wende deine 25€ Freiwette risikofrei auf diese Auswahl an und sichere dir einen garantierten Netto-Gewinn:')}
+                                  {t('picks.freebetCalculatorDesc', 'Wende deine 25€ Freiwette auf diese Auswahl an und ermittle deinen potenziellen Netto-Reingewinn:')}
                               </p>
 
                               {/* Metric Cards Flow */}
@@ -1096,7 +1096,7 @@ export function AIPicksPage() {
                                                      {t('picks.neobetCta', 'In den Wettschein')}
                                                  </a>
                                                  <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
-                                                     {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                                          {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                                  </div>
                                              </div>
                                              
@@ -1382,7 +1382,7 @@ export function AIPicksPage() {
                                                          {t('picks.neobetCta', 'In den Wettschein')}
                                                      </a>
                                                      <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
-                                                         {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+                                                         {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                                      </div>
                                                  </div>
                                                  
@@ -1469,7 +1469,7 @@ export function AIPicksPage() {
       {/* Germany Regulatory Whitelist Footer */}
       <div className="mt-16 pt-8 border-t border-white/5 text-center">
           <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
-              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de')}
+              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
           </p>
       </div>
 

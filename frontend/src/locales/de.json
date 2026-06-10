@@ -606,8 +606,8 @@
   },
   "picks": {
     "neobetCta": "In den Wettschein",
-    "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
-    "footerDisclaimer": "Offiziell lizenziert (Whitelist) | 18+ | Suchtrisiken | Hilfe unter buwei.de",
+    "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
+    "footerDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "streamTitle": "Picks Stream",
     "allPlays": "Alle Picks",
     "last30Min": "Letzte 30 Min",
@@ -617,7 +617,7 @@
     "activePlays": "Aktive Picks",
     "riskSizing": "Einsatzgröße",
     "maxEdge": "Max. Vorteil",
-    "partnerPromo": "Partner Promotion",
+    "partnerPromo": "Anzeige | Partner Promotion",
     "promoTitle": "Sichere dir 25€ gratis Wettguthaben",
     "promoSubtitle": "Exklusive Freebet ohne Einzahlung für unsere AI Picks.",
     "unlockPromo": "Promo freischalten",
@@ -627,7 +627,7 @@
     "odds": "Quote",
     "trueEdge": "Echter Vorteil",
     "freebetCalculator": "Freebet-Rechner",
-    "freebetCalculatorDesc": "Wende deine 25€ Freiwette risikofrei auf diese Auswahl an und sichere dir einen garantierten Netto-Gewinn:",
+    "freebetCalculatorDesc": "Wende deine 25€ Freiwette auf diese Auswahl an und ermittle deinen potenziellen Netto-Reingewinn:",
     "freebet": "FREEBET",
     "oddsLabel": "QUOTE",
     "netProfit": "NETTO-GEWINN",
@@ -671,16 +671,16 @@
     "promoStep2Title": "25€ Freebet erhalten",
     "promoStep2Desc": "Die 25€ Gratiswette wird deinem Account sofort gutgeschrieben – komplett ohne Einzahlung!",
     "promoStep3Title": "Mit AI Picks gewinnen",
-    "promoStep3Desc": "Setze die Freebet auf unsere mathematisch geprüften AI Picks und wandle sie risikofrei in Echtgeld um.",
+    "promoStep3Desc": "Setze die Freebet auf unsere mathematisch geprüften AI Picks und nutze die Chance auf Echtgeld-Gewinne.",
     "promoClaim": "Jetzt 25€ Freebet beanspruchen",
     "exclusiveVoucher": "Exklusiver Gutschein",
     "promoSubtitleModal": "Exklusives Partnerangebot für Backhand.dtl. Keine Einzahlung erforderlich!"
   },
   "partner": {
     "officialPartner": "Offizieller Partner",
-    "premiumPartner": "Offizieller Premium Partner",
+    "premiumPartner": "Anzeige | Offizieller Premium Partner",
     "description": "Exklusive Quoten, Echtzeit-Schnittstelle & blitzschnelle Wettschein-Abgabe für maximale Performance.",
-    "licensedRegulated": "Lizenziert & Reguliert (Whitelist)"
+    "licensedRegulated": "Offiziell lizenziert (Whitelist)"
   },
   "playStyle": {
     "Aggressive Baseliner": "Aggressiver Grundlinienspieler",

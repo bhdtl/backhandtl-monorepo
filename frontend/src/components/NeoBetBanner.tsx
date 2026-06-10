@@ -63,7 +63,7 @@ export function NeoBetBanner({ size = '200x200', className = "" }: NeoBetBannerP
           <span>{t('partner.licensedRegulated')}</span>
         </div>
         <p className="text-[9px] font-bold text-gray-600 leading-normal tracking-wide uppercase">
-          18+ | Suchtrisiken | Hilfe unter buwei.de
+          Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00
         </p>
       </div>
     </motion.div>
