@@ -18,3 +18,4 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>
 );
+// Trigger Vercel rebuild to restore pre-chatbot deployment state
