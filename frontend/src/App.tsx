@@ -35,6 +35,7 @@ import {
   Lock, Crown, X, FileText, Scale, Cpu, Cookie, Info, Shield, Briefcase
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // --- SOTA UPGRADE: Access Hook Import ---
 import { useAccess } from './hooks/useAccess';
@@ -267,19 +268,29 @@ function MobileHeader() {
 }
 
 function GlobalFooter({ onOpenLegal }: { onOpenLegal: (type: string) => void }) {
+    const { t } = useTranslation();
     return (
         <footer className="w-full border-t border-white/5 bg-[#0a0b0e] py-8 mt-auto relative z-20 pb-32 md:pb-8">
-            <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-                <div className="text-[10px] font-mono text-gray-600 space-y-1">
-                    <div>© {new Date().getFullYear()} BACKHAND.DTL Analytics. All rights reserved.</div>
-                    <div className="text-[9px] text-gray-500/70 max-w-md">Historical player data and matchup statistics are powered by datasets from Jeff Sackmann (licensed under CC BY-NC-SA 4.0, strictly non-commercial use only).</div>
+            <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col items-center gap-6">
+                <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                    <div className="text-[10px] font-mono text-gray-600 space-y-1">
+                        <div>© {new Date().getFullYear()} BACKHAND.DTL Analytics. All rights reserved.</div>
+                        <div className="text-[9px] text-gray-500/70 max-w-md">Historical player data and matchup statistics are powered by datasets from Jeff Sackmann (licensed under CC BY-NC-SA 4.0, strictly non-commercial use only).</div>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        <button onClick={() => onOpenLegal('terms')} className="hover:text-tennis-lime transition-colors">Terms</button>
+                        <button onClick={() => onOpenLegal('privacy')} className="hover:text-tennis-lime transition-colors">Privacy</button>
+                        <button onClick={() => onOpenLegal('cookies')} className="hover:text-tennis-lime transition-colors">Cookies</button>
+                        <button onClick={() => onOpenLegal('imprint')} className="hover:text-tennis-lime transition-colors">Imprint</button>
+                        <button onClick={() => onOpenLegal('ai')} className="hover:text-tennis-lime transition-colors">AI Disclosure</button>
+                    </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <button onClick={() => onOpenLegal('terms')} className="hover:text-tennis-lime transition-colors">Terms</button>
-                    <button onClick={() => onOpenLegal('privacy')} className="hover:text-tennis-lime transition-colors">Privacy</button>
-                    <button onClick={() => onOpenLegal('cookies')} className="hover:text-tennis-lime transition-colors">Cookies</button>
-                    <button onClick={() => onOpenLegal('imprint')} className="hover:text-tennis-lime transition-colors">Imprint</button>
-                    <button onClick={() => onOpenLegal('ai')} className="hover:text-tennis-lime transition-colors">AI Disclosure</button>
+                
+                {/* Germany Regulatory Whitelist Footer */}
+                <div className="w-full pt-4 border-t border-white/5 text-center">
+                    <p className="text-[9px] uppercase tracking-[0.15em] font-black text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                        {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
+                    </p>
                 </div>
             </div>
         </footer>

@@ -553,6 +553,9 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
             <p className="text-[10px] text-gray-700 leading-relaxed font-medium uppercase tracking-wider">
               BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Historical player data and matchup statistics are powered by data from Jeff Sackmann (CC BY-NC-SA 4.0, non-commercial only). Sports analysis involves risk. Please use responsibly.
             </p>
+            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider mt-4">
+              Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00
+            </p>
           </div>
         </div>
       </footer>
