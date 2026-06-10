@@ -687,27 +687,32 @@ export function AIPicksPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={() => setIsPromoOpen(true)}
-            className="mb-8 relative overflow-hidden rounded-[2rem] border border-white/5 bg-black/40 hover:border-tennis-lime/20 cursor-pointer shadow-xl transition-all duration-300 group"
+            className="mb-8 relative overflow-hidden rounded-[2rem] border border-cyan-500/10 hover:border-cyan-400/40 bg-gradient-to-r from-[#0c1f35] via-[#091727] to-[#040a12] cursor-pointer shadow-xl hover:shadow-[0_0_30px_rgba(0,162,232,0.15)] transition-all duration-300 group"
           >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-500" />
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6">
                   <div className="flex items-center gap-4">
-                      <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime hidden sm:block">
+                      <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400 hidden sm:block">
                           <Gift size={20} className="animate-pulse" />
                       </div>
                       <div>
-                          <div className="flex items-center gap-2 mb-1">
-                              <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
-                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Partner Promotion')}</span>
+                          <div className="flex items-center gap-2.5 mb-1.5 flex-wrap justify-center sm:justify-start">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                              </span>
+                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-cyan-400">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
+                              <div className="h-3 w-px bg-white/10 hidden sm:block" />
+                              <span className="text-[8px] font-mono font-bold text-gray-500 tracking-wider hidden sm:inline">BACKHAND.DTL × NEO.bet</span>
                           </div>
                           <h3 className="text-base font-black text-white uppercase tracking-tight">{t('picks.promoTitle', 'Sichere dir 25€ gratis Wettguthaben')}</h3>
                           <p className="text-xs text-gray-500 font-semibold mt-0.5">{t('picks.promoSubtitle', 'Exklusive Freebet ohne Einzahlung für unsere AI Picks.')}</p>
                       </div>
                   </div>
                   
-                  <div className="flex items-center gap-3 shrink-0">
-                      <span className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">{t('picks.unlockPromo', 'Promo freischalten')}</span>
-                      <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
+                      <span className="px-4 py-2.5 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 hover:from-cyan-500 hover:to-blue-500 text-cyan-400 hover:text-black border border-cyan-500/20 hover:border-cyan-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(0,162,232,0.05)] hover:shadow-[0_0_20px_rgba(0,162,232,0.3)]">{t('picks.unlockPromo', 'Promo freischalten')}</span>
+                      <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
                   </div>
               </div>
           </motion.div>

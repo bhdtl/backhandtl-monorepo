@@ -70,15 +70,13 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-black/85 backdrop-blur-2xl"
-          />
-
-          {/* Modal Container */}
+                  {/* Modal Container */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative bg-gradient-to-br from-[#14161f] via-[#0f1118] to-[#0a0c10] border border-white/10 w-full max-w-[420px] shadow-2xl overflow-hidden flex flex-col z-10 max-md:absolute max-md:bottom-0 max-md:top-auto max-md:rounded-b-none max-md:rounded-t-[2.5rem] md:rounded-[2.5rem]"
+            className="relative bg-gradient-to-br from-[#0c2036] via-[#081829] to-[#040912] border border-white/10 w-full max-w-[420px] shadow-2xl overflow-hidden flex flex-col z-10 max-md:absolute max-md:bottom-0 max-md:top-auto max-md:rounded-b-none max-md:rounded-t-[2.5rem] md:rounded-[2.5rem]"
           >
             {/* Top Close Button (Sleek Apple style circle) */}
             <button
@@ -89,8 +87,8 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
             </button>
 
             {/* Subtle Gradient Backglows */}
-            <div className="absolute top-0 left-0 w-48 h-48 bg-tennis-lime/5 rounded-full blur-[80px] pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-48 h-48 bg-tennis-lime/5 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-[80px] pointer-events-none" />
 
             {/* Campaign Visual Banner with Revolut style overlap */}
             <div className="relative h-[200px] w-full overflow-hidden bg-black/10 flex items-center justify-center">
@@ -102,8 +100,8 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-[#0f1118] via-[#0f1118]/25 to-transparent" />
               
               <div className="absolute bottom-4 left-6 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                <Gift size={12} className="text-tennis-lime" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-tennis-lime">
+                <Gift size={12} className="text-cyan-400" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">
                   {t('picks.exclusiveVoucher', 'Exclusive Voucher')}
                 </span>
               </div>
@@ -126,7 +124,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
                 {steps.map((step, idx) => (
                   <div key={idx} className="relative flex flex-col items-start gap-1">
                     {/* Timeline Node Badge */}
-                    <div className="absolute -left-[27px] top-0 w-[22px] h-[22px] rounded-full bg-[#0f1118] border border-white/10 flex items-center justify-center text-[10px] font-black text-tennis-lime font-mono">
+                    <div className="absolute -left-[27px] top-0 w-[22px] h-[22px] rounded-full bg-[#0f1115] border border-white/10 flex items-center justify-center text-[10px] font-black text-cyan-400 font-mono">
                       {idx + 1}
                     </div>
                     <div>
@@ -146,7 +144,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
                 href={registrationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 bg-white hover:bg-white/95 text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_4px_25px_rgba(255,255,255,0.15)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 transform-gpu shadow-lg"
+                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:shadow-[0_4px_25px_rgba(0,162,232,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 transform-gpu shadow-lg"
               >
                 <span>{t('picks.promoClaim', 'Claim €25 Freebet Now')}</span>
                 <ArrowRight size={14} className="stroke-[3px]" />
@@ -155,7 +153,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
               {/* Whitelist Regulatory Disclaimer */}
               <div className="mt-6 pt-4 border-t border-white/5 flex flex-col items-center gap-1.5 text-center">
                 <div className="flex items-center gap-1.5 text-[8px] font-black text-gray-500 uppercase tracking-widest">
-                  <ShieldCheck size={11} className="text-gray-500" />
+                  <ShieldCheck size={11} className="text-cyan-400" />
                   <span>{t('partner.licensedRegulated', 'Licensed & Regulated (Whitelist)')}</span>
                 </div>
                 <p className="text-[8.5px] font-bold text-gray-600 leading-none tracking-wide uppercase">
