@@ -111,11 +111,7 @@ export function useAccess() {
           .from('profiles')
           .insert({
             id: user.id,
-            first_name: metaName,
-            role: 'USER',
-            tier: 'FREE',
-            credits: 0,
-            is_premium: false
+            first_name: metaName
           })
           .select()
           .single();
@@ -124,15 +120,21 @@ export function useAccess() {
           console.error("Self-healing profile creation failed:", insertError);
         } else if (newProfile) {
           console.log("Self-healing profile created successfully:", newProfile);
-          setTier('FREE');
-          setCredits(0);
-          setRole('USER');
-          setIsPremiumDb(false);
+          let dbTier = (newProfile.tier || 'FREE').toString().toUpperCase().trim();
+          if (!['FREE', 'WEEKEND', 'ELITE', 'PREMIUM', 'ADMIN'].includes(dbTier)) {
+              dbTier = 'FREE';
+          }
+          const dbIsPremium = !!newProfile.is_premium;
 
-          localStorage.setItem(`bh_user_tier_${user.id}`, 'FREE');
-          localStorage.setItem(`bh_user_role_${user.id}`, 'USER');
-          localStorage.setItem(`bh_user_credits_${user.id}`, '0');
-          localStorage.setItem(`bh_user_is_premium_${user.id}`, 'false');
+          setTier(dbTier as SubscriptionTier);
+          setCredits(newProfile.credits ?? 0);
+          setRole(newProfile.role || 'USER');
+          setIsPremiumDb(dbIsPremium);
+
+          localStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
+          localStorage.setItem(`bh_user_role_${user.id}`, newProfile.role || 'USER');
+          localStorage.setItem(`bh_user_credits_${user.id}`, (newProfile.credits ?? 0).toString());
+          localStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
         }
       } else if (error) {
           console.error("Access Fetch Error:", error);
