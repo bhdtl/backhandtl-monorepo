@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { safeSessionStorage } from '../lib/storage';
 
 export function useCountry() {
   const [country, setCountry] = useState<string>(() => {
-    return sessionStorage.getItem('bh_user_country') || '';
+    return safeSessionStorage.getItem('bh_user_country') || '';
   });
   const [loading, setLoading] = useState(!country);
 
@@ -18,7 +19,7 @@ export function useCountry() {
           if (data.country) {
             const detected = data.country.toUpperCase();
             setCountry(detected);
-            sessionStorage.setItem('bh_user_country', detected);
+            safeSessionStorage.setItem('bh_user_country', detected);
             setLoading(false);
             return;
           }
@@ -32,7 +33,7 @@ export function useCountry() {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
           // Dev default to DE to test the NeoBet overlay easily
           setCountry('DE');
-          sessionStorage.setItem('bh_user_country', 'DE');
+          safeSessionStorage.setItem('bh_user_country', 'DE');
           setLoading(false);
           return;
         }
@@ -43,7 +44,7 @@ export function useCountry() {
           if (data.country_code) {
             const code = data.country_code.toUpperCase();
             setCountry(code);
-            sessionStorage.setItem('bh_user_country', code);
+            safeSessionStorage.setItem('bh_user_country', code);
             setLoading(false);
             return;
           }
@@ -56,7 +57,7 @@ export function useCountry() {
       const lang = navigator.language || '';
       const fallback = lang.toLowerCase().includes('de') || lang.toLowerCase().includes('at') ? 'DE' : 'US';
       setCountry(fallback);
-      sessionStorage.setItem('bh_user_country', fallback);
+      safeSessionStorage.setItem('bh_user_country', fallback);
       setLoading(false);
     };
 

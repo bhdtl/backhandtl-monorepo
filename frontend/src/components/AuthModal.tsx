@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage } from '../lib/storage';
 import { X, Mail, Lock, User, Loader2, ArrowRight, KeyRound, Globe } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { useTranslation } from 'react-i18next';
@@ -105,7 +106,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onboardingDa
           geo_country_name: geoData.countryName,
           terms_accepted_at: new Date().toISOString()
       };
-      localStorage.setItem('bh_pending_onboarding', JSON.stringify(pendingData));
+      safeLocalStorage.setItem('bh_pending_onboarding', JSON.stringify(pendingData));
 
       // 2. Führe den Google Login aus
       const isLocal = window.location.hostname === 'localhost';

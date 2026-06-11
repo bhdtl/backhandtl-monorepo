@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
+import { safeLocalStorage } from '../lib/storage';
 import { 
   Target, Zap, Clock, Shield, Flame, Wallet, ArrowRight, Layers, Activity, CheckCircle2, TrendingUp, TrendingDown, MapPin,
   Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Gift, Search, X, Calendar
@@ -282,12 +283,12 @@ export function AIPicksPage() {
   const { isElite, loading: accessLoading } = useAccess();
   
   const [activePicks, setActivePicks] = useState<any[]>(() => {
-    const cached = localStorage.getItem('bh_cached_picks');
+    const cached = safeLocalStorage.getItem('bh_cached_picks');
     return cached ? JSON.parse(cached) : [];
   });
   const [playerMap, setPlayerMap] = useState<Map<string, Player>>(new Map());
   const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem('bh_cached_picks');
+    return !safeLocalStorage.getItem('bh_cached_picks');
   });
   const [timeFilter, setTimeFilter] = useState<'ALL' | '30MIN'>('ALL');
   const [isMobile, setIsMobile] = useState(false);
@@ -425,7 +426,7 @@ export function AIPicksPage() {
         setActivePicks(validPicks);
         
         // SOTA: Cache in localStorage sichern
-        localStorage.setItem('bh_cached_picks', JSON.stringify(validPicks));
+        safeLocalStorage.setItem('bh_cached_picks', JSON.stringify(validPicks));
 
     } catch (err) {
         console.error("Error fetching active picks:", err);

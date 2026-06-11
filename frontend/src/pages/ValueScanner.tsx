@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage, safeSessionStorage } from '../lib/storage';
 import { 
   Zap, Search, Clock, ArrowDown,
   AlertTriangle, CheckCircle2, Shield, XCircle,
@@ -346,18 +347,18 @@ export function ValueScanner() {
   const [preferredBookie, setPreferredBookie] = useState<string>('ALL');
 
   useEffect(() => {
-    const hasSeen = localStorage.getItem('hasSeenValueTutorial');
+    const hasSeen = safeLocalStorage.getItem('hasSeenValueTutorial');
     if (!hasSeen) {
         setTimeout(() => setShowTutorial(true), 1500);
-        localStorage.setItem('hasSeenValueTutorial', 'true');
+        safeLocalStorage.setItem('hasSeenValueTutorial', 'true');
     }
   }, []);
 
   useEffect(() => {
       const verifyGeoLocation = async () => {
           try {
-              if (sessionStorage.getItem('api_geo_clearance')) {
-                  setIsGeoSafe(sessionStorage.getItem('api_geo_clearance') === 'granted');
+              if (safeSessionStorage.getItem('api_geo_clearance')) {
+                  setIsGeoSafe(safeSessionStorage.getItem('api_geo_clearance') === 'granted');
                   return;
               }
 
@@ -369,10 +370,10 @@ export function ValueScanner() {
                   const countryCode = data.country.code.toUpperCase();
                   if (RESTRICTED_COUNTRIES.includes(countryCode)) {
                       setIsGeoSafe(false);
-                      sessionStorage.setItem('api_geo_clearance', 'denied');
+                      safeSessionStorage.setItem('api_geo_clearance', 'denied');
                   } else {
                       setIsGeoSafe(true);
-                      sessionStorage.setItem('api_geo_clearance', 'granted');
+                      safeSessionStorage.setItem('api_geo_clearance', 'granted');
                   }
               }
           } catch (error) {

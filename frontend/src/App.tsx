@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { safeLocalStorage } from './lib/storage';
 import { LandingPage } from './pages/LandingPage';
 import { HomePage } from './pages/HomePage'; 
 import { AdminCMS } from './pages/AdminCMS';
@@ -326,7 +327,7 @@ function AppContent() {
         safeCreditReset();
 
         // 2. Sync Pending Onboarding
-        const pendingDataStr = localStorage.getItem('bh_pending_onboarding');
+        const pendingDataStr = safeLocalStorage.getItem('bh_pending_onboarding');
         if (pendingDataStr) {
             try {
                 const pendingData = JSON.parse(pendingDataStr);
@@ -339,16 +340,20 @@ function AppContent() {
                     privacy_accepted_at: pendingData.terms_accepted_at
                 }).eq('id', session.user.id);
                 
-                localStorage.removeItem('bh_pending_onboarding');
+                safeLocalStorage.removeItem('bh_pending_onboarding');
             } catch (e) {
                 console.error("Failed to sync pending onboarding data", e);
             }
         }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => { 
-        handleSessionSync(session);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => { 
+          handleSessionSync(session);
+      })
+      .catch((err) => {
+          console.warn("App session sync warning:", err);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
         if (_event === 'SIGNED_IN' && session) {

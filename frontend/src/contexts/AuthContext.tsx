@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage } from '../lib/storage';
 
 const ADMIN_EMAIL = 'bh.dtl@web.de';
 
@@ -23,12 +24,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsAdmin(session?.user?.email === ADMIN_EMAIL);
+      })
+      .catch((err) => {
+        console.error("Failed to get session:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {
@@ -89,10 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       // 1. Clear local storage tokens immediately to guarantee local logout
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith('sb-') || key.startsWith('bh_user_')) {
-          localStorage.removeItem(key);
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('sb-') || key.startsWith('bh_user_')) {
+            safeLocalStorage.removeItem(key);
+          }
         }
+      } catch (e) {
+        console.warn("localStorage keys enumeration failed:", e);
       }
       
       // 2. Call Supabase server-side sign out (might fail if network issue, but won't block local logout)

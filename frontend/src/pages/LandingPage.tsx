@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { safeLocalStorage } from '../lib/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { BrandLogo } from '../components/BrandLogo';
@@ -41,17 +42,17 @@ const staggerContainer = {
 
 // --- COMPONENT: COOKIE & PRIVACY BANNER ---
 function CookieBanner() {
-  const [isVisible, setIsVisible] = useState(!localStorage.getItem('cookie_consent'));
+  const [isVisible, setIsVisible] = useState(!safeLocalStorage.getItem('cookie_consent'));
   
   if (!isVisible) return null;
 
   const handleAccept = () => {
-    localStorage.setItem('cookie_consent', 'true');
+    safeLocalStorage.setItem('cookie_consent', 'true');
     setIsVisible(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('cookie_consent', 'false');
+    safeLocalStorage.setItem('cookie_consent', 'false');
     setIsVisible(false);
   };
 

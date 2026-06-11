@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage } from '../lib/storage';
 import { 
   Trophy, 
   Swords, 
@@ -1039,10 +1040,10 @@ export function MatchupAnalyzer() {
       setPageLoading(false);
     }).catch(e => { console.error(e); setPageLoading(false); });
     
-    const hasSeenTutorial = localStorage.getItem('hasSeenMatchupTutorial');
+    const hasSeenTutorial = safeLocalStorage.getItem('hasSeenMatchupTutorial');
     if (!hasSeenTutorial) {
         setTimeout(() => setShowTutorial(true), 1000); 
-        localStorage.setItem('hasSeenMatchupTutorial', 'true');
+        safeLocalStorage.setItem('hasSeenMatchupTutorial', 'true');
     }
   }, []);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, TrendingUp, Award, Zap, ArrowRight, BarChart3, AlertTriangle, Percent, Target, Scale, Wallet, PieChart, Gift } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage, safeSessionStorage } from '../lib/storage';
 import { PlayerCard } from '../components/PlayerCard';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { SearchableSelect } from '../components/SearchableSelect';
@@ -242,11 +243,11 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
   const { t } = useTranslation();
   
   const [stats, setStats] = useState(() => {
-    const cached = localStorage.getItem('bh_hero_stats');
+    const cached = safeLocalStorage.getItem('bh_hero_stats');
     return cached ? JSON.parse(cached) : { avgClv: 0, totalUnits: 0, roi: 0 };
   });
   const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem('bh_hero_stats');
+    return !safeLocalStorage.getItem('bh_hero_stats');
   });
 
   useEffect(() => {
@@ -255,8 +256,8 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
 
     const fetchPerformance = async () => {
       try {
-          const cached = localStorage.getItem('bh_hero_stats');
-          const cachedTime = localStorage.getItem('bh_hero_stats_time');
+          const cached = safeLocalStorage.getItem('bh_hero_stats');
+          const cachedTime = safeLocalStorage.getItem('bh_hero_stats_time');
           const now = Date.now();
 
           // 🚀 5-Minute Cache Validation
@@ -355,23 +356,23 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                     };
                     if (active) {
                         setStats(newStats);
-                        localStorage.setItem('bh_hero_stats', JSON.stringify(newStats));
-                        localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                        safeLocalStorage.setItem('bh_hero_stats', JSON.stringify(newStats));
+                        safeLocalStorage.setItem('bh_hero_stats_time', Date.now().toString());
                     }
                 } else {
                     const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
                     if (active) {
                         setStats(fallbackStats);
-                        localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
-                        localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                        safeLocalStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+                        safeLocalStorage.setItem('bh_hero_stats_time', Date.now().toString());
                     }
                 }
               } else {
                   const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
                   if (active) {
                       setStats(fallbackStats);
-                      localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
-                      localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+                      safeLocalStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+                      safeLocalStorage.setItem('bh_hero_stats_time', Date.now().toString());
                   }
               }
           };
@@ -397,8 +398,8 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
           const fallbackStats = { avgClv: 0, totalUnits: 0, roi: 0 };
           if (active) {
               setStats(fallbackStats);
-              localStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
-              localStorage.setItem('bh_hero_stats_time', Date.now().toString());
+              safeLocalStorage.setItem('bh_hero_stats', JSON.stringify(fallbackStats));
+              safeLocalStorage.setItem('bh_hero_stats_time', Date.now().toString());
           }
       } finally {
           if (active) {
@@ -585,10 +586,10 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 400) {
-        const dismissed = sessionStorage.getItem('neobet_promo_dismissed');
+        const dismissed = safeSessionStorage.getItem('neobet_promo_dismissed');
         if (!dismissed) {
           setIsPromoOpen(true);
-          sessionStorage.setItem('neobet_promo_dismissed', 'true');
+          safeSessionStorage.setItem('neobet_promo_dismissed', 'true');
         }
       }
     };
@@ -597,15 +598,15 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   }, []);
 
   const [players, setPlayers] = useState<Player[]>(() => {
-    const cached = localStorage.getItem('bh_cached_players');
+    const cached = safeLocalStorage.getItem('bh_cached_players');
     return cached ? JSON.parse(cached) : [];
   });
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>(() => {
-    const cached = localStorage.getItem('bh_cached_players');
+    const cached = safeLocalStorage.getItem('bh_cached_players');
     return cached ? JSON.parse(cached) : [];
   });
   const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem('bh_cached_players');
+    return !safeLocalStorage.getItem('bh_cached_players');
   });
     
   const [showFilters, setShowFilters] = useState(false);
@@ -728,7 +729,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
       setFilteredPlayers(playersWithRatings);
       
       // SOTA: Cache in localStorage
-      localStorage.setItem('bh_cached_players', JSON.stringify(playersWithRatings));
+      safeLocalStorage.setItem('bh_cached_players', JSON.stringify(playersWithRatings));
     } catch (error) {
       console.error('Error loading players:', error);
     } finally {

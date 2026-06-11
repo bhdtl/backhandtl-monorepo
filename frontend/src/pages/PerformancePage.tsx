@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage } from '../lib/storage';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   ArrowLeft, CheckCircle2, XCircle, TrendingUp, BarChart3, Target, Zap, History, ArrowUpRight, ArrowDownRight,
@@ -393,7 +394,7 @@ export function PerformancePage() {
       }
     };
     try {
-      const cached = localStorage.getItem('bh_perf_stats');
+      const cached = safeLocalStorage.getItem('bh_perf_stats');
       if (!cached) return defaultStats;
       const parsed = JSON.parse(cached);
       if (!parsed || typeof parsed !== 'object') return defaultStats;
@@ -420,7 +421,7 @@ export function PerformancePage() {
 
   const [rawBets, setRawBets] = useState<any[]>(() => {
     try {
-      const cached = localStorage.getItem('bh_perf_raw_bets');
+      const cached = safeLocalStorage.getItem('bh_perf_raw_bets');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) return parsed;
@@ -433,7 +434,7 @@ export function PerformancePage() {
 
   const [chartData, setChartData] = useState<any[]>(() => {
     try {
-      const cached = localStorage.getItem('bh_perf_chart_data');
+      const cached = safeLocalStorage.getItem('bh_perf_chart_data');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) return parsed;
@@ -446,7 +447,7 @@ export function PerformancePage() {
 
   const [processedBets, setProcessedBets] = useState<any[]>(() => {
     try {
-      const cached = localStorage.getItem('bh_perf_processed_bets');
+      const cached = safeLocalStorage.getItem('bh_perf_processed_bets');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) return parsed;
@@ -459,7 +460,7 @@ export function PerformancePage() {
 
   const [loading, setLoading] = useState(() => {
     try {
-      const cached = localStorage.getItem('bh_perf_stats');
+      const cached = safeLocalStorage.getItem('bh_perf_stats');
       if (!cached) return true;
       const parsed = JSON.parse(cached);
       if (!parsed || typeof parsed !== 'object') return true;
@@ -545,7 +546,7 @@ export function PerformancePage() {
 
     if (allData.length > 0) {
       setRawBets(allData);
-      localStorage.setItem('bh_perf_raw_bets', JSON.stringify(allData));
+      safeLocalStorage.setItem('bh_perf_raw_bets', JSON.stringify(allData));
       processAndCalculate(allData);
     } else {
        setStats({ 
@@ -746,14 +747,14 @@ export function PerformancePage() {
             stakeBrackets
         };
         setStats(newStats);
-        localStorage.setItem('bh_perf_stats', JSON.stringify(newStats));
+        safeLocalStorage.setItem('bh_perf_stats', JSON.stringify(newStats));
     } else {
         const fallbackStats = { 
             totalSignals: 0, avgEdge: 0, avgClv: 0, totalUnits: 0, roi: 0, 
             units10d: 0, units30d: 0, avgBrier: 0.25, pValue: 0.5, skillCertainty: 50, brackets, stakeBrackets 
         };
         setStats(fallbackStats);
-        localStorage.setItem('bh_perf_stats', JSON.stringify(fallbackStats));
+        safeLocalStorage.setItem('bh_perf_stats', JSON.stringify(fallbackStats));
     }
 
     // 🚀 SOTA FIX: Exakte chronologische Tabellen-Sortierung (neueste gespielte Matches zuerst)
@@ -767,8 +768,8 @@ export function PerformancePage() {
     setChartData(chartPoints);
     
     // SOTA: Cache in localStorage sichern
-    localStorage.setItem('bh_perf_processed_bets', JSON.stringify(sortedForTable));
-    localStorage.setItem('bh_perf_chart_data', JSON.stringify(chartPoints));
+    safeLocalStorage.setItem('bh_perf_processed_bets', JSON.stringify(sortedForTable));
+    safeLocalStorage.setItem('bh_perf_chart_data', JSON.stringify(chartPoints));
   };
 
   const exportToMarkdown = () => {

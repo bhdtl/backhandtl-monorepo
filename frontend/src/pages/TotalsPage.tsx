@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { safeLocalStorage } from '../lib/storage';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
   Hash, Activity, Flame, Snowflake, Target, Shield, ArrowRight, Zap, MapPin, Clock, Scale, Calendar, AlertTriangle, Lock
@@ -74,12 +75,12 @@ export function TotalsPage() {
   const { isElite, loading: accessLoading } = useAccess();
   
   const [activeMatches, setActiveMatches] = useState<any[]>(() => {
-    const cached = localStorage.getItem('bh_cached_totals');
+    const cached = safeLocalStorage.getItem('bh_cached_totals');
     return cached ? JSON.parse(cached) : [];
   });
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem('bh_cached_totals');
+    return !safeLocalStorage.getItem('bh_cached_totals');
   });
   
   // Filtering: ALL | OVERS (Proj > 22.5) | UNDERS (Proj < 20.5)
@@ -214,7 +215,7 @@ export function TotalsPage() {
         setActiveMatches(processedMatches);
         
         // SOTA: Cache in localStorage sichern
-        localStorage.setItem('bh_cached_totals', JSON.stringify(processedMatches));
+        safeLocalStorage.setItem('bh_cached_totals', JSON.stringify(processedMatches));
 
     } catch (err) {
         console.error("Error fetching O/U data:", err);

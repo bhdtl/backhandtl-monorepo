@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { safeLocalStorage } from '../lib/storage';
 
 // SOTA: Erweitertes Subscription Model für das neue Pricing
 export type SubscriptionTier = 'FREE' | 'WEEKEND' | 'ELITE' | 'PREMIUM' | 'ADMIN';
@@ -22,10 +23,10 @@ export function useAccess() {
       setLoading(false);
       return;
     }
-    const cachedTier = localStorage.getItem(`bh_user_tier_${user.id}`);
-    const cachedRole = localStorage.getItem(`bh_user_role_${user.id}`);
-    const cachedCredits = localStorage.getItem(`bh_user_credits_${user.id}`);
-    const cachedIsPremium = localStorage.getItem(`bh_user_is_premium_${user.id}`);
+    const cachedTier = safeLocalStorage.getItem(`bh_user_tier_${user.id}`);
+    const cachedRole = safeLocalStorage.getItem(`bh_user_role_${user.id}`);
+    const cachedCredits = safeLocalStorage.getItem(`bh_user_credits_${user.id}`);
+    const cachedIsPremium = safeLocalStorage.getItem(`bh_user_is_premium_${user.id}`);
     if (cachedTier) {
       setTier(cachedTier as SubscriptionTier);
       setRole(cachedRole || 'USER');
@@ -98,10 +99,10 @@ export function useAccess() {
         setIsPremiumDb(dbIsPremium);
 
         // SOTA: Cache in localStorage sichern
-        localStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
-        localStorage.setItem(`bh_user_role_${user.id}`, data.role || 'USER');
-        localStorage.setItem(`bh_user_credits_${user.id}`, (data.credits ?? 0).toString());
-        localStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
+        safeLocalStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
+        safeLocalStorage.setItem(`bh_user_role_${user.id}`, data.role || 'USER');
+        safeLocalStorage.setItem(`bh_user_credits_${user.id}`, (data.credits ?? 0).toString());
+        safeLocalStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
       }
       
       if (error && error.code === 'PGRST116') {
@@ -131,10 +132,10 @@ export function useAccess() {
           setRole(newProfile.role || 'USER');
           setIsPremiumDb(dbIsPremium);
 
-          localStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
-          localStorage.setItem(`bh_user_role_${user.id}`, newProfile.role || 'USER');
-          localStorage.setItem(`bh_user_credits_${user.id}`, (newProfile.credits ?? 0).toString());
-          localStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
+          safeLocalStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
+          safeLocalStorage.setItem(`bh_user_role_${user.id}`, newProfile.role || 'USER');
+          safeLocalStorage.setItem(`bh_user_credits_${user.id}`, (newProfile.credits ?? 0).toString());
+          safeLocalStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
         }
       } else if (error) {
           console.error("Access Fetch Error:", error);
