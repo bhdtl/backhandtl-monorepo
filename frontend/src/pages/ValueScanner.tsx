@@ -1192,17 +1192,17 @@ export function ValueScanner() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       onClick={() => setIsPromoOpen(true)}
-                      className="relative overflow-hidden rounded-[1.5rem] border border-cyan-500/10 hover:border-cyan-400/40 bg-gradient-to-r from-[#0c1f35] via-[#091727] to-[#040a12] cursor-pointer shadow-xl hover:shadow-[0_0_30px_rgba(0,162,232,0.15)] transition-all duration-300 p-5 group flex flex-col md:flex-row gap-5 items-center justify-between animate-in fade-in"
+                      className="relative overflow-hidden rounded-[1.5rem] border border-tennis-lime/10 hover:border-tennis-lime/30 bg-gradient-to-r from-[#121620] via-[#0d1017] to-[#07090d] cursor-pointer shadow-xl hover:shadow-[0_0_30px_rgba(132,204,22,0.15)] transition-all duration-300 p-5 group flex flex-col md:flex-row gap-5 items-center justify-between animate-in fade-in"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-500" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
                         <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                            <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400 shrink-0">
+                            <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime shrink-0">
                                 <Gift size={22} className="animate-pulse" />
                             </div>
                             <div>
                                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
-                                    <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span></span>
-                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-cyan-400">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
+                                    <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
+                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
                                     <div className="h-3 w-px bg-white/10 hidden sm:block" />
                                     <span className="text-[8px] font-mono font-bold text-gray-500 tracking-wider hidden sm:inline">BACKHAND.DTL × NEO.bet</span>
                                 </div>
@@ -1212,7 +1212,7 @@ export function ValueScanner() {
                         </div>
                         
                         <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
-                            <span className="px-3.5 py-2 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 hover:from-cyan-500 hover:to-blue-500 text-cyan-400 hover:text-black border border-cyan-500/20 hover:border-cyan-500 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(0,162,232,0.05)] hover:shadow-[0_0_20px_rgba(0,162,232,0.3)]">{t('picks.unlockBonus', 'Bonus freischalten')}</span>
+                            <span className="px-3.5 py-2 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.25)]">{t('picks.unlockBonus', 'Bonus freischalten')}</span>
                             <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
                         </div>
                     </motion.div>
