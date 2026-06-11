@@ -88,13 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      // 1. Clear local storage tokens immediately to guarantee local logout
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('sb-') || key.startsWith('bh_user_')) {
+          localStorage.removeItem(key);
+        }
+      }
+      
+      // 2. Call Supabase server-side sign out (might fail if network issue, but won't block local logout)
       await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out of server:', error);
+    } finally {
+      // 3. Clear react state & redirect to root
       setSession(null);
       setUser(null);
       setIsAdmin(false);
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error signing out:', error);
       window.location.href = '/';
     }
   };
