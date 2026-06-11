@@ -104,7 +104,37 @@ export function useAccess() {
         localStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
       }
       
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code === 'PGRST116') {
+        console.warn("Profile missing. Creating self-healing profile row for user:", user.id);
+        const metaName = user.user_metadata?.first_name || '';
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            first_name: metaName,
+            role: 'USER',
+            tier: 'FREE',
+            credits: 0,
+            is_premium: false
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error("Self-healing profile creation failed:", insertError);
+        } else if (newProfile) {
+          console.log("Self-healing profile created successfully:", newProfile);
+          setTier('FREE');
+          setCredits(0);
+          setRole('USER');
+          setIsPremiumDb(false);
+
+          localStorage.setItem(`bh_user_tier_${user.id}`, 'FREE');
+          localStorage.setItem(`bh_user_role_${user.id}`, 'USER');
+          localStorage.setItem(`bh_user_credits_${user.id}`, '0');
+          localStorage.setItem(`bh_user_is_premium_${user.id}`, 'false');
+        }
+      } else if (error) {
           console.error("Access Fetch Error:", error);
       }
     } catch (e) {
