@@ -4,7 +4,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT 
 -- Create affiliate_requests table
 CREATE TABLE IF NOT EXISTS public.affiliate_requests (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     neobet_username TEXT NOT NULL,
     status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
     rejection_reason TEXT,
