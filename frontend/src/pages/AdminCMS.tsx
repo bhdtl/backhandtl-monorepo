@@ -6,7 +6,8 @@ import {
   ChevronUp, Brain, Activity, Tag, LayoutGrid, Users, BarChart3, Ticket,
   CheckCircle2, Circle, Languages, Menu, Palette, Sparkles, FileText, Eye, Swords, Gauge, PenTool, Layout, Filter,
   Type, 
-  MessageSquare, ThumbsUp, LifeBuoy, AlertTriangle, Briefcase // 🚀 SOTA FIX: Briefcase für Partner Tab hinzugefügt
+  MessageSquare, ThumbsUp, LifeBuoy, AlertTriangle, Briefcase,
+  Copy // 🚀 SOTA FIX: Briefcase für Partner Tab hinzugefügt
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -188,6 +189,12 @@ export function AdminCMS() {
   
   const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'affiliates'>('players');
   const [affiliateRequests, setAffiliateRequests] = useState<any[]>([]);
+
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setToastMessage('User-ID in Zwischenablage kopiert!');
+    setShowToast(true);
+  };
   
   // DATA STATES
   const [players, setPlayers] = useState<Player[]>([]);
@@ -741,9 +748,21 @@ export function AdminCMS() {
                             <td className="p-4 md:p-5">
                               <div>
                                 <span className="text-white block">{userName}</span>
-                                <span className="text-[9px] text-gray-500 font-mono block">
-                                  ID: {req.user_id.slice(0, 8)}... | {userTier} {isPremium && '(Premium)'}
-                                </span>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <span className="text-[9px] text-gray-500 font-mono">
+                                    ID: {req.user_id.slice(0, 8)}...
+                                  </span>
+                                  <button
+                                    onClick={() => handleCopyId(req.user_id)}
+                                    title="Kopiere vollständige User-ID"
+                                    className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Copy size={10} />
+                                  </button>
+                                  <span className="text-[9px] text-gray-500 font-mono text-gray-600">
+                                    | {userTier} {isPremium && '(Premium)'}
+                                  </span>
+                                </div>
                               </div>
                             </td>
                             <td className="p-4 md:p-5 font-mono text-white select-all">{req.neobet_username}</td>
