@@ -368,8 +368,7 @@ export function PerformancePage() {
   const { t, i18n } = useTranslation();
   
   const [stats, setStats] = useState(() => {
-    const cached = localStorage.getItem('bh_perf_stats');
-    return cached ? JSON.parse(cached) : {
+    const defaultStats = {
       totalSignals: 0,
       avgEdge: 0,        
       avgClv: 0,
@@ -393,22 +392,82 @@ export function PerformancePage() {
           max: { clvSum: 0, units: 0, count: 0 }    
       }
     };
+    try {
+      const cached = localStorage.getItem('bh_perf_stats');
+      if (!cached) return defaultStats;
+      const parsed = JSON.parse(cached);
+      if (!parsed || typeof parsed !== 'object') return defaultStats;
+      
+      // Validate nested objects to prevent rendering crashes
+      if (!parsed.brackets || !parsed.brackets.fav || !parsed.brackets.core || !parsed.brackets.dog || !parsed.brackets.long) {
+        return defaultStats;
+      }
+      if (!parsed.stakeBrackets || !parsed.stakeBrackets.low || !parsed.stakeBrackets.med || !parsed.stakeBrackets.high || !parsed.stakeBrackets.max) {
+        return defaultStats;
+      }
+      
+      return {
+        ...defaultStats,
+        ...parsed,
+        brackets: { ...defaultStats.brackets, ...parsed.brackets },
+        stakeBrackets: { ...defaultStats.stakeBrackets, ...parsed.stakeBrackets }
+      };
+    } catch (e) {
+      console.error('Error loading performance stats cache:', e);
+      return defaultStats;
+    }
   });
 
   const [rawBets, setRawBets] = useState<any[]>(() => {
-    const cached = localStorage.getItem('bh_perf_raw_bets');
-    return cached ? JSON.parse(cached) : [];
+    try {
+      const cached = localStorage.getItem('bh_perf_raw_bets');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading raw bets cache:', e);
+    }
+    return [];
   });
+
   const [chartData, setChartData] = useState<any[]>(() => {
-    const cached = localStorage.getItem('bh_perf_chart_data');
-    return cached ? JSON.parse(cached) : [];
+    try {
+      const cached = localStorage.getItem('bh_perf_chart_data');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading chart data cache:', e);
+    }
+    return [];
   });
+
   const [processedBets, setProcessedBets] = useState<any[]>(() => {
-    const cached = localStorage.getItem('bh_perf_processed_bets');
-    return cached ? JSON.parse(cached) : [];
+    try {
+      const cached = localStorage.getItem('bh_perf_processed_bets');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading processed bets cache:', e);
+    }
+    return [];
   });
+
   const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem('bh_perf_stats');
+    try {
+      const cached = localStorage.getItem('bh_perf_stats');
+      if (!cached) return true;
+      const parsed = JSON.parse(cached);
+      if (!parsed || typeof parsed !== 'object') return true;
+      if (!parsed.brackets || !parsed.stakeBrackets) return true;
+      return false;
+    } catch {
+      return true;
+    }
   });
   
   const [chartFilter, setChartFilter] = useState<'1W' | '1M' | '3M' | 'ALL'>('ALL');
