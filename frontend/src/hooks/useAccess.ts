@@ -12,6 +12,7 @@ export function useAccess() {
   const [tier, setTier] = useState<SubscriptionTier>('FREE');
   const [role, setRole] = useState<string>('USER'); 
   const [credits, setCredits] = useState<number>(0);
+  const [isPremiumDb, setIsPremiumDb] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   // --- SOTA: Load from user-specific cache instantly on mount ---
@@ -24,10 +25,12 @@ export function useAccess() {
     const cachedTier = localStorage.getItem(`bh_user_tier_${user.id}`);
     const cachedRole = localStorage.getItem(`bh_user_role_${user.id}`);
     const cachedCredits = localStorage.getItem(`bh_user_credits_${user.id}`);
+    const cachedIsPremium = localStorage.getItem(`bh_user_is_premium_${user.id}`);
     if (cachedTier) {
       setTier(cachedTier as SubscriptionTier);
       setRole(cachedRole || 'USER');
       setCredits(cachedCredits ? parseInt(cachedCredits, 10) : 0);
+      setIsPremiumDb(cachedIsPremium === 'true');
       setLoading(false);
     }
   }, [user]);
@@ -58,7 +61,7 @@ export function useAccess() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('tier, credits, role, premium_until, special_badge') 
+        .select('tier, credits, role, premium_until, special_badge, is_premium') 
         .eq('id', user.id)
         .single();
 
@@ -66,6 +69,7 @@ export function useAccess() {
         let dbTier = (data.tier || 'FREE').toString().toUpperCase().trim();
         const expiryDate = data.premium_until;
         const isAdminRole = data.role === 'admin' || data.role === 'ADMIN' || data.special_badge === 'ADMIN';
+        const dbIsPremium = !!data.is_premium;
 
         // THE TIME-LOCK: Ablaufdatum prüfen (mit sicherem Safari-Parser)
         let isExpired = false;
@@ -81,7 +85,7 @@ export function useAccess() {
         if (isExpired && !isAdminRole && !isFounder) {
              console.warn("Local Auth Check: Subscription has expired. Downgrading to FREE.");
              dbTier = 'FREE';
-        }
+         }
 
         // Fallback: Falls ein ungültiger Wert in der DB steht
         if (!['FREE', 'WEEKEND', 'ELITE', 'PREMIUM', 'ADMIN'].includes(dbTier)) {
@@ -91,11 +95,13 @@ export function useAccess() {
         setTier(dbTier as SubscriptionTier);
         setCredits(data.credits ?? 0);
         setRole(data.role || 'USER'); 
+        setIsPremiumDb(dbIsPremium);
 
         // SOTA: Cache in localStorage sichern
         localStorage.setItem(`bh_user_tier_${user.id}`, dbTier);
         localStorage.setItem(`bh_user_role_${user.id}`, data.role || 'USER');
         localStorage.setItem(`bh_user_credits_${user.id}`, (data.credits ?? 0).toString());
+        localStorage.setItem(`bh_user_is_premium_${user.id}`, dbIsPremium.toString());
       }
       
       if (error && error.code !== 'PGRST116') {
@@ -158,6 +164,7 @@ export function useAccess() {
             // Andere Felder nur updaten, wenn sie im Payload existieren
             if (newData.credits !== undefined) setCredits(newData.credits ?? 0);
             if (newData.role !== undefined) setRole(newData.role || 'USER');
+            if (newData.is_premium !== undefined) setIsPremiumDb(!!newData.is_premium);
           }
         }
       )
@@ -172,7 +179,7 @@ export function useAccess() {
   const isAdmin = isFounder || role === 'ADMIN' || role === 'admin';
 
   // B) ELITE STATUS (Paywall Gatekeeper)
-  const isElite = isAdmin || tier === 'WEEKEND' || tier === 'ELITE' || tier === 'PREMIUM' || tier === 'ADMIN';
+  const isElite = isAdmin || tier === 'WEEKEND' || tier === 'ELITE' || tier === 'PREMIUM' || tier === 'ADMIN' || isPremiumDb;
   
   // C) FREE STATUS
   const isFree = !isElite;

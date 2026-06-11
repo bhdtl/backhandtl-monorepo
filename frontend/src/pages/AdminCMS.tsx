@@ -186,7 +186,8 @@ export function AdminCMS() {
   const { user } = useAuth();
   const { isAdmin, isFounder, loading: accessLoading } = useAccess();
   
-  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'affiliates'>('players');
+  const [affiliateRequests, setAffiliateRequests] = useState<any[]>([]);
   
   // DATA STATES
   const [players, setPlayers] = useState<Player[]>([]);
@@ -269,7 +270,8 @@ export function AdminCMS() {
         supabase.channel('s').on('postgres_changes', { event: '*', schema: 'public', table: 'player_skills' }, loadData).subscribe(),
         supabase.channel('a').on('postgres_changes', { event: '*', schema: 'public', table: 'player_achievements' }, loadData).subscribe(),
         supabase.channel('st').on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, loadData).subscribe(),
-        supabase.channel('fp').on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_posts' }, loadData).subscribe()
+        supabase.channel('fp').on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_posts' }, loadData).subscribe(),
+        supabase.channel('aff').on('postgres_changes', { event: '*', schema: 'public', table: 'affiliate_requests' }, loadData).subscribe()
       ];
       return () => { channels.forEach(c => supabase.removeChannel(c)); };
     }
@@ -277,7 +279,7 @@ export function AdminCMS() {
 
   const loadData = async () => {
     try {
-      const [p, r, s, a, arts, tours, tix, fb] = await Promise.all([
+      const [p, r, s, a, arts, tours, tix, fb, aff] = await Promise.all([
           supabase.from('players').select('id, first_name, last_name, country, play_style, surface_preference, profile_image_url, tour').order('last_name', { ascending: true }),
           supabase.from('scouting_reports').select('id, player_id, strengths, weaknesses, mental_game_notes, last_updated'),
           supabase.from('player_skills').select('id, player_id, serve, forehand, backhand, volley, speed, power, mental, stamina, overall_rating'),
@@ -285,18 +287,21 @@ export function AdminCMS() {
           supabase.from('articles').select('id, slug, title, excerpt, content, hero_image_url, tags, is_published, author_name, published_at').order('created_at', { ascending: false }),
           supabase.from('tournaments').select('id, name, bsi_rating, surface').order('name', { ascending: true }),
           supabase.from('support_tickets').select('id, user_id, subject, message, status, admin_response, created_at').order('created_at', { ascending: false }),
-          supabase.from('feedback_posts').select('id, user_id, category, title, content, status, upvotes_count, created_at').order('created_at', { ascending: false })
+          supabase.from('feedback_posts').select('id, user_id, category, title, content, status, upvotes_count, created_at').order('created_at', { ascending: false }),
+          supabase.from('affiliate_requests').select('id, user_id, neobet_username, status, rejection_reason, created_at, profiles(first_name, tier, is_premium)').order('created_at', { ascending: false })
       ]);
       
       if (p.error) console.warn("Players fetch error", p.error);
       if (tix.error) console.warn("Tickets fetch error", tix.error);
       if (fb.error) console.warn("Feedback fetch error", fb.error);
+      if (aff.error) console.warn("Affiliate requests fetch error", aff.error);
 
       setPlayers(p.data || []);
       setTournaments(tours.data as any || []);
       setArticles(arts.data as any || []);
       setAdminTickets(tix.data as any || []);
       setAdminFeedback(fb.data as any || []);
+      setAffiliateRequests(aff.data || []);
       
       const reportsMap: any = {}; r.data?.forEach(x => reportsMap[x.player_id] = x); setReports(reportsMap);
       const skillsMap: any = {}; s.data?.forEach(x => skillsMap[x.player_id] = x); setSkills(skillsMap);
@@ -444,6 +449,60 @@ export function AdminCMS() {
     if(!confirm('Delete this request?')) return;
     setAdminFeedback(prev => prev.filter(p => p.id !== id)); // Optimistic delete
     await supabase.from('feedback_posts').delete().eq('id', id);
+  };
+
+  const handleApproveRequest = async (reqId: string, userId: string) => {
+    try {
+      const { error: reqError } = await supabase
+        .from('affiliate_requests')
+        .update({ status: 'approved', rejection_reason: null })
+        .eq('id', reqId);
+      
+      if (reqError) throw reqError;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          tier: 'PREMIUM', 
+          is_premium: true,
+          premium_until: new Date(Date.now() + 86400000 * 365 * 99).toISOString() // lifetime (99 years)
+        })
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      setToastMessage('Request approved & user upgraded!');
+      setShowToast(true);
+      loadData();
+    } catch (err: any) {
+      console.error('Error approving request:', err);
+      alert('Failed to approve request: ' + err.message);
+    }
+  };
+
+  const handleDeclineRequest = async (reqId: string, userId: string, reason: string) => {
+    try {
+      const { error: reqError } = await supabase
+        .from('affiliate_requests')
+        .update({ status: 'rejected', rejection_reason: reason || null })
+        .eq('id', reqId);
+      
+      if (reqError) throw reqError;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_premium: false })
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      setToastMessage('Request declined.');
+      setShowToast(true);
+      loadData();
+    } catch (err: any) {
+      console.error('Error declining request:', err);
+      alert('Failed to decline request: ' + err.message);
+    }
   };
 
   const toggleAccordion = (pid: string) => {
@@ -629,6 +688,7 @@ export function AdminCMS() {
       { id: 'promos', label: 'Promos', icon: Ticket },
       { id: 'designs', label: 'Designs', icon: Palette },
       { id: 'support', label: 'Support & Ops', icon: LifeBuoy },
+      { id: 'affiliates', label: 'Affiliates', icon: Briefcase },
   ];
 
   // --- RENDER CONTENT ---
@@ -638,6 +698,115 @@ export function AdminCMS() {
       case 'courts': return <CourtsManager />;
       case 'promos': return <PromoCodeManager />;
       case 'designs': return <CardGallery />;
+      case 'affiliates':
+        return (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-black text-white uppercase tracking-wider">NeoBet Affiliate Unlock Requests</h2>
+              <span className="bg-[#15171e] text-[10px] font-mono text-gray-400 border border-white/5 px-3 py-1.5 rounded-xl">
+                {affiliateRequests.filter(r => r.status === 'pending').length} Pending Requests
+              </span>
+            </div>
+
+            <div className="bg-[#15171e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-gray-500 bg-black/20">
+                      <th className="p-4 md:p-5">Date</th>
+                      <th className="p-4 md:p-5">User</th>
+                      <th className="p-4 md:p-5">NeoBet Username</th>
+                      <th className="p-4 md:p-5">Status</th>
+                      <th className="p-4 md:p-5">Feedback / Reason</th>
+                      <th className="p-4 md:p-5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-xs md:text-sm font-semibold text-gray-300">
+                    {affiliateRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-gray-500 italic">
+                          No requests found.
+                        </td>
+                      </tr>
+                    ) : (
+                      affiliateRequests.map((req) => {
+                        const dateStr = new Date(req.created_at).toLocaleDateString();
+                        const userName = req.profiles?.first_name || 'Anonymous';
+                        const userTier = req.profiles?.tier || 'FREE';
+                        const isPremium = !!req.profiles?.is_premium;
+
+                        return (
+                          <tr key={req.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="p-4 md:p-5 text-[11px] font-mono text-gray-500">{dateStr}</td>
+                            <td className="p-4 md:p-5">
+                              <div>
+                                <span className="text-white block">{userName}</span>
+                                <span className="text-[9px] text-gray-500 font-mono block">
+                                  ID: {req.user_id.slice(0, 8)}... | {userTier} {isPremium && '(Premium)'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-4 md:p-5 font-mono text-white select-all">{req.neobet_username}</td>
+                            <td className="p-4 md:p-5">
+                              <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${
+                                req.status === 'approved' 
+                                  ? 'bg-green-500/10 text-green-400 border border-green-500/25'
+                                  : req.status === 'rejected'
+                                    ? 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                    : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/25'
+                              }`}>
+                                {req.status}
+                              </span>
+                            </td>
+                            <td className="p-4 md:p-5 text-xs text-gray-400 max-w-xs truncate">
+                              {req.rejection_reason || <span className="text-gray-600 font-normal italic">—</span>}
+                            </td>
+                            <td className="p-4 md:p-5 text-right">
+                              <div className="flex justify-end gap-2">
+                                {req.status !== 'approved' && (
+                                  <button
+                                    onClick={() => handleApproveRequest(req.id, req.user_id)}
+                                    className="px-3 py-2 bg-green-500 hover:bg-green-600 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-green-500/10"
+                                  >
+                                    Approve
+                                  </button>
+                                )}
+                                {req.status !== 'rejected' && (
+                                  <button
+                                    onClick={() => {
+                                      const reason = prompt("Bitte gib einen Grund für die Ablehnung an (z.B. 'Keine Registrierung unter unserem Link gefunden' oder 'Einzahlung fehlt'):");
+                                      if (reason === null) return;
+                                      handleDeclineRequest(req.id, req.user_id, reason);
+                                    }}
+                                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                                  >
+                                    Decline
+                                  </button>
+                                )}
+                                {req.status === 'approved' && (
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`Möchtest du die Freischaltung für ${req.neobet_username} widerrufen?`)) {
+                                        handleDeclineRequest(req.id, req.user_id, 'Freischaltung widerrufen');
+                                      }
+                                    }}
+                                    className="px-3 py-2 bg-white/5 hover:bg-white/10 text-gray-400 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95"
+                                  >
+                                    Revoke
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
       case 'support':
         return (
           <div className="space-y-6 animate-in fade-in">
