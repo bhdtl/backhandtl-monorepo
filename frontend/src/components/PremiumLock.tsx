@@ -104,7 +104,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
   if (countryLoading) {
     return (
       <div className="relative overflow-hidden rounded-2xl min-h-[400px] bg-[#15171e] border border-white/5 w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-cyan-400" size={32} />
+        <Loader2 className="animate-spin text-tennis-lime" size={32} />
       </div>
     );
   }
@@ -157,21 +157,21 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
 
   // If user is from DE or AT, render the NeoBet Affiliate Free Unlock Overlay
   return (
-    <div className="relative w-full min-h-[80vh] flex items-center justify-center rounded-3xl border border-white/5 bg-[#0a0c10] overflow-hidden">
+    <div className="relative w-full min-h-[80vh] flex items-center justify-center rounded-3xl border border-white/5 bg-[#0a0b0e] overflow-hidden">
       {/* Blurred background feed (Very subtle for premium aesthetic) */}
       <div className={`absolute inset-0 filter ${blurAmount} opacity-5 pointer-events-none select-none h-full w-full`}>
         {children}
       </div>
 
       {/* Subtle Glowing Effect - Apple style Backglow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[500px] h-[350px] md:h-[500px] bg-cyan-500/10 rounded-full blur-[100px] md:blur-[130px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[500px] h-[350px] md:h-[500px] bg-tennis-lime/10 rounded-full blur-[100px] md:blur-[130px] pointer-events-none" />
 
       {/* Main Container Sheet (Natural height, no clipping) */}
       <div className="relative z-10 w-full max-w-2xl mx-auto px-4 py-10 md:py-16 flex flex-col items-center text-center">
         
         {/* Sponsoring Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-widest text-cyan-400 mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tennis-lime/10 border border-tennis-lime/20 text-[9px] font-black uppercase tracking-widest text-tennis-lime mb-6">
+          <span className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse"></span>
           Sponsoring-Partner | Exklusive Kooperation
         </div>
 
@@ -186,17 +186,17 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
         {/* Revolut Onboarding Steps Grid Layout (Super Premium) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full mb-8">
           <div className="bg-[#15171e]/40 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center backdrop-blur-md">
-            <span className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[10px] font-black text-cyan-400 mb-2">1</span>
+            <span className="w-8 h-8 rounded-full bg-tennis-lime/10 border border-tennis-lime/20 flex items-center justify-center text-[10px] font-black text-tennis-lime mb-2">1</span>
             <h4 className="text-[10px] font-black uppercase text-white tracking-wider mb-1">Registrieren</h4>
             <p className="text-[9px] text-gray-500 leading-normal">Über den Partner-Link bei NEO.bet registrieren.</p>
           </div>
           <div className="bg-[#15171e]/40 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center backdrop-blur-md">
-            <span className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[10px] font-black text-cyan-400 mb-2">2</span>
+            <span className="w-8 h-8 rounded-full bg-tennis-lime/10 border border-tennis-lime/20 flex items-center justify-center text-[10px] font-black text-tennis-lime mb-2">2</span>
             <h4 className="text-[10px] font-black uppercase text-white tracking-wider mb-1">Einzahlen</h4>
             <p className="text-[9px] text-gray-500 leading-normal">Mindestens 10€ einzahlen & 25€ Freiwette sichern.</p>
           </div>
           <div className="bg-[#15171e]/40 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center backdrop-blur-md">
-            <span className="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[10px] font-black text-cyan-400 mb-2">3</span>
+            <span className="w-8 h-8 rounded-full bg-tennis-lime/10 border border-tennis-lime/20 flex items-center justify-center text-[10px] font-black text-tennis-lime mb-2">3</span>
             <h4 className="text-[10px] font-black uppercase text-white tracking-wider mb-1">Freischalten</h4>
             <p className="text-[9px] text-gray-500 leading-normal">NeoBet-Namen eintragen & Premium aktivieren.</p>
           </div>
@@ -224,7 +224,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
               </p>
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-cyan-500 hover:bg-cyan-600 text-white transition-all flex items-center justify-center gap-2 shadow-lg"
+                className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-tennis-lime hover:bg-tennis-lime/80 text-black transition-all flex items-center justify-center gap-2 shadow-lg"
               >
                 Jetzt registrieren / einloggen
               </button>
@@ -258,7 +258,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
                       value={neobetUsername} 
                       onChange={(e) => setNeobetUsername(e.target.value)}
                       placeholder="Korrigerten NeoBet-Namen eingeben"
-                      className="w-full h-12 bg-black/40 border border-white/10 focus:border-cyan-400 rounded-xl px-4 text-white text-sm font-bold outline-none placeholder-gray-600 transition-all text-center focus:ring-1 focus:ring-cyan-400/50"
+                      className="w-full h-12 bg-black/40 border border-white/10 focus:border-tennis-lime rounded-xl px-4 text-white text-sm font-bold outline-none placeholder-gray-600 transition-all text-center focus:ring-1 focus:ring-tennis-lime/50"
                     />
                     <button 
                       type="submit"
@@ -280,7 +280,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
                       value={neobetUsername} 
                       onChange={(e) => setNeobetUsername(e.target.value)}
                       placeholder="z. B. DeinNeoBetName123"
-                      className="w-full h-14 bg-black/40 border border-white/10 focus:border-cyan-400 rounded-2xl px-4 text-white text-base font-bold outline-none placeholder-gray-650 transition-all text-center focus:ring-1 focus:ring-cyan-400/50"
+                      className="w-full h-14 bg-black/40 border border-white/10 focus:border-tennis-lime rounded-2xl px-4 text-white text-base font-bold outline-none placeholder-gray-650 transition-all text-center focus:ring-1 focus:ring-tennis-lime/50"
                     />
                   </div>
                   
@@ -299,7 +299,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
                   <button 
                     type="submit"
                     disabled={submitting || !neobetUsername.trim()}
-                    className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black shadow-lg shadow-cyan-500/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale cursor-pointer transition-all duration-300 hover:scale-[1.01]"
+                    className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-gradient-to-r from-tennis-lime to-tennis-green hover:from-tennis-lime/90 hover:to-tennis-green/90 text-black shadow-lg shadow-tennis-lime/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale cursor-pointer transition-all duration-300 hover:scale-[1.01]"
                   >
                     {submitting ? <Loader2 className="animate-spin" size={16} /> : "Premium-Zugang freischalten"}
                   </button>
@@ -312,7 +312,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
         {/* Legal Regulatory Spielerschutz Footer */}
         <div className="mt-12 pt-6 border-t border-white/5 w-full max-w-xl space-y-3 text-[9px] md:text-[10.5px] text-gray-500 leading-relaxed font-semibold">
           <div className="flex items-center justify-center gap-1.5 text-gray-400 font-black uppercase tracking-widest text-[8.5px]">
-            <ShieldCheck size={12} className="text-cyan-400" />
+            <ShieldCheck size={12} className="text-tennis-lime" />
             <span>Offiziell lizenziert & reguliert (GGL Whitelist)</span>
           </div>
           <p className="uppercase tracking-widest text-[8px] text-gray-600">Werbung / Sponsoring-Partner</p>
