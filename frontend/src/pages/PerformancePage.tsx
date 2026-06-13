@@ -478,6 +478,86 @@ export function PerformancePage() {
   
   const [activeStatInfo, setActiveStatInfo] = useState<'brier' | 'pvalue' | null>(null);
   
+  // P&L Calendar States & Helper Logic
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth());
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [hasSetInitialCalDate, setHasSetInitialCalDate] = useState(false);
+
+  const getLocalText = (de: string, en: string, es?: string, fr?: string, it?: string) => {
+    const lang = i18n.language || 'en';
+    if (lang.startsWith('de')) return de;
+    if (lang.startsWith('es') && es) return es;
+    if (lang.startsWith('fr') && fr) return fr;
+    if (lang.startsWith('it') && it) return it;
+    return en;
+  };
+
+  useEffect(() => {
+    if (processedBets.length > 0 && !hasSetInitialCalDate) {
+      const latestDate = new Date(processedBets[0].created_at);
+      setCalMonth(latestDate.getMonth());
+      setCalYear(latestDate.getFullYear());
+      setSelectedDate(null); // Reset date selection
+      setHasSetInitialCalDate(true);
+    }
+  }, [processedBets, hasSetInitialCalDate]);
+
+  const dailyData = useMemo(() => {
+    const map: Record<string, { netProfit: number; betsCount: number; winsCount: number; lossesCount: number }> = {};
+    processedBets.forEach(bet => {
+      if (!bet.created_at) return;
+      const date = new Date(bet.created_at);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      
+      if (!map[dateKey]) {
+        map[dateKey] = { netProfit: 0, betsCount: 0, winsCount: 0, lossesCount: 0 };
+      }
+      
+      map[dateKey].netProfit += bet.calculated.unitProfit;
+      map[dateKey].betsCount += 1;
+      if (bet.calculated.isWin) {
+        map[dateKey].winsCount += 1;
+      } else {
+        map[dateKey].lossesCount += 1;
+      }
+    });
+    
+    Object.keys(map).forEach(key => {
+      map[key].netProfit = parseFloat(map[key].netProfit.toFixed(2));
+    });
+    
+    return map;
+  }, [processedBets]);
+
+  const activeMonthNet = useMemo(() => {
+    let sum = 0;
+    processedBets.forEach(bet => {
+      if (!bet.created_at) return;
+      const date = new Date(bet.created_at);
+      if (date.getMonth() === calMonth && date.getFullYear() === calYear) {
+        sum += bet.calculated.unitProfit;
+      }
+    });
+    return parseFloat(sum.toFixed(2));
+  }, [processedBets, calMonth, calYear]);
+
+  const selectedDateBets = useMemo(() => {
+    if (!selectedDate) return [];
+    return processedBets.filter(bet => {
+      if (!bet.created_at) return false;
+      const date = new Date(bet.created_at);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      return dateKey === selectedDate;
+    });
+  }, [processedBets, selectedDate]);
+
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -869,6 +949,66 @@ export function PerformancePage() {
     return processedBets.slice(firstPageIndex, firstPageIndex + ITEMS_PER_PAGE);
   }, [currentPage, processedBets]);
 
+  // Generate Monthly Calendar Cells
+  const calendarCells = useMemo(() => {
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    // Monday-based offset
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    
+    const cells = [];
+    for (let i = 0; i < offset; i++) {
+      cells.push({ isPadding: true, dayNumber: 0, dateKey: '' });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      cells.push({ isPadding: false, dayNumber: d, dateKey });
+    }
+    
+    const totalCells = Math.ceil(cells.length / 7) * 7;
+    while (cells.length < totalCells) {
+      cells.push({ isPadding: true, dayNumber: 0, dateKey: '' });
+    }
+    return cells;
+  }, [calMonth, calYear]);
+
+  const calMonthName = useMemo(() => {
+    const date = new Date(calYear, calMonth, 1);
+    return date.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' });
+  }, [calMonth, calYear, i18n.language]);
+
+  const handlePrevMonth = () => {
+    setCalMonth(m => {
+      if (m === 0) {
+        setCalYear(y => y - 1);
+        return 11;
+      }
+      return m - 1;
+    });
+    setSelectedDate(null);
+  };
+
+  const handleNextMonth = () => {
+    setCalMonth(m => {
+      if (m === 11) {
+        setCalYear(y => y + 1);
+        return 0;
+      }
+      return m + 1;
+    });
+    setSelectedDate(null);
+  };
+
+  const weekdayLabels = [
+    getLocalText('Mo', 'Mon', 'Lun', 'Lun', 'Lun'),
+    getLocalText('Di', 'Tue', 'Mar', 'Mar', 'Mar'),
+    getLocalText('Mi', 'Wed', 'Mié', 'Mer', 'Mer'),
+    getLocalText('Do', 'Thu', 'Jue', 'Jeu', 'Gio'),
+    getLocalText('Fr', 'Fri', 'Vie', 'Ven', 'Ven'),
+    getLocalText('Sa', 'Sat', 'Sáb', 'Sam', 'Sab'),
+    getLocalText('So', 'Sun', 'Dom', 'Dim', 'Dom')
+  ];
+
   const goToNextPage = () => currentPage < totalPages && (setCurrentPage(p => p + 1), window.scrollTo({top:0, behavior:'smooth'}));
   const goToPrevPage = () => currentPage > 1 && (setCurrentPage(p => p - 1), window.scrollTo({top:0, behavior:'smooth'}));
 
@@ -1183,6 +1323,195 @@ export function PerformancePage() {
                 </AreaChart>
               </ResponsiveContainer>
           </div>
+      </div>
+
+      {/* 📅 PROFIT & LOSS CALENDAR (Pikkit style) */}
+      <div className="bg-[#1a1d26] rounded-3xl border border-white/5 overflow-hidden shadow-2xl p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
+              <div>
+                  <h3 className="text-white font-black text-lg uppercase tracking-tighter flex items-center gap-2">
+                      <Calendar size={18} className="text-tennis-lime" />
+                      {getLocalText('Gewinn & Verlust Kalender', 'Profit & Loss Calendar', 'Calendario de Ganancias y Pérdidas', 'Calendrier des Profits et Pertes', 'Calendario Profitti e Perdite')}
+                  </h3>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                      {getLocalText('Tägliche Netto-Performance Übersicht', 'Daily Net Performance Summary', 'Resumen de Rendimiento Neto Diario', 'Résumé de Performance Nette Journalière', 'Riepilogo delle Performance Nette Giornaliere')}
+                  </p>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-6">
+                  {/* Month Selection */}
+                  <div className="flex items-center bg-[#15171e] p-1 rounded-xl border border-white/5 shadow-inner">
+                      <button 
+                          onClick={handlePrevMonth}
+                          className="p-1.5 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors"
+                      >
+                          <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white px-3 min-w-[100px] text-center">
+                          {calMonthName}
+                      </span>
+                      <button 
+                          onClick={handleNextMonth}
+                          className="p-1.5 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-colors"
+                      >
+                          <ChevronRight size={16} />
+                      </button>
+                  </div>
+
+                  {/* Monthly Net Return */}
+                  <div className="flex flex-col items-end">
+                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                          {getLocalText('Monats-Netto', 'Monthly Net', 'Neto Mensual', 'Net Mensuel', 'Netto Mensile')}
+                      </span>
+                      <span className={`text-base font-black font-mono tracking-tight ${activeMonthNet >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
+                          {activeMonthNet > 0 ? '+' : ''}{activeMonthNet.toFixed(2)}u
+                      </span>
+                  </div>
+              </div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="w-full">
+              {/* Weekday headers */}
+              <div className="grid grid-cols-7 gap-1.5 md:gap-3 mb-2">
+                  {weekdayLabels.map((lbl, idx) => (
+                      <div key={idx} className="text-center text-[9px] md:text-xs font-black uppercase tracking-widest text-gray-500 py-1">
+                          {lbl}
+                      </div>
+                  ))}
+              </div>
+
+              {/* Day cells */}
+              <div className="grid grid-cols-7 gap-1.5 md:gap-3">
+                  {calendarCells.map((cell, idx) => {
+                      if (cell.isPadding) {
+                          return (
+                              <div 
+                                  key={`pad-${idx}`} 
+                                  className="aspect-square bg-transparent border border-transparent opacity-0 pointer-events-none"
+                              ></div>
+                          );
+                      }
+
+                      const data = dailyData[cell.dateKey];
+                      const hasActivity = !!data;
+                      const isSelected = selectedDate === cell.dateKey;
+
+                      let cellClass = "bg-white/[0.01] hover:bg-white/[0.03] border-white/[0.03] text-gray-500";
+                      let profitText = "";
+
+                      if (hasActivity) {
+                          if (data.netProfit > 0) {
+                              cellClass = "bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                              profitText = `+${data.netProfit.toFixed(1)}u`;
+                          } else if (data.netProfit < 0) {
+                              cellClass = "bg-red-500/5 hover:bg-red-500/10 border-red-500/20 text-red-500";
+                              profitText = `${data.netProfit.toFixed(1)}u`;
+                          } else {
+                              cellClass = "bg-white/5 hover:bg-white/10 border-white/10 text-gray-300";
+                              profitText = "0.0u";
+                          }
+                      }
+
+                      return (
+                          <div
+                              key={cell.dateKey}
+                              onClick={() => hasActivity && setSelectedDate(isSelected ? null : cell.dateKey)}
+                              className={`relative flex flex-col justify-between p-1.5 md:p-3 rounded-xl md:rounded-2xl aspect-square transition-all duration-300 border ${cellClass} ${
+                                  hasActivity ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default pointer-events-none md:pointer-events-auto opacity-40'
+                              } ${
+                                  isSelected ? 'ring-2 ring-tennis-lime border-tennis-lime bg-white/[0.05] scale-[1.02]' : ''
+                              }`}
+                          >
+                              <span className="text-[9px] md:text-xs font-bold text-gray-400/80 absolute top-1 md:top-2 left-1 md:left-2">
+                                  {cell.dayNumber}
+                              </span>
+
+                              {profitText && (
+                                  <span className="text-[9px] md:text-xs font-black tracking-tighter text-center w-full mt-auto mb-0">
+                                      {profitText}
+                                  </span>
+                              )}
+                          </div>
+                      );
+                  })}
+              </div>
+          </div>
+
+          {/* Interactive Day Details Panel */}
+          {selectedDate && (
+              <div className="mt-6 border-t border-white/5 pt-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4 mb-4">
+                      <div>
+                          <h4 className="text-white font-black text-sm md:text-base uppercase tracking-tight">
+                              {new Date(selectedDate).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </h4>
+                          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                              {getLocalText('Tages-Performance Details', 'Daily Performance Details', 'Detalles de Rendimiento Diario', 'Détails de Performance Journalière', 'Dettagli Performance Giornaliera')}
+                          </p>
+                      </div>
+
+                      <div className="flex items-center gap-6">
+                          <div>
+                              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">
+                                  {getLocalText('Wetten', 'Bets', 'Apuestas', 'Paris', 'Scommesse')}
+                              </span>
+                              <span className="text-xs font-bold text-white font-mono">
+                                  {dailyData[selectedDate]?.betsCount} ({dailyData[selectedDate]?.winsCount}W - {dailyData[selectedDate]?.lossesCount}L)
+                              </span>
+                          </div>
+                          <div className="h-6 w-px bg-white/10"></div>
+                          <div>
+                              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Net Profit</span>
+                              <span className={`text-sm font-black font-mono ${dailyData[selectedDate]?.netProfit >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                  {dailyData[selectedDate]?.netProfit > 0 ? '+' : ''}{dailyData[selectedDate]?.netProfit.toFixed(2)}u
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                      {selectedDateBets.map((bet) => {
+                          const isWin = bet.calculated.isWin;
+                          const profit = bet.calculated.unitProfit;
+                          return (
+                              <div key={bet.id} className="bg-[#15171e]/40 border border-white/5 rounded-xl p-3 flex items-center justify-between gap-4">
+                                  <div className="overflow-hidden">
+                                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="text-xs font-black text-white truncate max-w-[180px] md:max-w-none" title={bet.calculated.pickName}>
+                                              {bet.calculated.pickName}
+                                          </span>
+                                          <span className="text-[9px] font-mono text-gray-400 bg-white/5 px-1.5 py-0.5 rounded shrink-0">
+                                              @{bet.calculated.entryOdds.toFixed(2)}
+                                          </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider truncate">
+                                          <span className="truncate max-w-[120px] md:max-w-none">{bet.tournament}</span>
+                                          <span>•</span>
+                                          <span>{bet.calculated.type}</span>
+                                      </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                      <div className="text-right flex flex-col items-end">
+                                          <span className="text-[8px] font-bold text-gray-500 uppercase">Stake</span>
+                                          <span className="text-[10px] font-bold text-gray-300 font-mono">{bet.calculated.stake.toFixed(1)}u</span>
+                                      </div>
+                                      <div className="h-5 w-px bg-white/5"></div>
+                                      <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest font-mono text-center min-w-[55px] ${
+                                          isWin 
+                                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
+                                              : 'bg-red-500/10 border border-red-500/20 text-red-500'
+                                      }`}>
+                                          {profit > 0 ? '+' : ''}{profit.toFixed(2)}u
+                                      </div>
+                                  </div>
+                              </div>
+                          );
+                      })}
+                  </div>
+              </div>
+          )}
       </div>
 
       <div className="bg-[#1a1d26] rounded-3xl border border-white/5 overflow-hidden shadow-2xl flex flex-col min-h-[600px]">
