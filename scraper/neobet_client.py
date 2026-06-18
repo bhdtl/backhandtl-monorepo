@@ -53,7 +53,8 @@ class NeoBetAPI:
                 "sport": "Tennis",
                 "language": "de",
                 "license": "Germany",
-                "updatedAfter": updated_after
+                "updatedAfter": updated_after,
+                "market": "All"
             }
             
             try:
@@ -236,6 +237,7 @@ class NeoBetAPI:
             "Home/Away": {},
             "Spread": [],
             "Over/Under": [],
+            "FirstSetWinner": {},
             "RawMarkets": match_data.get("betmarkets", [])  # Keep raw markets for direct deep linking!
         }
         
@@ -339,6 +341,32 @@ class NeoBetAPI:
                         "key_under": under_key,
                         "key_over": over_key
                     })
+            
+            # 4. First Set Winner
+            elif "Goal_SET1_HC2W" in market_key or "Goal_SET1_MatchWin" in market_key:
+                home_odd = 0.0
+                away_odd = 0.0
+                home_key = "1"
+                away_key = "2"
+                for outcome in market.get("odds", []):
+                    o_name = outcome.get("outcome", "")
+                    o_odds = outcome.get("odds", 0.0)
+                    o_key = outcome.get("key", "1")
+                    if o_name == "Home":
+                        home_odd = o_odds
+                        home_key = o_key
+                    elif o_name == "Away":
+                        away_odd = o_odds
+                        away_key = o_key
+                
+                if home_odd > 0 and away_odd > 0:
+                    odds_dict["FirstSetWinner"] = {
+                        "Home": home_odd,
+                        "Away": away_odd,
+                        "key1": home_key,
+                        "key2": away_key,
+                        "market_key": market_key
+                    }
                     
         self._odds_cache[match_id] = odds_dict
 

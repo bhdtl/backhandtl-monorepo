@@ -187,8 +187,13 @@ export function AdminCMS() {
   const { user } = useAuth();
   const { isAdmin, isFounder, loading: accessLoading } = useAccess();
   
-  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'affiliates'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'affiliates' | 'ai-agent'>('players');
   const [affiliateRequests, setAffiliateRequests] = useState<any[]>([]);
+  const [scoutRules, setScoutRules] = useState<any[]>([]);
+  const [rulesFilter, setRulesFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+  const [scoutReports, setScoutReports] = useState<any[]>([]);
+  const [agentSubTab, setAgentSubTab] = useState<'reports' | 'rules'>('reports');
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -278,7 +283,9 @@ export function AdminCMS() {
         supabase.channel('a').on('postgres_changes', { event: '*', schema: 'public', table: 'player_achievements' }, loadData).subscribe(),
         supabase.channel('st').on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, loadData).subscribe(),
         supabase.channel('fp').on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_posts' }, loadData).subscribe(),
-        supabase.channel('aff').on('postgres_changes', { event: '*', schema: 'public', table: 'affiliate_requests' }, loadData).subscribe()
+        supabase.channel('aff').on('postgres_changes', { event: '*', schema: 'public', table: 'affiliate_requests' }, loadData).subscribe(),
+        supabase.channel('rules').on('postgres_changes', { event: '*', schema: 'public', table: 'scout_rules' }, loadData).subscribe(),
+        supabase.channel('scout-reports').on('postgres_changes', { event: '*', schema: 'public', table: 'scout_reports' }, loadData).subscribe()
       ];
       return () => { channels.forEach(c => supabase.removeChannel(c)); };
     }
@@ -286,7 +293,7 @@ export function AdminCMS() {
 
   const loadData = async () => {
     try {
-      const [p, r, s, a, arts, tours, tix, fb, aff] = await Promise.all([
+      const [p, r, s, a, arts, tours, tix, fb, aff, rules, reportsRes] = await Promise.all([
           supabase.from('players').select('id, first_name, last_name, country, play_style, surface_preference, profile_image_url, tour').order('last_name', { ascending: true }),
           supabase.from('scouting_reports').select('id, player_id, strengths, weaknesses, mental_game_notes, last_updated'),
           supabase.from('player_skills').select('id, player_id, serve, forehand, backhand, volley, speed, power, mental, stamina, overall_rating'),
@@ -295,13 +302,17 @@ export function AdminCMS() {
           supabase.from('tournaments').select('id, name, bsi_rating, surface').order('name', { ascending: true }),
           supabase.from('support_tickets').select('id, user_id, subject, message, status, admin_response, created_at').order('created_at', { ascending: false }),
           supabase.from('feedback_posts').select('id, user_id, category, title, content, status, upvotes_count, created_at').order('created_at', { ascending: false }),
-          supabase.from('affiliate_requests').select('id, user_id, neobet_username, status, rejection_reason, created_at, profiles(first_name, tier, is_premium)').order('created_at', { ascending: false })
+          supabase.from('affiliate_requests').select('id, user_id, neobet_username, status, rejection_reason, created_at, profiles(first_name, tier, is_premium)').order('created_at', { ascending: false }),
+          supabase.from('scout_rules').select('*').order('created_at', { ascending: false }),
+          supabase.from('scout_reports').select('*').order('report_date', { ascending: false })
       ]);
       
       if (p.error) console.warn("Players fetch error", p.error);
       if (tix.error) console.warn("Tickets fetch error", tix.error);
       if (fb.error) console.warn("Feedback fetch error", fb.error);
       if (aff.error) console.warn("Affiliate requests fetch error", aff.error);
+      if (rules.error) console.warn("Scout rules fetch error", rules.error);
+      if (reportsRes.error) console.warn("Scout reports fetch error", reportsRes.error);
 
       setPlayers(p.data || []);
       setTournaments(tours.data as any || []);
@@ -309,6 +320,8 @@ export function AdminCMS() {
       setAdminTickets(tix.data as any || []);
       setAdminFeedback(fb.data as any || []);
       setAffiliateRequests(aff.data || []);
+      setScoutRules(rules.data || []);
+      setScoutReports(reportsRes.data || []);
       
       const reportsMap: any = {}; r.data?.forEach(x => reportsMap[x.player_id] = x); setReports(reportsMap);
       const skillsMap: any = {}; s.data?.forEach(x => skillsMap[x.player_id] = x); setSkills(skillsMap);
@@ -594,6 +607,45 @@ export function AdminCMS() {
       loadData();
   };
 
+  const handleRuleStatus = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('scout_rules')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setToastMessage(`Rule successfully ${status === 'approved' ? 'approved' : 'rejected'}!`);
+      setShowToast(true);
+      loadData();
+    } catch (err: any) {
+      console.error("Error updating rule status:", err);
+      setToastMessage("Failed to update rule status.");
+      setShowToast(true);
+    }
+  };
+
+  const deleteRule = async (id: string) => {
+    if(!confirm('Delete rule? This cannot be undone.')) return;
+    try {
+      const { error } = await supabase
+        .from('scout_rules')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setToastMessage("Rule deleted successfully!");
+      setShowToast(true);
+      loadData();
+    } catch (err: any) {
+      console.error("Error deleting rule:", err);
+      setToastMessage("Failed to delete rule.");
+      setShowToast(true);
+    }
+  };
+
   const insertTextAtCursor = (text: string) => {
       const textarea = document.getElementById('article-editor') as HTMLTextAreaElement;
       if (!textarea) {
@@ -696,6 +748,7 @@ export function AdminCMS() {
       { id: 'designs', label: 'Designs', icon: Palette },
       { id: 'support', label: 'Support & Ops', icon: LifeBuoy },
       { id: 'affiliates', label: 'Affiliates', icon: Briefcase },
+      { id: 'ai-agent', label: 'AI Scout Agent', icon: Brain },
   ];
 
   // --- RENDER CONTENT ---
@@ -900,6 +953,504 @@ export function AdminCMS() {
                      ))}
                  </div>
              )}
+          </div>
+        );
+      case 'ai-agent':
+        const pendingRules = scoutRules.filter(r => r.status === 'pending');
+        const activeVetoes = scoutRules.filter(r => r.status === 'approved' && r.rule_type === 'veto');
+        const activeMultipliers = scoutRules.filter(r => r.status === 'approved' && r.rule_type === 'multiplier');
+        
+        const filteredRules = scoutRules.filter(r => {
+          if (rulesFilter === 'ALL') return true;
+          if (rulesFilter === 'PENDING') return r.status === 'pending';
+          if (rulesFilter === 'APPROVED') return r.status === 'approved';
+          if (rulesFilter === 'REJECTED') return r.status === 'rejected';
+          return true;
+        });
+
+        const selectedReport = scoutReports.find(r => r.id === selectedReportId) || scoutReports[0];
+        const repMetrics = selectedReport ? (typeof selectedReport.metrics === 'string' ? JSON.parse(selectedReport.metrics) : selectedReport.metrics) : null;
+
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
+            {/* Silicon Valley Veteran Advice Banner */}
+            <div className="relative bg-gradient-to-r from-purple-900/40 via-[#15171e] to-black border border-purple-500/30 rounded-3xl p-6 md:p-8 overflow-hidden shadow-[0_20px_50px_rgba(147,51,234,0.15)] flex flex-col md:flex-row gap-6 items-center">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Brain size={160} className="text-purple-400" />
+              </div>
+              <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 text-purple-400 shrink-0">
+                <Brain size={40} className="animate-pulse" />
+              </div>
+              <div className="space-y-2 text-center md:text-left">
+                <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-wider">
+                  Neural Scout AI Operations Analyst
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed max-w-3xl">
+                  <span className="text-purple-400 font-bold">Veteran Silicon Valley Veto:</span> Human-in-the-Loop (HITL) ist im Sportwetten-Bereich extrem kritisch. Ein vollautomates Auto-Pilot System kann durch plötzliche Formänderungen, Verletzungen oder Nischen-Turniere verfälscht werden. Dieser AI Agent analysiert jede Nacht die letzten 30 Tage, deckt unprofitable Muster auf und schlägt dir Veto- und Multiplikator-Regeln vor. Du hast die volle Kontrolle über die Freigabe.
+                </p>
+              </div>
+            </div>
+
+            {/* Sub-tab selection */}
+            <div className="flex gap-2 p-1 bg-[#15171e] rounded-2xl border border-white/10 w-fit shadow-lg">
+              <button
+                onClick={() => setAgentSubTab('reports')}
+                className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                  agentSubTab === 'reports'
+                    ? 'bg-white/10 text-white shadow-xl border border-white/10'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <FileText size={14} /> Tägliche Berichte ({scoutReports.length})
+              </button>
+              <button
+                onClick={() => setAgentSubTab('rules')}
+                className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                  agentSubTab === 'rules'
+                    ? 'bg-white/10 text-white shadow-xl border border-white/10'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <Sliders size={14} /> Veto- & Risikoregeln ({scoutRules.length})
+              </button>
+            </div>
+
+            {agentSubTab === 'reports' ? (
+              <div className="space-y-6">
+                {scoutReports.length === 0 ? (
+                  <div className="bg-[#15171e]/30 border border-dashed border-white/5 rounded-3xl p-16 text-center text-gray-500 italic">
+                    Keine täglichen Berichte vorhanden. Führe den Scraper aus, um den ersten Bericht zu generieren.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    {/* Left Column: Report list */}
+                    <div className="lg:col-span-1 space-y-4">
+                      <h4 className="text-gray-500 font-black text-[9px] uppercase tracking-widest px-2">
+                        Berichts-Historie
+                      </h4>
+                      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 no-scrollbar">
+                        {scoutReports.map((report) => {
+                          const isSelected = selectedReportId ? report.id === selectedReportId : report.id === scoutReports[0].id;
+                          const rMetrics = typeof report.metrics === 'string' ? JSON.parse(report.metrics) : report.metrics;
+                          const roiVal = rMetrics?.roi || 0;
+                          const winRateVal = rMetrics?.win_rate || 0;
+                          
+                          return (
+                            <div
+                              key={report.id}
+                              onClick={() => setSelectedReportId(report.id)}
+                              className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 ${
+                                isSelected
+                                  ? 'bg-[#15171e] border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.05)] ring-1 ring-tennis-lime/20'
+                                  : 'bg-[#15171e]/50 border-white/5 hover:border-white/10 hover:bg-[#1a1d26]'
+                              }`}
+                            >
+                              <div className="flex justify-between items-center mb-3">
+                                <span className="text-xs font-mono font-black text-white">
+                                  {new Date(report.report_date).toLocaleDateString('de-DE', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' })}
+                                </span>
+                                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                                  roiVal >= 0
+                                    ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/25'
+                                    : 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                }`}>
+                                  ROI: {roiVal >= 0 ? '+' : ''}{roiVal}%
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-[11px] text-gray-500 font-mono">
+                                <span>Picks: {rMetrics?.total_bets || 0}</span>
+                                <span>Treffer: {winRateVal}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Right Column: Report details */}
+                    <div className="lg:col-span-2 space-y-6">
+                      {selectedReport && (
+                        <div className="space-y-6">
+                          {/* Report Header */}
+                          <div className="bg-[#15171e] border border-white/5 rounded-3xl p-6 md:p-8 flex justify-between items-center flex-wrap gap-4">
+                            <div>
+                              <span className="text-[10px] text-tennis-lime uppercase font-black tracking-widest block mb-1">KI Analysten-Bericht</span>
+                              <h2 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">
+                                {new Date(selectedReport.report_date).toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                              </h2>
+                            </div>
+                            <span className="text-[10px] text-gray-500 font-mono border border-white/5 px-3 py-1.5 rounded-xl bg-black/20">
+                              ID: {selectedReport.id.slice(0, 8)}...
+                            </span>
+                          </div>
+
+                          {/* Top metrics grids */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-[#15171e]/50 border border-white/5 p-5 rounded-3xl shadow-md">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Gesamt-ROI</span>
+                              <div className={`text-2xl font-black italic outline-text ${repMetrics?.roi >= 0 ? 'text-[#ccff00]' : 'text-red-500'}`}>
+                                {repMetrics?.roi >= 0 ? '+' : ''}{repMetrics?.roi || 0}%
+                              </div>
+                              <span className="text-[10px] text-gray-600 font-mono">Yield/Rendite</span>
+                            </div>
+
+                            <div className="bg-[#15171e]/50 border border-white/5 p-5 rounded-3xl shadow-md">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Reingewinn</span>
+                              <div className={`text-2xl font-black italic outline-text ${repMetrics?.net_profit >= 0 ? 'text-[#ccff00]' : 'text-red-500'}`}>
+                                {repMetrics?.net_profit >= 0 ? '+' : ''}{repMetrics?.net_profit || 0}u
+                              </div>
+                              <span className="text-[10px] text-gray-600 font-mono">Einheiten (Units)</span>
+                            </div>
+
+                            <div className="bg-[#15171e]/50 border border-white/5 p-5 rounded-3xl shadow-md">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Trefferquote</span>
+                              <div className="text-2xl font-black text-white italic outline-text">
+                                {repMetrics?.win_rate || 0}%
+                              </div>
+                              <span className="text-[10px] text-gray-600 font-mono">{repMetrics?.total_bets || 0} Picks abgerechnet</span>
+                            </div>
+
+                            <div className="bg-[#15171e]/50 border border-white/5 p-5 rounded-3xl shadow-md">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Brier-Score</span>
+                              <div className="text-2xl font-black text-white italic outline-text">
+                                {repMetrics?.brier_score !== undefined ? repMetrics.brier_score.toFixed(4) : '—'}
+                              </div>
+                              <div className="mt-1">
+                                {repMetrics?.brier_score !== undefined ? (
+                                  repMetrics.brier_score <= 0.23 ? (
+                                    <span className="text-[8px] font-black uppercase text-green-400 bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 rounded">Optimal</span>
+                                  ) : repMetrics.brier_score <= 0.25 ? (
+                                    <span className="text-[8px] font-black uppercase text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-1.5 py-0.5 rounded">Ungewiss</span>
+                                  ) : (
+                                    <span className="text-[8px] font-black uppercase text-red-500 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-mono">Rauschen</span>
+                                  )
+                                ) : (
+                                  <span className="text-[8px] text-gray-600 font-mono">—</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Subgroup breakdown */}
+                          {repMetrics?.breakdown && (
+                            <div className="bg-[#15171e]/30 border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6 shadow-xl">
+                              <h4 className="text-white font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Activity size={14} className="text-tennis-lime" /> Subgruppen-Detaillierung
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Surfaces */}
+                                <div className="space-y-4 bg-black/20 p-5 rounded-2xl border border-white/5">
+                                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block border-b border-white/5 pb-1">Platzbeläge / Surfaces</span>
+                                  <div className="space-y-3">
+                                    {['surface:hard', 'surface:clay', 'surface:grass'].map((k) => {
+                                      const data = repMetrics.breakdown[k] || { bets: 0, win_rate: 0, profit: 0, roi: 0 };
+                                      const label = k === 'surface:hard' ? 'Hard Court' : k === 'surface:clay' ? 'Clay / Sand' : 'Grass / Rasen';
+                                      return (
+                                        <div key={k} className="space-y-1">
+                                          <div className="flex justify-between text-xs font-bold text-gray-300">
+                                            <span>{label} <span className="text-gray-600 font-normal">({data.bets} Wetten)</span></span>
+                                            <span className={data.roi >= 0 ? 'text-[#ccff00]' : 'text-red-500'}>
+                                              {data.roi >= 0 ? '+' : ''}{data.roi}% ROI
+                                            </span>
+                                          </div>
+                                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${data.roi >= 0 ? 'bg-tennis-lime' : 'bg-red-500'}`} style={{ width: `${data.win_rate}%` }}></div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Tour */}
+                                <div className="space-y-4 bg-black/20 p-5 rounded-2xl border border-white/5">
+                                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block border-b border-white/5 pb-1">Tour-Klassifikation</span>
+                                  <div className="space-y-3">
+                                    {['tour:ATP', 'tour:WTA'].map((k) => {
+                                      const data = repMetrics.breakdown[k] || { bets: 0, win_rate: 0, profit: 0, roi: 0 };
+                                      const label = k === 'tour:ATP' ? 'ATP Tour' : 'WTA Tour';
+                                      return (
+                                        <div key={k} className="space-y-1">
+                                          <div className="flex justify-between text-xs font-bold text-gray-300">
+                                            <span>{label} <span className="text-gray-600 font-normal">({data.bets} Wetten)</span></span>
+                                            <span className={data.roi >= 0 ? 'text-[#ccff00]' : 'text-red-500'}>
+                                              {data.roi >= 0 ? '+' : ''}{data.roi}% ROI
+                                            </span>
+                                          </div>
+                                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${data.roi >= 0 ? 'bg-tennis-lime' : 'bg-red-500'}`} style={{ width: `${data.win_rate}%` }}></div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Odds bracket */}
+                                <div className="space-y-4 bg-black/20 p-5 rounded-2xl border border-white/5">
+                                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block border-b border-white/5 pb-1">Quoten-Bracket</span>
+                                  <div className="space-y-3">
+                                    {['odds_bracket:fav', 'odds_bracket:dog'].map((k) => {
+                                      const data = repMetrics.breakdown[k] || { bets: 0, win_rate: 0, profit: 0, roi: 0 };
+                                      const label = k === 'odds_bracket:fav' ? 'Favoriten (<1.80)' : 'Underdogs (>=1.80)';
+                                      return (
+                                        <div key={k} className="space-y-1">
+                                          <div className="flex justify-between text-xs font-bold text-gray-300">
+                                            <span>{label} <span className="text-gray-600 font-normal">({data.bets} Wetten)</span></span>
+                                            <span className={data.roi >= 0 ? 'text-[#ccff00]' : 'text-red-500'}>
+                                              {data.roi >= 0 ? '+' : ''}{data.roi}% ROI
+                                            </span>
+                                          </div>
+                                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${data.roi >= 0 ? 'bg-tennis-lime' : 'bg-red-500'}`} style={{ width: `${data.win_rate}%` }}></div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Challenger level */}
+                                <div className="space-y-4 bg-black/20 p-5 rounded-2xl border border-white/5">
+                                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block border-b border-white/5 pb-1">Turnier-Level</span>
+                                  <div className="space-y-3">
+                                    {['challenger:regular', 'challenger:challenger'].map((k) => {
+                                      const data = repMetrics.breakdown[k] || { bets: 0, win_rate: 0, profit: 0, roi: 0 };
+                                      const label = k === 'challenger:regular' ? 'ATP/WTA Haupttour' : 'Challenger / ITF';
+                                      return (
+                                        <div key={k} className="space-y-1">
+                                          <div className="flex justify-between text-xs font-bold text-gray-300">
+                                            <span>{label} <span className="text-gray-600 font-normal">({data.bets} Wetten)</span></span>
+                                            <span className={data.roi >= 0 ? 'text-[#ccff00]' : 'text-red-500'}>
+                                              {data.roi >= 0 ? '+' : ''}{data.roi}% ROI
+                                            </span>
+                                          </div>
+                                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${data.roi >= 0 ? 'bg-tennis-lime' : 'bg-red-500'}`} style={{ width: `${data.win_rate}%` }}></div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* AI German Summary report */}
+                          <div className="bg-[#15171e] border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-4 shadow-xl">
+                            <h4 className="text-white font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-white/5 pb-3">
+                              <Brain size={14} className="text-purple-400" /> KI-Auswertung & Optimierungsvorschläge
+                            </h4>
+                            <div className="prose prose-invert max-w-none text-sm text-gray-300 leading-relaxed font-semibold">
+                              <SmartArticleRenderer content={selectedReport.summary} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-8 animate-in fade-in duration-300">
+                {/* Stat Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('PENDING')}>
+                    <div>
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Pending Proposals</span>
+                      <h4 className="text-3xl font-black text-white mt-1 italic outline-text">{pendingRules.length}</h4>
+                    </div>
+                    <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-500">
+                      <Sliders size={20} />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('APPROVED')}>
+                    <div>
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Vetoes</span>
+                      <h4 className="text-3xl font-black text-red-500 mt-1 italic outline-text">{activeVetoes.length}</h4>
+                    </div>
+                    <div className="p-3 bg-red-500/10 rounded-xl text-red-500">
+                      <ShieldAlert size={20} />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('APPROVED')}>
+                    <div>
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Multipliers</span>
+                      <h4 className="text-3xl font-black text-tennis-lime mt-1 italic outline-text">{activeMultipliers.length}</h4>
+                    </div>
+                    <div className="p-3 bg-[#ccff00]/10 rounded-xl text-[#ccff00]">
+                      <Zap size={20} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filtering */}
+                <div className="flex justify-between items-center flex-wrap gap-4 border-b border-white/5 pb-4">
+                  <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                    {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map((filter) => (
+                      <button
+                        key={filter}
+                        onClick={() => setRulesFilter(filter)}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                          rulesFilter === filter
+                            ? 'bg-white text-black shadow-md border border-white/10'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rule Cards Grid */}
+                <div className="grid grid-cols-1 gap-6">
+                  {filteredRules.length === 0 ? (
+                    <div className="bg-[#15171e]/30 border border-dashed border-white/5 rounded-3xl p-16 text-center text-gray-500 italic">
+                      Keine AI-Regeln in diesem Filter vorhanden.
+                    </div>
+                  ) : (
+                    filteredRules.map((rule) => {
+                      const conditions = rule.conditions || {};
+                      const confidencePct = Math.round((rule.confidence || 0) * 100);
+                      
+                      return (
+                        <div
+                          key={rule.id}
+                          className={`relative bg-gradient-to-br from-[#15171e] to-black/60 border rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 transition-all hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] duration-300 ${
+                            rule.status === 'approved'
+                              ? 'border-tennis-lime/20 shadow-[0_0_30px_rgba(132,204,22,0.02)]'
+                              : rule.status === 'rejected'
+                              ? 'border-red-500/20'
+                              : 'border-white/5 hover:border-white/10'
+                          }`}
+                        >
+                          {/* Left: Info */}
+                          <div className="flex-1 space-y-4">
+                            <div className="flex flex-wrap items-center gap-3">
+                              {/* Type Badge */}
+                              <span
+                                className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
+                                  rule.rule_type === 'veto'
+                                    ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                                    : rule.rule_type === 'odds_filter'
+                                    ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                                }`}
+                              >
+                                {rule.rule_type}
+                              </span>
+                              
+                              {/* Status Badge */}
+                              <span
+                                className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
+                                  rule.status === 'approved'
+                                    ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                    : rule.status === 'rejected'
+                                    ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
+                                }`}
+                              >
+                                {rule.status}
+                              </span>
+
+                              {rule.confidence > 0 && (
+                                <span className="text-[10px] font-mono text-gray-500 bg-white/5 border border-white/5 px-2.5 py-1 rounded-lg">
+                                  Stärke/Confidence: {confidencePct}%
+                                </span>
+                              )}
+
+                              <span className="text-[9px] text-gray-600 font-mono ml-auto md:ml-0">
+                                {new Date(rule.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            <p className="text-white font-bold text-base md:text-lg italic leading-relaxed">
+                              "{rule.description}"
+                            </p>
+
+                            <div className="space-y-2 pt-2">
+                              <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                                Auslöser / Conditions:
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                {Object.entries(conditions).map(([key, val]) => {
+                                  if (key === 'multiplier' || key === 'min_edge') return null;
+                                  return (
+                                    <span
+                                      key={key}
+                                      className="text-[10px] font-mono font-bold text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-xl uppercase"
+                                    >
+                                      {key}: <span className="text-white">{String(val)}</span>
+                                    </span>
+                                  );
+                                })}
+                                {rule.rule_type === 'multiplier' && conditions.multiplier !== undefined && (
+                                  <span className="text-[10px] font-mono font-bold text-tennis-lime bg-[#ccff00]/10 border border-[#ccff00]/20 px-3 py-1.5 rounded-xl">
+                                    Stake Multiplier: {conditions.multiplier}x
+                                  </span>
+                                )}
+                                {rule.rule_type === 'odds_filter' && conditions.min_edge !== undefined && (
+                                  <span className="text-[10px] font-mono font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-xl">
+                                    Min Required Edge: {conditions.min_edge}%
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Actions */}
+                          <div className="flex flex-row md:flex-col justify-end items-center gap-2 md:min-w-[150px] border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
+                            {rule.status === 'pending' && (
+                              <>
+                                <button
+                                  onClick={() => handleRuleStatus(rule.id, 'approved')}
+                                  className="flex-1 md:w-full flex items-center justify-center gap-2 bg-tennis-lime hover:bg-tennis-lime/90 text-black font-black uppercase text-[10px] tracking-widest py-3 px-4 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_10px_20px_rgba(132,204,22,0.15)]"
+                                >
+                                  <CheckCircle2 size={14} /> Freigeben
+                                </button>
+                                <button
+                                  onClick={() => handleRuleStatus(rule.id, 'rejected')}
+                                  className="flex-1 md:w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-black uppercase text-[10px] tracking-widest py-3 px-4 rounded-xl border border-red-500/20 transition-all active:scale-95"
+                                >
+                                  <X size={14} /> Ablehnen
+                                </button>
+                              </>
+                            )}
+                            {rule.status === 'approved' && (
+                              <button
+                                onClick={() => handleRuleStatus(rule.id, 'rejected')}
+                                className="flex-1 md:w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-black uppercase text-[10px] tracking-widest py-3 px-4 rounded-xl border border-red-500/20 transition-all active:scale-95"
+                              >
+                                Deaktivieren / Veto
+                              </button>
+                            )}
+                            {rule.status === 'rejected' && (
+                              <button
+                                onClick={() => handleRuleStatus(rule.id, 'approved')}
+                                className="flex-1 md:w-full flex items-center justify-center gap-2 bg-tennis-lime hover:bg-tennis-lime/90 text-black font-black uppercase text-[10px] tracking-widest py-3 px-4 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_10px_20px_rgba(132,204,22,0.15)]"
+                              >
+                                Aktivieren
+                              </button>
+                            )}
+                            <button
+                              onClick={() => deleteRule(rule.id)}
+                              className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/5 hover:border-red-500/20 active:scale-95"
+                              title="Löschen"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'intelligence':

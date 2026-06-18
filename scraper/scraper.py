@@ -53,6 +53,7 @@ if not OPENROUTER_API_KEY or not SUPABASE_URL or not SUPABASE_KEY:
     sys.exit(1)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+GLOBAL_ACTIVE_RULES = []
 
 async def save_market_odds(payload: Dict[str, Any], db_match_id: Optional[str] = None, is_insert: bool = False) -> Optional[str]:
     """
@@ -885,6 +886,7 @@ class MarkovChainEngine:
 
         sets_to_win = 3 if best_of == 5 else 2
         match_wins_A, match_wins_B = 0, 0
+        set1_wins_A = 0
         # Dynamic score keys based on format
         if best_of == 5:
             scores_log = {"3:0": 0, "3:1": 0, "3:2": 0, "0:3": 0, "1:3": 0, "2:3": 0}
@@ -897,6 +899,16 @@ class MarkovChainEngine:
         for _ in range(iterations):
             sets_A, sets_B = 0, 0
             games_A_match, games_B_match = 0, 0
+            
+            # Track the winner of the very first set simulated in this iteration
+            a_won_set, gA, gB = simulate_set()
+            if a_won_set:
+                set1_wins_A += 1
+                sets_A += 1
+            else:
+                sets_B += 1
+            games_A_match += gA
+            games_B_match += gB
             
             while sets_A < sets_to_win and sets_B < sets_to_win:
                 a_won_set, gA, gB = simulate_set()
@@ -926,6 +938,8 @@ class MarkovChainEngine:
         return {
             "probA": round(prob_A, 1),
             "probB": round(prob_B, 1),
+            "probA_set1": round((set1_wins_A / iterations) * 100, 1),
+            "probB_set1": round((1.0 - (set1_wins_A / iterations)) * 100, 1),
             "set_betting_probs": set_betting_probs,
             "projected_handicap_A": round(avg_handicap_A, 1),
             "game_differentials": game_diffs,
@@ -1746,6 +1760,73 @@ def calculate_caliber_performance(
         "avg_margin": avg_margin
     }
 
+def parse_set1_winner_from_score(score_str: str) -> Optional[int]:
+    if not score_str:
+        return None
+    sets = score_str.strip().split()
+    if not sets:
+        return None
+    first_set = sets[0]
+    first_set_clean = re.sub(r'\(.*?\)', '', first_set)
+    parts = first_set_clean.split('-')
+    if len(parts) != 2:
+        parts = first_set_clean.split(':')
+    if len(parts) == 2:
+        try:
+            w_games = int(parts[0])
+            l_games = int(parts[1])
+            if w_games > l_games:
+                return 1
+            elif l_games > w_games:
+                return 2
+        except:
+            pass
+    return None
+
+def calculate_historical_choke_count(player_name: str, player_history: List[Dict]) -> int:
+    if not player_history:
+        return 0
+    choke_count = 0
+    p_name = player_name.lower()
+    for m in player_history:
+        winner_name = (m.get("winner_name") or m.get("actual_winner_name") or "").lower()
+        loser_name = (m.get("loser_name") or "").lower()
+        if not loser_name:
+            p1 = (m.get("player1_name") or "").lower()
+            p2 = (m.get("player2_name") or "").lower()
+            if p1 and p2 and winner_name:
+                loser_name = p2 if winner_name in p1 or p1 in winner_name else p1
+        if not winner_name or not loser_name:
+            continue
+        is_winner = p_name in winner_name or winner_name in p_name
+        is_loser = p_name in loser_name or loser_name in p_name
+        if is_loser:
+            set1_win = parse_set1_winner_from_score(m.get("score"))
+            if set1_win == 2:
+                choke_count += 1
+    return choke_count
+
+def count_matches_last_45_days(player_history: List[Dict]) -> int:
+    if not player_history:
+        return 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=45)
+    count = 0
+    for m in player_history:
+        date_str = m.get("match_date") or m.get("created_at")
+        if not date_str:
+            continue
+        try:
+            if "T" in date_str:
+                dt = datetime.strptime(date_str.split("T")[0], "%Y-%m-%d")
+            else:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+            dt = dt.replace(tzinfo=timezone.utc)
+            if dt >= cutoff:
+                count += 1
+        except:
+            pass
+    return count
+
 def calculate_value_metrics(
     fair_prob: float, 
     market_odds: float, 
@@ -1762,7 +1843,8 @@ def calculate_value_metrics(
     player_history: List[Dict] = None,
     opponent_history: List[Dict] = None,
     players_list: List[Dict] = None,
-    all_skills: Dict[str, Dict] = None
+    all_skills: Dict[str, Dict] = None,
+    opening_odds: float = None
 ) -> Dict[str, Any]:
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
         return {
@@ -1781,6 +1863,34 @@ def calculate_value_metrics(
     # A 25% raw edge → 10% effective edge after haircut. Conservative but not paralysing.
     actual_edge_decimal = raw_edge_decimal * 0.40
     edge_percent = round(actual_edge_decimal * 100, 1)
+
+    # 🚀 SOTA FIX: The "Fake Edge" Trap Veto
+    # If the calculated edge is extremely high (>12.0%), it is statistically unprofitable due to model noise (Brier score spikes).
+    if edge_percent > 12.0:
+        return {
+            "type": "🛑 AI SCOUT FILTER: Fake Edge Trap",
+            "edge_percent": edge_percent,
+            "is_value": False,
+            "kelly_stake": 0.0,
+            "pattern_multiplier": 0.0,
+            "pattern_warning": f"🛑 AI SCOUT FILTER: Edge {edge_percent}% is above the safe threshold of 12.0% (Fake Edge Trap).",
+            "pattern_boost": None
+        }
+
+    # 🚀 SOTA FIX: CLV Steam-Chasing Veto
+    # If the current odds have dropped by >10% compared to opening odds, veto the pick.
+    if opening_odds and opening_odds > 1.01:
+        drop_pct = (opening_odds - market_odds) / opening_odds
+        if drop_pct > 0.10:
+            return {
+                "type": "🛑 CLV STEAM-CHASING VETO",
+                "edge_percent": edge_percent,
+                "is_value": False,
+                "kelly_stake": 0.0,
+                "pattern_multiplier": 0.0,
+                "pattern_warning": f"🛑 CLV STEAM-CHASING VETO: Current odds {market_odds} have dropped by {drop_pct:.1%} from opening {opening_odds} (value gone).",
+                "pattern_boost": None
+            }
     
     # 🚀 SOTA: Dynamic Edge Thresholds (Favorites < 1.80 -> +1.5% edge; Underdogs >= 1.80 -> +4.0% edge)
     min_edge = 0.015 if market_odds < 1.80 else 0.040
@@ -1933,6 +2043,72 @@ def calculate_value_metrics(
                 if win_rate is None or win_rate < 0.40:
                     veto_bet = True
                     veto_reason = f"🛑 SYNDICATE VETO (CHALLENGER DOG TRAP): Challenger underdog {player_name} has sparse surface data or a winrate below 40.0%."
+
+    # 5. Apply active scout rules from AI Scout Agent
+    for rule in GLOBAL_ACTIVE_RULES:
+        rule_type = rule.get("rule_type")
+        conditions = rule.get("conditions") or {}
+        desc = rule.get("description", "AI Scout Rule")
+        
+        rule_match = True
+        
+        # Check surface condition
+        if "surface" in conditions:
+            rule_surf = conditions["surface"].lower().strip()
+            cand_surf = (surface or '').lower()
+            if 'clay' in cand_surf: cand_surf = 'clay'
+            elif 'grass' in cand_surf: cand_surf = 'grass'
+            elif 'hard' in cand_surf: cand_surf = 'hard'
+            else: cand_surf = ''
+            
+            if rule_surf != cand_surf:
+                rule_match = False
+                
+        # Check is_favorite condition
+        if rule_match and "is_favorite" in conditions:
+            if conditions["is_favorite"] != is_favorite:
+                rule_match = False
+                
+        # Check is_challenger condition
+        if rule_match and "is_challenger" in conditions:
+            cand_challenger = ("challenger" in tour_name.lower() or "itf" in tour_name.lower())
+            if conditions["is_challenger"] != cand_challenger:
+                rule_match = False
+                
+        # Check tour condition
+        if rule_match and "tour" in conditions:
+            rule_tour = conditions["tour"].upper().strip()
+            cand_tour = "WTA" if "WTA" in tour_name.upper() else "ATP"
+            if rule_tour != cand_tour:
+                rule_match = False
+                
+        if rule_match:
+            if rule_type == "veto":
+                veto_bet = True
+                veto_reason = f"🛑 AI SCOUT VETO: {desc}"
+                break
+            elif rule_type == "multiplier":
+                mult = conditions.get("multiplier", 1.0)
+                try:
+                    mult = float(mult)
+                except:
+                    mult = 1.0
+                pattern_multiplier *= mult
+                if pattern_warning:
+                    pattern_warning += f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
+                else:
+                    pattern_warning = f"⚠️ AI SCOUT ADJUSTMENT: Stakes scaled by {mult:.2f} ({desc})"
+            elif rule_type == "odds_filter":
+                min_edge = conditions.get("min_edge")
+                if min_edge is not None:
+                    try:
+                        min_edge_val = float(min_edge)
+                        if edge_percent < min_edge_val:
+                            veto_bet = True
+                            veto_reason = f"🛑 AI SCOUT FILTER: Edge {edge_percent}% is below required {min_edge_val}% ({desc})"
+                            break
+                    except:
+                        pass
 
     pattern_multiplier = max(0.0, min(1.5, pattern_multiplier))
     if veto_bet:
@@ -2361,6 +2537,15 @@ class QuantumGamesSimulator:
 async def run_pipeline():
     log(f"🚀 Neural Scout V211.00 (SYNDICATE TWO-BRAIN ENGINE) Starting...")
     
+    global GLOBAL_ACTIVE_RULES
+    try:
+        res = supabase.table("scout_rules").select("*").eq("status", "approved").execute()
+        GLOBAL_ACTIVE_RULES = res.data or []
+        log(f"🧠 AI Agent: Loaded {len(GLOBAL_ACTIVE_RULES)} approved scout rules.")
+    except Exception as e:
+        log(f"⚠️ AI Agent: Failed to load scout rules: {e}")
+        GLOBAL_ACTIVE_RULES = []
+        
     api = NeoBetAPI()
 
     players, all_skills, all_reports, all_tournaments = await get_db_data()
@@ -2804,8 +2989,10 @@ async def run_pipeline():
 
                     # 🚀 SOTA: Multi-Market Kelly Sizing (MatchWin, Handicap Spreads, Totals Over/Under)
                     # Compute winner value metrics BEFORE building candidate_picks
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
+                    op_o1 = to_float(existing_match.get('opening_odds1'), 0) if existing_match else None
+                    op_o2 = to_float(existing_match.get('opening_odds2'), 0) if existing_match else None
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, opening_odds=op_o1)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, opening_odds=op_o2)
 
 
                     candidate_picks = []
@@ -2835,6 +3022,77 @@ async def run_pipeline():
                             "outcomeKey": "2"
                         }
                     })
+
+                    # 🚀 SOTA: Underdog Set 1 Pivot Logic
+                    # If the best match-win pick has value on an underdog, evaluate the 1st Set Winner market.
+                    # Pivot if: low match play volume (< 3 matches in 45d) OR low skills (mental/stamina < 45) OR high historical choke count (>= 2).
+                    first_set_odds = odds_data.get("FirstSetWinner", {})
+                    if first_set_odds and first_set_odds.get("Home") and first_set_odds.get("Away"):
+                        p1_is_dog_pick = (m['odds1'] >= 1.80) and val_p1["is_value"]
+                        p2_is_dog_pick = (m['odds2'] >= 1.80) and val_p2["is_value"]
+                        
+                        if p1_is_dog_pick or p2_is_dog_pick:
+                            target_p = 1 if p1_is_dog_pick else 2
+                            target_name = full_n1 if target_p == 1 else full_n2
+                            target_val = val_p1 if target_p == 1 else val_p2
+                            target_history = p1_history if target_p == 1 else p2_history
+                            target_skills = all_skills.get(p1_obj["id"] if target_p == 1 else p2_obj["id"], {}) if (p1_obj if target_p == 1 else p2_obj) else {}
+                            
+                            ml_odds = m['odds1'] if target_p == 1 else m['odds2']
+                            set1_odd = first_set_odds["Home"] if target_p == 1 else first_set_odds["Away"]
+                            
+                            # Factor 3: Odds comparison (ratio ml/set1 > 2.2 means we lose too much value)
+                            ratio = ml_odds / set1_odd if set1_odd > 0.0 else 0.0
+                            is_high_conviction = target_val.get("edge_percent", 0.0) > 8.0
+                            
+                            if is_high_conviction:
+                                log(f"ℹ️ Underdog Set 1 Pivot skipped: {target_name} has high conviction (>8.0% edge).")
+                            elif ratio > 2.2:
+                                log(f"ℹ️ Underdog Set 1 Pivot skipped: odds ratio ({ratio:.2f}) is too high.")
+                            else:
+                                # Factor 2: Lack of match rhythm (< 3 matches in last 45 days)
+                                match_count_45 = count_matches_last_45_days(target_history)
+                                has_no_rhythm = match_count_45 < 3
+                                
+                                # Factor 1: Structural mental/stamina weakness
+                                mental_score = target_skills.get("mental", 50)
+                                stamina_score = target_skills.get("stamina", 50)
+                                has_choke_skills = (mental_score < 45) or (stamina_score < 45)
+                                
+                                # Choke history (lost after winning Set 1)
+                                choke_count = calculate_historical_choke_count(target_name, target_history)
+                                has_choke_history = choke_count >= 2
+                                
+                                if has_no_rhythm or has_choke_skills or has_choke_history:
+                                    prob_set1 = (mc_results.get("probA_set1", 50.0) if target_p == 1 else mc_results.get("probB_set1", 50.0)) / 100.0
+                                    val_set1 = calculate_value_metrics(prob_set1, set1_odd, matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(set1_odd <= 1.79), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=target_name)
+                                    
+                                    if val_set1["is_value"]:
+                                        pivot_reason = []
+                                        if has_no_rhythm: pivot_reason.append(f"lack of match rhythm ({match_count_45} matches in 45d)")
+                                        if has_choke_skills: pivot_reason.append(f"weak skills (mental: {mental_score}, stamina: {stamina_score})")
+                                        if has_choke_history: pivot_reason.append(f"high choke history ({choke_count} chokes)")
+                                        reason_str = " & ".join(pivot_reason)
+                                        
+                                        # Veto the Match Winner bet
+                                        target_val["is_value"] = False
+                                        target_val["type"] = "🛑 PIVOTED TO SET 1"
+                                        target_val["pattern_warning"] = f"🔄 Underdog Match Winner pivoted to Set 1 due to: {reason_str}."
+                                        
+                                        # Add the First Set Winner pick
+                                        candidate_picks.append({
+                                            "market_type": "FIRST_SET_WINNER",
+                                            "pick_name": f"{target_name} (Satz 1 Gewinner)",
+                                            "market_odds": set1_odd,
+                                            "fair_odds": round(1 / prob_set1, 2) if prob_set1 > 0 else 99.0,
+                                            "value_metrics": val_set1,
+                                            "betslip": {
+                                                "contestId": m['api_match_key'],
+                                                "bettingTypeKey": first_set_odds["market_key"],
+                                                "outcomeKey": first_set_odds["key1"] if target_p == 1 else first_set_odds["key2"]
+                                            }
+                                        })
+                                        log(f"🔄 SUCCESSFUL PIVOT: {target_name} pivoted to Set 1 Winner. Reason: {reason_str}.")
 
                     # 2. Handicap Spreads Candidates (Games Spread)
                     game_diffs = mc_results.get("game_differentials", [])
@@ -3110,6 +3368,13 @@ async def run_pipeline():
     log(f"📊 SUMMARY: {db_matched_count} relevante DB-Matches erfolgreich prozessiert.")
         
     log("🏁 Cycle Finished.")
+    
+    # Run the daily AI analyst report trigger (automated check)
+    try:
+        from daily_analyst import run_daily_analysis
+        await run_daily_analysis()
+    except Exception as analysis_err:
+        log(f"⚠️ Daily AI Analysis Exception: {analysis_err}")
 
 if __name__ == "__main__":
     async def main():

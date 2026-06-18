@@ -875,7 +875,7 @@ export function AIPicksPage() {
 
                           <a
                               href={pickOfTheDay.games_prediction?.neo_betslip?.url 
-                                  ? `${pickOfTheDay.games_prediction.neo_betslip.url}-potd` 
+                                  ? `${pickOfTheDay.games_prediction.neo_betslip.url}&affiliateId=backhandtl-potd` 
                                   : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pickOfTheDay.neo_contest_id || pickOfTheDay.api_match_key || pickOfTheDay.id}!Set_MATCH_HC2W(0.0)!${pickOfTheDay.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-potd`
                               }
                               target="_blank"
@@ -1091,7 +1091,7 @@ export function AIPicksPage() {
                                              <div className="mt-4 relative z-10 flex flex-col gap-1.5">
                                                  <a 
                                                      href={pick.games_prediction?.neo_betslip?.url 
-                                                         ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                                         ? `${pick.games_prediction.neo_betslip.url}&affiliateId=backhandtl-picks-cta` 
                                                          : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
                                                      }
                                                      target="_blank" 
@@ -1377,7 +1377,7 @@ export function AIPicksPage() {
                                                  <div className="mt-4 relative z-10 flex flex-col gap-1.5">
                                                      <a 
                                                          href={pick.games_prediction?.neo_betslip?.url 
-                                                             ? `${pick.games_prediction.neo_betslip.url}-picks-cta` 
+                                                             ? `${pick.games_prediction.neo_betslip.url}&affiliateId=backhandtl-picks-cta` 
                                                              : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${pick.neo_contest_id || pick.api_match_key || pick.id}!Set_MATCH_HC2W(0.0)!${pick.isPlayer1Target ? '1' : '2'}&affiliateId=backhandtl-picks-cta`
                                                          }
                                                          target="_blank" 

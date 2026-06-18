@@ -1169,7 +1169,7 @@ export function ValueScanner() {
                                 <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
                                     <a 
                                         href={match.games_prediction?.neo_betslip?.url 
-                                            ? `${match.games_prediction.neo_betslip.url}-scanner-cta` 
+                                            ? `${match.games_prediction.neo_betslip.url}&affiliateId=backhandtl-scanner-cta` 
                                             : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${match.neo_contest_id || match.id}!Set_MATCH_HC2W(0.0)!${p1IsPick ? '1' : '2'}&affiliateId=backhandtl-scanner-cta`
                                         }
                                         target="_blank" 
