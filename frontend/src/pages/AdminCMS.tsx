@@ -1131,6 +1131,54 @@ export function AdminCMS() {
                             </div>
                           </div>
 
+                          {/* Daily Micro Snapshot */}
+                          {repMetrics?.today && (
+                            <div className="bg-[#15171e] border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6 shadow-xl">
+                              <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <h4 className="text-white font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+                                  <FileText size={14} className="text-tennis-lime" /> Tages-Performance (Micro Ops)
+                                </h4>
+                                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                                  repMetrics.today.profit >= 0
+                                    ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/25'
+                                    : 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                }`}>
+                                  Ergebnis: {repMetrics.today.profit >= 0 ? '+' : ''}{repMetrics.today.profit}u ({repMetrics.today.win_rate}% WR)
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {repMetrics.today.picks && repMetrics.today.picks.length > 0 ? (
+                                  repMetrics.today.picks.map((pick: any, idx: number) => (
+                                    <div key={idx} className="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center justify-between gap-4">
+                                      <div className="min-w-0 flex-1">
+                                        <span className="text-white font-bold text-sm block truncate">{pick.pick_name}</span>
+                                        <span className="text-[10px] text-gray-500 font-mono">
+                                          Quote: {pick.market_odds} | Einsatz: {pick.stake}u
+                                        </span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${
+                                          pick.is_win
+                                            ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/25'
+                                            : 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                        }`}>
+                                          {pick.is_win ? 'Win' : 'Loss'}
+                                        </span>
+                                        <span className={`block text-xs font-mono font-bold mt-1 ${pick.profit >= 0 ? 'text-[#ccff00]' : 'text-red-500'}`}>
+                                          {pick.profit >= 0 ? '+' : ''}{pick.profit}u
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="col-span-2 text-center text-xs text-gray-500 italic py-4">
+                                    Keine abgerechneten Wetten an diesem Tag.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Subgroup breakdown */}
                           {repMetrics?.breakdown && (
                             <div className="bg-[#15171e]/30 border border-white/5 rounded-[2rem] p-6 md:p-8 space-y-6 shadow-xl">

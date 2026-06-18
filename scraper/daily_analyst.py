@@ -265,7 +265,8 @@ async def run_daily_analysis():
             "stake": stake,
             "profit": profit,
             "tour": tour,
-            "is_win": is_win
+            "is_win": is_win,
+            "created_at": m.get("created_at")
         })
 
     if not settled_picks:
@@ -291,7 +292,36 @@ async def run_daily_analysis():
     roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
     avg_brier = brier_sum / brier_count if brier_count > 0 else 0.0
 
+    # Calculate metrics for last 24 hours (Micro/Ops Agent)
+    today_picks = []
+    now = datetime.now(timezone.utc)
+    cutoff_24h = now - timedelta(hours=24)
+    
+    for p in settled_picks:
+        if p.get("created_at"):
+            try:
+                p_dt = datetime.fromisoformat(p["created_at"].replace("Z", "+00:00"))
+                if p_dt >= cutoff_24h:
+                    today_picks.append(p)
+            except Exception as ex:
+                log(f"⚠️ Error parsing created_at timestamp: {ex}")
+
+    today_bets = len(today_picks)
+    today_wins = sum(1 for p in today_picks if p["is_win"])
+    today_losses = today_bets - today_wins
+    today_profit = sum(p["profit"] for p in today_picks)
+    today_win_rate = (today_wins / today_bets) * 100 if today_bets > 0 else 0.0
+
+    today_picks_summary = ""
+    if today_picks:
+        for idx, tp in enumerate(today_picks, 1):
+            status = "GEWONNEN" if tp["is_win"] else "VERLOREN"
+            today_picks_summary += f"{idx}. {tp['pick_name']} @ {tp['market_odds']} (Stake: {tp['stake']}u, Profit: {tp['profit']:+.2f}u) -> {status}\n"
+    else:
+        today_picks_summary = "Keine abgerechneten Wetten in den letzten 24 Stunden."
+
     log(f"Stats: Bets={len(settled_picks)}, WR={win_rate:.1f}%, Profit={net_profit:+.2f}u, ROI={roi:+.1f}%, Brier={avg_brier:.4f}")
+    log(f"Today Stats: Bets={today_bets}, WR={today_win_rate:.1f}%, Profit={today_profit:+.2f}u")
 
     # Grouping calculations for analysis
     subgroups = defaultdict(list)
@@ -330,18 +360,32 @@ async def run_daily_analysis():
 
     # Call OpenRouter for Report Summary & Proposals
     system_prompt = (
-        "You are the Lead AI Scout Analyst at a high-performance sports betting syndicate. "
-        "Analyze the provided betting metrics and write an elite, lösungsorientiert German report. "
-        "Use GitHub alerts (e.g. > [!IMPORTANT]) and neat markdown structures. "
-        "Design with Apple/Revolut clarity. Do not write filler words. Be extremely analytical."
+        "You are a Multi-Agent AI Reporting System at an elite sports betting syndicate. "
+        "Your system has two distinct agents:\n"
+        "1. Daily Operations Analyst (Micro-Perspective): Reviews only the picks and results of the last 24 hours.\n"
+        "2. Macro Risk & Calibration Strategist (Macro-Perspective): Reviews the 30-day statistical performance and subgroups to calibrate the system and manage risk.\n"
+        "Write an executive-level German report. Use clean markdown structure, Apple/Revolut clarity, and GitHub alerts (e.g. > [!NOTE], > [!IMPORTANT], > [!WARNING]). "
+        "Keep it extremely analytical and direct."
     )
     
     prompt = f"""
-    Hier sind die statistischen Ergebnisse der letzten 30 Tage für unsere Tennis-KI:
+    Hier sind die Daten für unsere Tennis-KI:
+    
+    =========================================
+    1. HEUTIGE ERGEBNISSE (Letzte 24 Stunden) - Für den Daily Operations Analyst:
+    - Anzahl Wetten: {today_bets}
+    - Trefferquote: {today_win_rate:.1f}% ({today_wins}W - {today_losses}L)
+    - Netto-Gewinn: {today_profit:+.2f} Units
+    
+    Einzelspiele von heute:
+    {today_picks_summary}
+    
+    =========================================
+    2. HISTORISCHE PERFORMANCE (Letzte 30 Tage) - Für den Macro Risk Strategist:
     - Gesamtzahl Wetten: {len(settled_picks)}
     - Trefferquote: {win_rate:.1f}% ({wins_count}W - {losses_count}L)
     - Reingewinn: {net_profit:+.2f} Units
-    - ROI/Yield: {roi:+.1f}%
+    - ROI/Yield: {roi:.1f}%
     - Brier-Score (KI-Kalibrierung): {avg_brier:.4f} (Je näher an 0, desto besser. >0.25 ist schlechter als Zufall)
     
     Subgruppen-Ergebnisse:
@@ -349,16 +393,17 @@ async def run_daily_analysis():
     
     Identifizierte Schwachstellen (ROI < -15%):
     {json.dumps(failures, indent=2)}
-
-    Bitte erstelle einen strukturierten Bericht auf Deutsch:
-    1. **Syndicate-Performance-Status:** Eine klare Analyse des aktuellen Laufs (1-2 Sätze).
-    2. **Muster-Identifikation:** Warum verlieren bestimmte Subgruppen? Nenne genaue tennis-taktische Gründe (z. B. Rasensaison, Sandplatz-Rallyetoleranz, ELO-Überbewertung bei ATP/WTA).
-    3. **Kalibrierungsvorschlag:** Schlage konkrete Anpassungen für das System vor.
-       - Vorschlag 1: Wenn eine Subgruppe unterperformt, schlage vor, die Mindestedge (`min_edge`) auf 5.5% bis 7.0% anzuheben (Wett-Typ: `odds_filter`), um Rauschen herauszufiltern.
-       - Vorschlag 2: Schlage vor, Einsätze zu dämpfen (Wett-Typ: `multiplier` z.B. 0.4x), um Risiko abzufedern.
-       - Vorschlag 3: Schlage Veto vor (Wett-Typ: `veto`), falls eine Gruppe komplett unprofitabel ist.
-       - Falls alles super läuft (ROI > 5%), schlage keine neuen Regeln vor ("Keine Anpassungen notwendig").
-
+    
+    Bitte erstelle einen strukturierten Bericht auf Deutsch im Apple/Revolut-Stil mit folgenden Sektionen:
+    
+    ### 📊 Sektion 1: Daily Operations Audit (Micro Ops Agent)
+    - Ein kurzer Rückblick auf die Ergebnisse der letzten 24 Stunden (1-2 prägnante Sätze).
+    - Details zu den heutigen Wetten (Auffälligkeiten, glückliche/unglückliche Verläufe, Chokes).
+    
+    ### ⚙️ Sektion 2: Strategische Risiko- & Kalibrierungs-Analyse (Macro Risk Strategist)
+    - Eine detaillierte Auswertung des 30-Tage-Trends und der Subgruppen. Warum verlieren/gewinnen bestimmte Beläge (Rasen/Sand) oder Klassen (WTA/ATP, Challenger vs. Haupttour)?
+    - Empfehlungen zur Kalibrierung des Scrapers (Vorschlag von Vetoes, Einsatzdämpfern per Multiplier oder Mindest-Edge-Verschiebungen).
+    
     Gibt es Vorschläge, formuliere sie am Ende des Berichts als JSON-Array im Format:
     PROPOSALS_JSON:
     [
@@ -408,7 +453,23 @@ async def run_daily_analysis():
             "net_profit": round(net_profit, 2),
             "roi": round(roi, 1),
             "brier_score": round(avg_brier, 4),
-            "breakdown": metrics_breakdown
+            "breakdown": metrics_breakdown,
+            "today": {
+                "bets": today_bets,
+                "win_rate": round(today_win_rate, 1),
+                "profit": round(today_profit, 2),
+                "wins": today_wins,
+                "losses": today_losses,
+                "picks": [
+                    {
+                        "pick_name": p["pick_name"],
+                        "market_odds": p["market_odds"],
+                        "stake": p["stake"],
+                        "profit": p["profit"],
+                        "is_win": p["is_win"]
+                    } for p in today_picks
+                ]
+            }
         }
     }
     
