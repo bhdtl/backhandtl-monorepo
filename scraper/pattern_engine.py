@@ -12,8 +12,13 @@ sys.stdout.reconfigure(encoding='utf-8')
 from supabase import create_client
 from collections import defaultdict
 
-SUPABASE_URL = "https://suoaznisiowoolxilaju.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1b2F6bmlzaW93b29seGlsYWp1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjM3MDA2MiwiZXhwIjoyMDgxNzMwMDYyfQ.qcOEsflvc9zJnT5ir-SYe2YhoNczDDS11be5TzLyxEo"
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("FATAL: SUPABASE_URL or SUPABASE_KEY environment variables are not set.")
+    sys.exit(1)
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 SLAM_NAMES  = {"australian open","roland garros","french open","wimbledon","us open"}
