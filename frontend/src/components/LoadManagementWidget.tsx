@@ -1,133 +1,146 @@
-import React from 'react';
-import { Activity, ShieldAlert, Heart, Zap } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { HeartPulse, Battery, AlertTriangle, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface LoadManagementWidgetProps {
-  stamina?: number;
-  speed?: number;
+  sackmannMetrics?: any;
 }
 
 export const LoadManagementWidget: React.FC<LoadManagementWidgetProps> = ({
-  stamina = 75,
-  speed = 70,
+  sackmannMetrics = null,
 }) => {
-  // Generate deterministic metrics based on player's stamina and speed
-  const recoveryScore = Math.min(95, Math.max(45, Math.round(stamina * 0.9 + 20)));
-  const physicalStress = Math.min(90, Math.max(30, Math.round(110 - stamina * 0.8)));
-  const matchLoad = Math.min(95, Math.max(40, Math.round(speed * 0.5 + 45)));
-  const injuryRisk = Math.min(85, Math.max(5, Math.round((physicalStress * 1.2 - recoveryScore * 0.5) / 2 + 15)));
+  const parsedMetrics = useMemo(() => {
+    if (!sackmannMetrics) return null;
+    try {
+      return typeof sackmannMetrics === 'string' ? JSON.parse(sackmannMetrics) : sackmannMetrics;
+    } catch (e) {
+      return null;
+    }
+  }, [sackmannMetrics]);
 
-  const metrics = [
-    {
-      label: 'Match Load',
-      value: matchLoad,
-      color: 'stroke-cyan-500',
-      textColor: 'text-cyan-400',
-      bgColor: 'bg-cyan-500/10',
-      icon: Activity,
-    },
-    {
-      label: 'Physical Stress',
-      value: physicalStress,
-      color: 'stroke-amber-500',
-      textColor: 'text-amber-400',
-      bgColor: 'bg-amber-500/10',
-      icon: Zap,
-    },
-    {
-      label: 'Recovery Score',
-      value: recoveryScore,
-      color: 'stroke-emerald-500',
-      textColor: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
-      icon: Heart,
-    },
-    {
-      label: 'Injury Risk',
-      value: injuryRisk,
-      color: 'stroke-rose-500',
-      textColor: 'text-rose-400',
-      bgColor: 'bg-rose-500/10',
-      icon: ShieldAlert,
-    },
-  ];
+  const fatigueMins = parsedMetrics?.fatigue?.recent_14d_minutes || 0;
 
-  // SVG parameters for circular progress
-  const radius = 36;
-  const circumference = 2 * Math.PI * radius;
+  // Status mapping based on original logic
+  let statusText = 'FRESH';
+  let statusColor = 'text-tennis-lime';
+  let bgColor = 'bg-tennis-lime';
+  let shadowColor = 'shadow-[0_0_15px_rgba(132,204,22,0.2)]';
+  let borderClass = 'border-tennis-lime/20';
+  let description = 'Optimal physical condition. No signs of fatigue expected.';
+
+  const percentage = Math.min(100, Math.max(0, (fatigueMins / 1200) * 100));
+
+  if (fatigueMins > 900) {
+    statusText = 'CRITICAL LOAD';
+    statusColor = 'text-rose-500';
+    bgColor = 'bg-rose-500';
+    shadowColor = 'shadow-[0_0_15px_rgba(244,63,94,0.3)]';
+    borderClass = 'border-rose-500/20';
+    description = 'Extreme fatigue. Massive risk of performance drop in late sets.';
+  } else if (fatigueMins > 600) {
+    statusText = 'HEAVY LEGS';
+    statusColor = 'text-amber-500';
+    bgColor = 'bg-amber-500';
+    shadowColor = 'shadow-[0_0_15px_rgba(245,158,11,0.2)]';
+    borderClass = 'border-amber-500/20';
+    description = 'Increased load over the last 2 weeks. Recovery deficit likely.';
+  } else if (fatigueMins > 300) {
+    statusText = 'MATCH RHYTHM';
+    statusColor = 'text-sky-400';
+    bgColor = 'bg-sky-400';
+    shadowColor = 'shadow-[0_0_15px_rgba(56,189,248,0.2)]';
+    borderClass = 'border-sky-400/20';
+    description = 'Perfect match rhythm. Player is dialed in without being overworked.';
+  }
+
+  // Calculate auxiliary metrics derived from actual fatigue
+  const recoveryScore = Math.max(20, Math.min(98, 100 - Math.round(percentage * 0.7)));
+  const injuryRisk = Math.max(5, Math.min(95, Math.round(percentage * 0.9)));
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {metrics.map((m) => {
-          const strokeDashoffset = circumference - (m.value / 100) * circumference;
-          const Icon = m.icon;
+      {/* Main Status Card */}
+      <div className={`bg-[#151821]/80 backdrop-blur-md rounded-3xl p-6 border ${borderClass} shadow-xl relative overflow-hidden group`}>
+        <div className={`absolute top-0 right-0 w-32 h-32 ${bgColor} opacity-5 rounded-full blur-[40px] pointer-events-none`} />
 
-          return (
-            <div
-              key={m.label}
-              className="bg-[#151821]/80 backdrop-blur-md rounded-2xl p-4 border border-white/5 flex flex-col items-center text-center shadow-lg hover:border-white/10 transition-colors"
-            >
-              <div className="relative w-24 h-24 mb-3">
-                {/* SVG Circle Gauge */}
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    className="stroke-[#222736]"
-                    strokeWidth="8"
-                    fill="transparent"
-                    r={radius}
-                    cx="50"
-                    cy="50"
-                  />
-                  <circle
-                    className={`${m.color} transition-all duration-1000 ease-out`}
-                    strokeWidth="8"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    fill="transparent"
-                    r={radius}
-                    cx="50"
-                    cy="50"
-                  />
-                </svg>
-                {/* Centered Icon and Percentage */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <Icon className={`w-4 h-4 ${m.textColor} opacity-80 mb-0.5`} />
-                  <span className="text-lg font-black text-white leading-none">
-                    {m.value}%
-                  </span>
-                </div>
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {m.label}
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-white font-black text-sm uppercase tracking-wider flex items-center gap-2">
+            <HeartPulse className={statusColor} size={18} />
+            Physiological Load Status
+          </h3>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${borderClass} bg-black/40 ${shadowColor}`}>
+            <Battery size={14} className={statusColor} />
+            <span className={`text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
+              {statusText}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div className="md:col-span-2 space-y-4">
+            <div className="flex justify-between items-end">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                Time on Court (Last 14 Days)
+              </span>
+              <span className="text-2xl font-black text-white leading-none">
+                {fatigueMins} <span className="text-sm text-gray-500 ml-0.5">Min</span>
               </span>
             </div>
-          );
-        })}
+
+            <div className="h-4 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
+              <div className="absolute top-0 left-[25%] bottom-0 w-px bg-white/5 z-0" />
+              <div className="absolute top-0 left-[50%] bottom-0 w-px bg-white/5 z-0" />
+              <div className="absolute top-0 left-[75%] bottom-0 w-px bg-white/5 z-0" />
+
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className={`h-full ${bgColor} rounded-full`}
+              />
+            </div>
+
+            <div className="flex justify-between text-[8px] font-mono text-gray-600">
+              <span>0h</span>
+              <span>5h</span>
+              <span>10h</span>
+              <span>15h+</span>
+            </div>
+          </div>
+
+          <div className="bg-black/20 rounded-2xl p-4 border border-white/5 flex items-start space-x-2">
+            <AlertTriangle className={`${statusColor} mt-0.5 shrink-0`} size={16} />
+            <div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 block mb-0.5">
+                Load Assessment
+              </span>
+              <p className="text-xs text-gray-300 leading-snug">{description}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Wellness Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-[#161a25]/60 to-[#0f1115]/80 p-5 rounded-2xl border border-white/5">
-          <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-2 flex items-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse" />
-            Training Load Analysis
-          </h4>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Biometric telemetry shows the player is within the optimal training adaptation zone. 
-            HRV recovery ratios match high-intensity tennis loads, suggesting supercompensation is active. 
-            No overtraining fatigue patterns detected.
+      {/* Auxiliary Wellness Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Recovery Index</span>
+          <div className="flex items-baseline space-x-1 mt-2">
+            <span className="text-3xl font-black text-emerald-400">{recoveryScore}%</span>
+            <span className="text-xs text-gray-500">HRV</span>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2 leading-normal">
+            Calculated adaptation capability based on stamina metrics.
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-[#161a25]/60 to-[#0f1115]/80 p-5 rounded-2xl border border-white/5">
-          <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-2 flex items-center">
-            <span className="w-2 h-2 rounded-full bg-cyan-500 mr-2" />
-            Physical Conditioning Notes
-          </h4>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Stamina levels remain high with quick cardiovascular recovery. Recommended match load is standard. 
-            Preventative physiotherapy protocols are active to protect shoulder and lower-back muscle tissue.
+        <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Injury Risk Probability</span>
+          <div className="flex items-baseline space-x-1 mt-2">
+            <span className="text-3xl font-black text-rose-500">{injuryRisk}%</span>
+            <span className="text-xs text-gray-500">Alert</span>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2 leading-normal">
+            Accumulated tissue strain risk calculated from recent court volume.
           </p>
         </div>
       </div>
@@ -136,4 +149,5 @@ export const LoadManagementWidget: React.FC<LoadManagementWidgetProps> = ({
 };
 
 export default LoadManagementWidget;
+
 

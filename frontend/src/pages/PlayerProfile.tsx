@@ -42,6 +42,8 @@ interface Player {
   surface_preference: string;
   profile_image_url: string;
   tour: 'ATP' | 'WTA';
+  form_rating?: any;
+  surface_ratings?: any;
 }
 
 interface ScoutingReport {
@@ -62,6 +64,9 @@ interface PlayerSkills {
   mental: number;
   stamina: number;
   overall_rating: number;
+  sackmann_metrics?: any;
+  elo_metrics?: any;
+  advanced_stats?: any;
 }
 
 interface PlayerAchievement {
@@ -79,6 +84,7 @@ export const PlayerProfile: React.FC = () => {
   const [report, setReport] = useState<ScoutingReport | null>(null);
   const [skills, setSkills] = useState<PlayerSkills | null>(null);
   const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
+  const [insights, setInsights] = useState<any[]>([]);
   
   const [activeTab, setActiveTab] = useState<string>('Overview');
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
@@ -104,42 +110,29 @@ export const PlayerProfile: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load Player details
-      const { data: playerData, error: playerError } = await supabase
-        .from('players')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+      // Load player, skills, report, achievements, and insights in parallel
+      const [playerRes, skillsRes, reportRes, achievementsRes, insightsRes] = await Promise.all([
+        supabase.from('players').select('*').eq('id', id).maybeSingle(),
+        supabase.from('player_skills').select('*').eq('player_id', id).maybeSingle(),
+        supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle(),
+        supabase.from('player_achievements').select('*').eq('player_id', id),
+        supabase.from('tennis_insights')
+          .select('*')
+          .eq('player_id', id)
+          .order('published_at', { ascending: false })
+          .limit(5)
+      ]);
 
-      if (playerError) throw playerError;
-      if (!playerData) {
+      if (playerRes.error) throw playerRes.error;
+      if (!playerRes.data) {
         setPlayer(null);
         return;
       }
-      setPlayer(playerData);
-
-      // Load Scouting report
-      const { data: reportData } = await supabase
-        .from('scouting_reports')
-        .select('*')
-        .eq('player_id', id)
-        .maybeSingle();
-      setReport(reportData);
-
-      // Load Player Skills
-      const { data: skillsData } = await supabase
-        .from('player_skills')
-        .select('*')
-        .eq('player_id', id)
-        .maybeSingle();
-      setSkills(skillsData);
-
-      // Load Achievements
-      const { data: achievementsData } = await supabase
-        .from('player_achievements')
-        .select('*')
-        .eq('player_id', id);
-      setAchievements(achievementsData || []);
+      setPlayer(playerRes.data);
+      setSkills(skillsRes.data || null);
+      setReport(reportRes.data || null);
+      setAchievements(achievementsRes.data || []);
+      setInsights(insightsRes.data || []);
     } catch (e) {
       console.error('Error fetching player profile data:', e);
       setToastMessage('Failed to load player details');
@@ -523,17 +516,27 @@ export const PlayerProfile: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Surface Mastery Card */}
+                {player && (
+                  <SurfaceMasteryWidget
+                    surfacePreference={player.surface_preference}
+                    surfaceRatings={player.surface_ratings}
+                    eloMetrics={skills?.elo_metrics}
+                  />
+                )}
               </div>
             )}
 
             {/* Stats Tab */}
             {activeTab === 'Stats' && (
-              <AdvancedQuantWidget playerName={fullName} skills={skills} />
+              <AdvancedQuantWidget playerName={fullName} advancedStats={skills?.advanced_stats} />
             )}
 
             {/* Intelligence Tab */}
             {activeTab === 'Intelligence' && (
               <PlayerIntelligenceWidget
+                insights={insights}
                 strengths={report?.strengths}
                 weaknesses={report?.weaknesses}
                 mentalGameNotes={report?.mental_game_notes}
@@ -544,14 +547,13 @@ export const PlayerProfile: React.FC = () => {
             {/* Load Tab */}
             {activeTab === 'Load' && (
               <LoadManagementWidget
-                stamina={skills?.stamina}
-                speed={skills?.speed}
+                sackmannMetrics={skills?.sackmann_metrics}
               />
             )}
 
             {/* Form Tab */}
             {activeTab === 'Form' && (
-              <VegasFormWidget playerName={fullName} />
+              <VegasFormWidget playerName={player.last_name} dbFormRating={player.form_rating} />
             )}
           </motion.div>
         </AnimatePresence>
