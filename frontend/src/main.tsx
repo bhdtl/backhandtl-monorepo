@@ -6,10 +6,10 @@ import './index.css'; // <--- DIESE ZEILE IST ENTSCHEIDEND!
 
 // Service Worker aufräumen (nur einmalig nötig, aber schadet nicht)
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for(let registration of registrations) {
-      registration.unregister();
-    }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('[Service Worker] Registered successfully:', reg.scope))
+      .catch(err => console.error('[Service Worker] Registration failed:', err));
   });
 }
 

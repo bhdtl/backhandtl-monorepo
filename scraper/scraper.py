@@ -62,15 +62,19 @@ async def save_market_odds(payload: Dict[str, Any], db_match_id: Optional[str] =
     by retrying the operation without them if Supabase returns a schema cache error.
     """
     data = dict(payload)
+    saved_id = None
+    actual_is_insert = is_insert
     try:
         if is_insert or not db_match_id:
             res = supabase.table("market_odds").insert(data).execute()
             if res.data:
-                return res.data[0]['id']
+                saved_id = res.data[0]['id']
+                actual_is_insert = True
         else:
             res = supabase.table("market_odds").update(data).eq("id", db_match_id).execute()
             if res.data:
-                return res.data[0]['id']
+                saved_id = res.data[0]['id']
+                actual_is_insert = False
     except Exception as e:
         err_msg = str(e)
         if "neobet_over_unders" in err_msg or "neobet_spreads" in err_msg or "PGRST204" in err_msg:
@@ -81,16 +85,26 @@ async def save_market_odds(payload: Dict[str, Any], db_match_id: Optional[str] =
                 if is_insert or not db_match_id:
                     res = supabase.table("market_odds").insert(data).execute()
                     if res.data:
-                        return res.data[0]['id']
+                        saved_id = res.data[0]['id']
+                        actual_is_insert = True
                 else:
                     res = supabase.table("market_odds").update(data).eq("id", db_match_id).execute()
                     if res.data:
-                        return res.data[0]['id']
+                        saved_id = res.data[0]['id']
+                        actual_is_insert = False
             except Exception as retry_err:
                 log(f"❌ Failed to save match even without neobet columns: {retry_err}")
         else:
-            log(f"❌ Supabase database save error: {e}")
-    return db_match_id
+            log(f"❌ Database error in save_market_odds: {e}")
+
+    if saved_id:
+        try:
+            from push_service import trigger_push_if_new_pick
+            trigger_push_if_new_pick(data, saved_id, actual_is_insert)
+        except Exception as pe:
+            log(f"⚠️ Push notification trigger failed: {pe}")
+
+    return saved_id
 
 MODEL_NAME = 'meta-llama/llama-3.3-70b-instruct'
 

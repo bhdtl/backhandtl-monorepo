@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Settings, LogOut, ExternalLink, AlertTriangle, Trash2, ChevronRight } from 'lucide-react';
+import { X, Loader2, Settings, LogOut, ExternalLink, AlertTriangle, Trash2, ChevronRight, Bell } from 'lucide-react';
 import { useAccess } from '../hooks/useAccess'; 
 import { MemberCard } from './MemberCard'; 
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 interface MemberCardModalProps {
   isOpen: boolean;
@@ -22,14 +37,44 @@ export function MemberCardModal({ isOpen, onClose }: MemberCardModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // --- PUSH NOTIFICATION STATE ---
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLevel, setPushLevel] = useState<'potd' | 'high_value' | 'all'>('high_value');
+  const [isPushLoading, setIsPushLoading] = useState(false);
+  const [showIosInstruction, setShowIosInstruction] = useState(false);
+
   // Reset states when modal opens
   useEffect(() => {
     if (isOpen) {
         refreshAccess();
         setShowSettings(false);
         setShowDeleteConfirm(false);
+        setShowIosInstruction(false);
+        if (user) {
+            checkSubscriptionStatus();
+        }
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
+
+  const checkSubscriptionStatus = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('push_subscriptions')
+        .select('push_level')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (data) {
+        setPushEnabled(true);
+        setPushLevel(data.push_level as 'potd' | 'high_value' | 'all');
+      } else {
+        setPushEnabled(false);
+      }
+    } catch (e) {
+      console.error('Error checking push status:', e);
+    }
+  };
 
   // --- HANDLERS ---
   const handleSignOut = async () => {
@@ -41,6 +86,96 @@ export function MemberCardModal({ isOpen, onClose }: MemberCardModalProps) {
   const handleManageSubscription = () => {
       // 🚀 SOTA: Direct link to Lemon Squeezy Customer Portal
       window.open('https://backhandtl.lemonsqueezy.com/billing', '_blank');
+  };
+
+  const handlePushToggle = async () => {
+    if (!user) return;
+    setIsPushLoading(true);
+
+    try {
+      if (pushEnabled) {
+        // Unsubscribe
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            await subscription.unsubscribe();
+          }
+        } catch (e) {
+          console.warn('Browser unsubscribe failed or not supported:', e);
+        }
+        
+        const { error } = await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+        if (error) throw error;
+        
+        setPushEnabled(false);
+      } else {
+        // Subscribe
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+
+        if (isIos && !isStandalone) {
+          setShowIosInstruction(true);
+          setIsPushLoading(false);
+          return;
+        }
+
+        if (!('Notification' in window)) {
+          alert('This browser does not support notifications.');
+          setIsPushLoading(false);
+          return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert('Notification permission denied. Please allow notifications in browser settings.');
+          setIsPushLoading(false);
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = 'BM_dk2077mt3YTvUPGOliX5NDezbvp0gjZyigyEy3G6Y8PMD3PqFSvWrc-XL4z7ZjTWMEcHXzzkozVXEG1IwLug';
+        
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+          });
+        }
+
+        const { error } = await supabase.from('push_subscriptions').upsert({
+          user_id: user.id,
+          subscription: subscription.toJSON(),
+          push_level: pushLevel
+        });
+        if (error) throw error;
+
+        setPushEnabled(true);
+      }
+    } catch (e: any) {
+      console.error('Push toggle failed:', e);
+      alert('Failed to register notifications: ' + (e.message || e));
+    } finally {
+      setIsPushLoading(false);
+    }
+  };
+
+  const handlePushLevelChange = async (newLevel: 'potd' | 'high_value' | 'all') => {
+    if (!user) return;
+    setPushLevel(newLevel);
+    
+    if (pushEnabled) {
+      try {
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .update({ push_level: newLevel })
+          .eq('user_id', user.id);
+        if (error) throw error;
+      } catch (e) {
+        console.error('Failed to update push level:', e);
+      }
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -144,6 +279,82 @@ export function MemberCardModal({ isOpen, onClose }: MemberCardModalProps) {
                                         </div>
                                         <ChevronRight size={16} className="text-gray-600 group-hover:text-white transition-colors" />
                                     </button>
+
+                                    {/* Notification Settings */}
+                                    <div className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-2.5 rounded-xl transition-transform ${pushEnabled ? 'bg-tennis-lime/10 text-tennis-lime' : 'bg-gray-500/10 text-gray-400'}`}>
+                                                    <Bell size={16} />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="text-white text-xs font-bold uppercase tracking-wider mb-0.5">App Notifications</div>
+                                                    <div className="text-gray-500 text-[10px] font-medium">Get live alerts for AI Picks</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handlePushToggle}
+                                                disabled={isPushLoading}
+                                                className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none flex items-center ${pushEnabled ? 'bg-tennis-lime justify-end' : 'bg-white/10 justify-start'}`}
+                                            >
+                                                <motion.div 
+                                                    layout
+                                                    className="w-5 h-5 rounded-full bg-black shadow-md"
+                                                />
+                                            </button>
+                                        </div>
+
+                                        {/* Show Preferences only if notifications are active */}
+                                        {pushEnabled && (
+                                            <div className="flex flex-col gap-2 mt-2 pt-3 border-t border-white/5 animate-in slide-in-from-top-2 duration-200">
+                                                <div className="text-gray-400 text-[9px] font-black uppercase tracking-wider">Alert Frequency</div>
+                                                <div className="grid grid-cols-3 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5">
+                                                    {(['potd', 'high_value', 'all'] as const).map((level) => (
+                                                        <button
+                                                            key={level}
+                                                            type="button"
+                                                            onClick={() => handlePushLevelChange(level)}
+                                                            className={`py-2 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                                                                pushLevel === level
+                                                                    ? 'bg-[#15171e] text-tennis-lime shadow-md border border-white/5'
+                                                                    : 'text-gray-500 hover:text-gray-300'
+                                                            }`}
+                                                        >
+                                                            {level === 'potd' ? 'POTD Only' : level === 'high_value' ? 'High-Yield' : 'All'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {pushLevel === 'all' && (
+                                                    <div className="text-[9px] font-medium text-amber-500/80 bg-amber-500/5 border border-amber-500/10 rounded-lg p-2 leading-relaxed mt-1">
+                                                        ⚠️ Warning: High frequency alerts (up to 100+ daily picks possible).
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* iOS Instructions popup inline if triggered */}
+                                        {showIosInstruction && (
+                                            <div className="bg-[#0A0A0A] border border-white/5 rounded-xl p-3 mt-2 text-left animate-in zoom-in-95 duration-200">
+                                                <div className="text-white text-xs font-bold uppercase tracking-wider mb-1">Add to Home Screen</div>
+                                                <p className="text-[10px] text-gray-400 leading-relaxed mb-2">
+                                                    iOS requires this Web App to be added to your Home Screen first to enable notifications.
+                                                </p>
+                                                <ol className="text-[9px] text-gray-400 list-decimal pl-4 space-y-1">
+                                                    <li>Tap the Safari <strong>Share</strong> button.</li>
+                                                    <li>Scroll down and select <strong>"Add to Home Screen"</strong>.</li>
+                                                    <li>Open the app from your home screen and enable notifications here.</li>
+                                                </ol>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowIosInstruction(false)}
+                                                    className="w-full mt-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-lg transition-colors"
+                                                >
+                                                    Got it
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* Sign Out */}
                                     <button 
