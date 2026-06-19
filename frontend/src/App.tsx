@@ -20,7 +20,6 @@ import { PricingPage } from './pages/PricingPage';
 import { SupportPage } from './pages/SupportPage';
 import { TournamentOracle } from './pages/TournamentOracle';
 import { AIPicksPage } from './pages/AIPicksPage';
-import { TotalsPage } from './pages/TotalsPage';
 
 import { AuthModal } from './components/AuthModal';
 import { Header } from './components/Header';
@@ -427,7 +426,6 @@ function AppContent() {
           <Route path="/matchup" element={<MatchupAnalyzer />} />
           <Route path="/scanner" element={<ValueScanner />} />
           <Route path="/picks" element={<AIPicksPage />} />
-          <Route path="/totals" element={<TotalsPage />} />
           <Route path="/oracle" element={<TournamentOracle />} />
 
           <Route path="/courts" element={<CourtDatabase />} />

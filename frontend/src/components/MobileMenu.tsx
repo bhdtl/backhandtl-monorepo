@@ -112,7 +112,6 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
     { id: 'pricing', label: t('mobileMenu.nav.membershipPlans'), icon: Crown, badge: t('mobileMenu.badges.upgrade') },
     { id: 'scanner', label: t('mobileMenu.nav.valueScanner'), icon: Zap, badge: t('mobileMenu.badges.hot') },
     { id: 'picks', label: t('mobileMenu.nav.aiPicks', { defaultValue: 'AI Picks' }), icon: Target, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) },
-    { id: 'totals', label: t('mobileMenu.nav.totals', { defaultValue: 'Quantum Totals' }), icon: Hash, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) },
     { id: 'matchup', label: t('mobileMenu.nav.matchupAnalyzer'), icon: Swords },
     { id: 'oracle', label: t('mobileMenu.nav.tournamentOracle', { defaultValue: 'Tournament Oracle' }), icon: Radar },
     { id: 'courts', label: t('mobileMenu.nav.bsiCourtIndex'), icon: Gauge },

@@ -20,7 +20,7 @@ const PAYMENT_METHODS = [
 const PREMIUM_FEATURES = [
   { icon: Swords, label: 'Unlimited AI Matchups', desc: 'Deep-learning prediction, expected handicaps & set betting without daily limits.' },
   { icon: Zap, label: 'Live Value Scanner', desc: 'Real-time automated edge detection across 40+ global sportsbooks.' },
-  { icon: DollarSign, label: 'Quantum Totals & AI Picks', desc: 'High-yield mathematical predictions and over/under tennis totals.' },
+  { icon: Target, label: 'High-Yield AI Picks', desc: 'SOTA mathematical expected-value predictions and selections.' },
   { icon: Radar, label: 'Tournament Oracle', desc: 'Draw simulations, bracket analysis, and predictive models.' },
   { icon: Gauge, label: 'Global Court Index', desc: 'Complete database of physical bounce speeds (BSI) for all professional tour courts.' }
 ];
