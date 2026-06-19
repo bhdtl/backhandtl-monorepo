@@ -2543,7 +2543,11 @@ async def run_pipeline():
         GLOBAL_ACTIVE_RULES = res.data or []
         log(f"🧠 AI Agent: Loaded {len(GLOBAL_ACTIVE_RULES)} approved scout rules.")
     except Exception as e:
-        log(f"⚠️ AI Agent: Failed to load scout rules: {e}")
+        err_msg = str(e)
+        if "relation" in err_msg or "does not exist" in err_msg or "PGRST205" in err_msg:
+            log("🧠 AI Agent: Table 'scout_rules' does not exist in database yet (migration pending). Processing without custom rules.")
+        else:
+            log(f"⚠️ AI Agent: Failed to load scout rules: {e}")
         GLOBAL_ACTIVE_RULES = []
         
     api = NeoBetAPI()
@@ -2938,10 +2942,13 @@ async def run_pipeline():
                     sim_result["h2h"] = h2h_record
 
                     # 🚀 SOTA: The AI (Gill Gross) acts ONLY as a smart filter (Multiplier), not as a probability generator.
+                    log(f"    📡 Calling OpenRouter AI tactical filter for {full_n1} vs {full_n2}...")
+                    t0 = time.time()
                     ai = await analyze_match_with_ai(
                         matched_tour_name, p1_obj, p2_obj, s1, s2, report1, report2, surf, bsi, notes, 
                         p1_form_v2, p2_form_v2, weather_data, p1_surface_profile, p2_surface_profile, mc_results, h2h_record, sackmannA, sackmannB
                     )
+                    log(f"    ✅ AI tactical analysis received in {time.time() - t0:.1f}s (conviction: {ai.get('conviction_multiplier', 1.0)}x).")
                     
                     prob = calculate_physics_fair_odds(full_n1, full_n2, s1, s2, surf, ai['mc_prob_a'])
                     
