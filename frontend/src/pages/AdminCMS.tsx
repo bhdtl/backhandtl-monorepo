@@ -788,7 +788,8 @@ export function AdminCMS() {
               </span>
             </div>
 
-            <div className="bg-[#15171e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            {/* Desktop View Table */}
+            <div className="hidden md:block bg-[#15171e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -897,50 +898,146 @@ export function AdminCMS() {
                 </table>
               </div>
             </div>
+
+            {/* Mobile View Card List (Revolut Styled) */}
+            <div className="md:hidden space-y-4">
+              {affiliateRequests.length === 0 ? (
+                <div className="bg-[#15171e]/30 border border-dashed border-white/5 rounded-3xl p-12 text-center text-gray-500 italic">
+                  No requests found.
+                </div>
+              ) : (
+                affiliateRequests.map((req) => {
+                  const dateStr = new Date(req.created_at).toLocaleDateString();
+                  const userName = req.profiles?.first_name || 'Anonymous';
+                  const userTier = req.profiles?.tier || 'FREE';
+                  const isPremium = !!req.profiles?.is_premium;
+
+                  return (
+                    <div key={req.id} className="bg-[#15171e] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-xs font-mono text-gray-500">{dateStr}</span>
+                          <h4 className="text-white font-bold text-base mt-0.5">{userName}</h4>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[10px] text-gray-500 font-mono">ID: {req.user_id.slice(0, 8)}...</span>
+                            <button
+                              onClick={() => handleCopyId(req.user_id)}
+                              className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-white transition-colors cursor-pointer"
+                            >
+                              <Copy size={10} />
+                            </button>
+                            <span className="text-[10px] text-gray-600 font-mono">| {userTier} {isPremium && '(Premium)'}</span>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${
+                          req.status === 'approved' 
+                            ? 'bg-green-500/10 text-green-400 border border-green-500/25'
+                            : req.status === 'rejected'
+                              ? 'bg-red-500/10 text-red-400 border border-red-500/25'
+                              : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/25'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </div>
+
+                      <div className="bg-black/20 p-3.5 rounded-xl border border-white/5 space-y-1">
+                        <span className="text-[9px] uppercase font-black text-gray-600 tracking-widest block">NeoBet Username</span>
+                        <span className="text-white font-mono text-sm select-all">{req.neobet_username}</span>
+                      </div>
+
+                      {req.rejection_reason && (
+                        <div className="bg-red-500/5 p-3 rounded-xl border border-red-500/10 text-xs text-red-400">
+                          <span className="font-bold block uppercase text-[9px] tracking-wider mb-0.5">Ablehnungs-Grund</span>
+                          {req.rejection_reason}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-2 border-t border-white/5">
+                        {req.status !== 'approved' && (
+                          <button
+                            onClick={() => handleApproveRequest(req.id, req.user_id)}
+                            className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-green-500/10"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {req.status !== 'rejected' && (
+                          <button
+                            onClick={() => {
+                              const reason = prompt("Bitte gib einen Grund für die Ablehnung an:");
+                              if (reason === null) return;
+                              handleDeclineRequest(req.id, req.user_id, reason);
+                            }}
+                            className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                          >
+                            Decline
+                          </button>
+                        )}
+                        {req.status === 'approved' && (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Möchtest du die Freischaltung für ${req.neobet_username} widerrufen?`)) {
+                                handleDeclineRequest(req.id, req.user_id, 'Freischaltung widerrufen');
+                              }
+                            }}
+                            className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95"
+                          >
+                            Revoke
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         );
       case 'support':
         return (
           <div className="space-y-6 animate-in fade-in">
-             <div className="flex gap-2 mb-6">
-                 <button onClick={() => setSupportView('tickets')} className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${supportView === 'tickets' ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-white/10 hover:text-white'}`}>Tickets ({adminTickets.filter(t => t.status === 'open').length} Open)</button>
-                 <button onClick={() => setSupportView('feedback')} className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${supportView === 'feedback' ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-white/10 hover:text-white'}`}>Feedback Board</button>
+             <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 mb-6 pb-1">
+                 <button onClick={() => setSupportView('tickets')} className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all whitespace-nowrap active:scale-95 duration-200 ${supportView === 'tickets' ? 'bg-white text-black border-white shadow-xl' : 'bg-white/5 text-gray-500 border-white/5 hover:text-white'}`}>Tickets ({adminTickets.filter(t => t.status === 'open').length} Open)</button>
+                 <button onClick={() => setSupportView('feedback')} className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest border transition-all whitespace-nowrap active:scale-95 duration-200 ${supportView === 'feedback' ? 'bg-white text-black border-white shadow-xl' : 'bg-white/5 text-gray-500 border-white/5 hover:text-white'}`}>Feedback Board</button>
              </div>
              {supportView === 'tickets' ? (
-                 <div className="grid gap-4">
+                 <div className="grid gap-6">
                      {adminTickets.length === 0 && <div className="text-gray-500 text-center py-10">No support tickets found.</div>}
                      {adminTickets.map(ticket => (
-                         <div key={ticket.id} className="bg-[#15171e] p-6 rounded-2xl border border-white/5 relative group">
-                             <div className="flex justify-between items-start mb-4">
+                         <div key={ticket.id} className="bg-[#15171e]/70 backdrop-blur-md p-6 rounded-3xl border border-white/5 relative group hover:border-white/10 hover:shadow-2xl transition-all duration-300">
+                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                                  <div>
                                      <div className="flex items-center gap-2 mb-1">
-                                         <span className={`w-2 h-2 rounded-full ${ticket.status === 'open' ? 'bg-green-500' : 'bg-gray-600'}`}></span>
-                                         {/* VETERAN FIX: Display UserID or Fallback since 'users' relation was risky */}
+                                         <span className="relative flex h-2 w-2">
+                                             {ticket.status === 'open' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>}
+                                             <span className={`relative inline-flex rounded-full h-2 w-2 ${ticket.status === 'open' ? 'bg-green-500' : 'bg-gray-600'}`}></span>
+                                         </span>
                                          <span className="text-[10px] font-mono text-gray-500 uppercase">{ticket.user_id ? `User: ${ticket.user_id.slice(0,8)}...` : 'Unknown User'}</span>
                                          <span className="text-gray-700 text-[10px]">•</span>
                                          <span className="text-[10px] text-gray-500">{new Date(ticket.created_at).toLocaleDateString()}</span>
                                      </div>
-                                     <h4 className="text-white font-bold">{ticket.subject}</h4>
+                                     <h4 className="text-white font-bold text-base md:text-lg">{ticket.subject}</h4>
                                  </div>
-                                 <div className="flex gap-2">
+                                 <div className="relative shrink-0">
                                      <select 
                                         value={ticket.status} 
                                         onChange={(e) => handleTicketResponse(ticket.id, e.target.value, false)} 
-                                        className="bg-black/40 border border-white/10 text-xs text-white rounded-lg px-2 py-1 outline-none focus:border-tennis-lime"
+                                        className="bg-black/40 border border-white/10 text-xs text-white rounded-xl px-3 py-2 outline-none focus:border-tennis-lime cursor-pointer appearance-none pr-8 font-bold"
                                      >
                                          <option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
                                      </select>
+                                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={12}/>
                                  </div>
                              </div>
-                             <div className="bg-black/20 p-4 rounded-xl text-gray-300 text-sm mb-4 font-medium leading-relaxed">{ticket.message}</div>
+                             <div className="bg-black/20 p-5 rounded-2xl text-gray-300 text-sm mb-4 font-medium leading-relaxed border border-white/5">{ticket.message}</div>
                              <div className="border-t border-white/5 pt-4">
                                  {ticket.admin_response ? (
-                                     <div className="text-xs text-gray-500"><span className="font-bold text-tennis-lime uppercase tracking-wider mr-2">Replied:</span>{ticket.admin_response}</div>
+                                     <div className="text-xs text-gray-400 bg-white/5 p-4 rounded-xl border border-white/5 leading-relaxed"><span className="font-black text-tennis-lime uppercase tracking-widest mr-2 block sm:inline mb-1 sm:mb-0">Replied:</span>{ticket.admin_response}</div>
                                  ) : (
-                                     <div className="flex gap-2">
-                                         <input className="flex-1 bg-transparent border-none text-sm text-white placeholder-gray-600 focus:ring-0 px-0" placeholder="Type reply to resolve..." value={activeTicketId === ticket.id ? replyText : ''} onChange={e => { setActiveTicketId(ticket.id); setReplyText(e.target.value); }} />
+                                     <div className="flex gap-2 bg-black/45 border border-white/5 rounded-2xl p-2.5 focus-within:border-white/20 transition-all items-center">
+                                         <input className="flex-1 bg-transparent border-none text-sm text-white placeholder-gray-600 focus:ring-0 px-3 outline-none" placeholder="Type reply to resolve..." value={activeTicketId === ticket.id ? replyText : ''} onChange={e => { setActiveTicketId(ticket.id); setReplyText(e.target.value); }} />
                                          {activeTicketId === ticket.id && replyText && (
-                                             <button onClick={() => handleTicketResponse(ticket.id, 'resolved', true)} className="px-3 py-1 bg-tennis-lime text-black rounded-lg text-[10px] font-black uppercase">Send & Resolve</button>
+                                             <button onClick={() => handleTicketResponse(ticket.id, 'resolved', true)} className="px-4 py-2 bg-tennis-lime hover:bg-tennis-lime/90 text-black rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-tennis-lime/10">Send & Resolve</button>
                                          )}
                                      </div>
                                  )}
@@ -949,24 +1046,26 @@ export function AdminCMS() {
                      ))}
                  </div>
              ) : (
-                 <div className="grid gap-4">
+                 <div className="grid gap-6">
                      {adminFeedback.length === 0 && <div className="text-gray-500 text-center py-10">No feedback items yet.</div>}
                      {adminFeedback.map(post => (
-                         <div key={post.id} className="bg-[#15171e] p-6 rounded-2xl border border-white/5 flex gap-6">
-                             <div className="flex flex-col items-center justify-center min-w-[50px] text-gray-500"><ThumbsUp size={16} /><span className="font-bold text-lg mt-1">{post.upvotes_count}</span></div>
+                         <div key={post.id} className="bg-[#15171e]/70 backdrop-blur-md p-6 rounded-3xl border border-white/5 flex flex-col sm:flex-row gap-6 hover:border-white/10 hover:shadow-2xl transition-all duration-300">
+                             <div className="flex sm:flex-col items-center justify-center min-w-[50px] text-gray-500 bg-white/5 p-3 rounded-2xl border border-white/5 sm:h-fit gap-2"><ThumbsUp size={16} /><span className="font-black text-lg text-white leading-none">{post.upvotes_count}</span></div>
                              <div className="flex-1">
                                  <div className="flex items-center gap-3 mb-2">
                                      <span className="text-[10px] text-gray-500 font-mono uppercase">{post.user_id ? `User: ${post.user_id.slice(0,8)}...` : 'Unknown'}</span>
-                                     <span className="text-[10px] text-tennis-lime font-black uppercase tracking-widest border border-tennis-lime/20 px-2 rounded">{post.category}</span>
+                                     <span className="text-[10px] text-tennis-lime font-black uppercase tracking-widest border border-tennis-lime/20 px-2.5 py-0.5 rounded-lg bg-tennis-lime/5">{post.category}</span>
                                  </div>
                                  <h4 className="text-white font-bold text-lg mb-1">{post.title}</h4>
-                                 <p className="text-gray-400 text-sm mb-4">{post.content}</p>
+                                 <p className="text-gray-400 text-sm mb-4 leading-relaxed font-semibold">{post.content}</p>
                                  <div className="flex gap-2 items-center flex-wrap">
-                                     <label className="text-[10px] font-black text-gray-600 uppercase">Status:</label>
-                                     {['under-review', 'planned', 'in-progress', 'completed'].map(s => (
-                                         <button key={s} onClick={() => handleFeedbackStatus(post.id, s)} className={`px-2 py-1 rounded text-[9px] font-black uppercase border transition-all ${post.status === s ? 'bg-white text-black border-white' : 'bg-transparent text-gray-600 border-white/5 hover:border-white/20'}`}>{s}</button>
-                                     ))}
-                                     <button onClick={() => deleteFeedback(post.id)} className="ml-auto text-red-500 hover:text-red-400"><Trash2 size={14}/></button>
+                                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-wider mr-2">Status:</label>
+                                     <div className="flex gap-1.5 flex-wrap">
+                                         {['under-review', 'planned', 'in-progress', 'completed'].map(s => (
+                                             <button key={s} onClick={() => handleFeedbackStatus(post.id, s)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border transition-all ${post.status === s ? 'bg-white text-black border-white shadow-md' : 'bg-transparent text-gray-600 border-white/5 hover:border-white/10 hover:text-gray-400'}`}>{s}</button>
+                                         ))}
+                                     </div>
+                                     <button onClick={() => deleteFeedback(post.id)} className="ml-auto p-2 bg-red-500/10 text-red-500 hover:text-red-400 rounded-lg hover:bg-red-500/20 transition-all active:scale-95"><Trash2 size={14}/></button>
                                  </div>
                              </div>
                          </div>
@@ -1016,27 +1115,29 @@ export function AdminCMS() {
             </div>
 
             {/* Sub-tab selection */}
-            <div className="flex gap-2 p-1 bg-[#15171e] rounded-2xl border border-white/10 w-fit shadow-lg">
-              <button
-                onClick={() => setAgentSubTab('reports')}
-                className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
-                  agentSubTab === 'reports'
-                    ? 'bg-white/10 text-white shadow-xl border border-white/10'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                <FileText size={14} /> Tägliche Berichte ({scoutReports.length})
-              </button>
-              <button
-                onClick={() => setAgentSubTab('rules')}
-                className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
-                  agentSubTab === 'rules'
-                    ? 'bg-white/10 text-white shadow-xl border border-white/10'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                <Sliders size={14} /> Veto- & Risikoregeln ({scoutRules.length})
-              </button>
+            <div className="overflow-x-auto no-scrollbar w-full sm:w-fit -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="flex gap-2 p-1 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-max shadow-lg">
+                <button
+                  onClick={() => setAgentSubTab('reports')}
+                  className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap active:scale-95 ${
+                    agentSubTab === 'reports'
+                      ? 'bg-white/10 text-white shadow-xl border border-white/10'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <FileText size={14} /> Tägliche Berichte ({scoutReports.length})
+                </button>
+                <button
+                  onClick={() => setAgentSubTab('rules')}
+                  className={`px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap active:scale-95 ${
+                    agentSubTab === 'rules'
+                      ? 'bg-white/10 text-white shadow-xl border border-white/10'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <Sliders size={14} /> Veto- & Risikoregeln ({scoutRules.length})
+                </button>
+              </div>
             </div>
 
             {agentSubTab === 'reports' ? (
@@ -1046,13 +1147,13 @@ export function AdminCMS() {
                     Keine täglichen Berichte vorhanden. Führe den Scraper aus, um den ersten Bericht zu generieren.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                  <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
                     {/* Left Column: Report list */}
-                    <div className="lg:col-span-1 space-y-4">
+                    <div className="w-full lg:col-span-1 space-y-4">
                       <h4 className="text-gray-500 font-black text-[9px] uppercase tracking-widest px-2">
                         Berichts-Historie
                       </h4>
-                      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 no-scrollbar">
+                      <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[600px] pb-3 lg:pb-0 no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
                         {scoutReports.map((report) => {
                           const isSelected = selectedReportId ? report.id === selectedReportId : report.id === scoutReports[0].id;
                           const rMetrics = typeof report.metrics === 'string' ? JSON.parse(report.metrics) : report.metrics;
@@ -1063,7 +1164,7 @@ export function AdminCMS() {
                             <div
                               key={report.id}
                               onClick={() => setSelectedReportId(report.id)}
-                              className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 ${
+                              className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 min-w-[280px] sm:min-w-[320px] lg:min-w-0 w-full shrink-0 flex flex-col justify-between ${
                                 isSelected
                                   ? 'bg-[#15171e] border-tennis-lime/30 shadow-[0_0_30px_rgba(132,204,22,0.05)] ring-1 ring-tennis-lime/20'
                                   : 'bg-[#15171e]/50 border-white/5 hover:border-white/10 hover:bg-[#1a1d26]'
@@ -1092,7 +1193,7 @@ export function AdminCMS() {
                     </div>
 
                     {/* Right Column: Report details */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="w-full lg:col-span-2 space-y-6">
                       {selectedReport && (
                         <div className="space-y-6">
                           {/* Report Header */}
@@ -1371,8 +1472,8 @@ export function AdminCMS() {
                 )}
 
                 {/* Stat Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('PENDING')}>
+                <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-visible no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-3 md:pb-0">
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer min-w-[280px] md:min-w-0 flex-1 hover:scale-[1.02] active:scale-95 duration-300 shrink-0" onClick={() => setRulesFilter('PENDING')}>
                     <div>
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Pending Proposals</span>
                       <h4 className="text-3xl font-black text-white mt-1 italic outline-text">{pendingRules.length}</h4>
@@ -1382,7 +1483,7 @@ export function AdminCMS() {
                     </div>
                   </div>
 
-                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('APPROVED')}>
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer min-w-[280px] md:min-w-0 flex-1 hover:scale-[1.02] active:scale-95 duration-300 shrink-0" onClick={() => setRulesFilter('APPROVED')}>
                     <div>
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Vetoes</span>
                       <h4 className="text-3xl font-black text-red-500 mt-1 italic outline-text">{activeVetoes.length}</h4>
@@ -1392,7 +1493,7 @@ export function AdminCMS() {
                     </div>
                   </div>
 
-                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('APPROVED')}>
+                  <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer min-w-[280px] md:min-w-0 flex-1 hover:scale-[1.02] active:scale-95 duration-300 shrink-0" onClick={() => setRulesFilter('APPROVED')}>
                     <div>
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Multipliers</span>
                       <h4 className="text-3xl font-black text-tennis-lime mt-1 italic outline-text">{activeMultipliers.length}</h4>
@@ -1652,15 +1753,15 @@ export function AdminCMS() {
       default: // Players (Default Case)
         return (
           <div> 
-            <div className="bg-[#15171e] rounded-[2rem] shadow-2xl p-2 md:p-3 mb-8 md:mb-10 border border-white/10 flex items-center gap-4 transition-all focus-within:border-tennis-lime/50 focus-within:shadow-[0_0_40px_rgba(132,204,22,0.1)] group">
-              <Search className="text-gray-500 ml-3 md:ml-5 shrink-0 group-focus-within:text-tennis-lime transition-colors" size={24} />
-              <input type="text" placeholder="QUERY DATABASE..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-700 text-base md:text-sm font-black h-12 md:h-14 uppercase tracking-wider" />
+            <div className="bg-black/45 backdrop-blur-md rounded-2xl shadow-xl p-1 md:p-2 mb-8 md:mb-10 border border-white/5 flex items-center gap-4 transition-all focus-within:border-tennis-lime/50 focus-within:shadow-[0_0_40px_rgba(132,204,22,0.15)] group">
+              <Search className="text-gray-500 ml-4 shrink-0 group-focus-within:text-tennis-lime transition-colors" size={20} />
+              <input type="text" placeholder="QUERY DATABASE..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-700 text-sm font-black h-12 md:h-14 uppercase tracking-wider outline-none" />
             </div>
             <div className="grid grid-cols-1 gap-4 md:gap-6">
               {filteredPlayers.map((player) => {
                   const isExpanded = expandedPlayerId === player.id;
                   return (
-                      <div key={player.id} className={`bg-[#15171e] rounded-[2rem] border transition-all duration-500 overflow-hidden ${isExpanded ? 'border-tennis-lime shadow-[0_0_50px_rgba(132,204,22,0.15)] ring-1 ring-tennis-lime/20' : 'border-white/5 hover:border-white/10 hover:bg-[#1a1d26]'}`}>
+                      <div key={player.id} className={`bg-[#15171e]/50 backdrop-blur-md rounded-[2rem] border transition-all duration-500 overflow-hidden ${isExpanded ? 'bg-[#15171e]/90 border-tennis-lime shadow-[0_0_50px_rgba(132,204,22,0.15)] ring-1 ring-tennis-lime/20' : 'border-white/5 hover:border-white/10 hover:bg-[#1a1d26]/80'}`}>
                           <div onClick={() => toggleAccordion(player.id)} className="p-4 md:p-7 cursor-pointer select-none active:bg-white/5">
                               <div className="flex flex-row md:items-center justify-between gap-4">
                                   <div className="flex items-start md:items-center gap-4 md:gap-8 flex-1">
@@ -1918,12 +2019,12 @@ export function AdminCMS() {
 
       {/* TABS */}
       <div className="mb-8 md:mb-10 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-        <div className="flex p-1.5 md:p-2 bg-[#15171e] rounded-2xl border border-white/10 w-fit min-w-max shadow-2xl">
+        <div className="flex p-1 md:p-1.5 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-fit min-w-max shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
             {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${isActive ? 'bg-white/10 text-white shadow-xl border border-white/10' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2 md:gap-2.5 px-4 md:px-5 py-2.5 md:py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 active:scale-95 ${isActive ? 'bg-white/10 text-white border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Icon size={16} className={isActive ? 'text-tennis-lime' : ''} /> {tab.label}
                     </button>
                 )
