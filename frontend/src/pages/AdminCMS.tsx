@@ -976,6 +976,9 @@ export function AdminCMS() {
           </div>
         );
       case 'ai-agent':
+        const autopilotRule = scoutRules.find(r => r.description === 'SYSTEM_AUTOPILOT');
+        const isAutopilotOn = autopilotRule?.status === 'approved';
+
         const bettingRules = scoutRules.filter(r => r.description !== 'SYSTEM_AUTOPILOT');
         const pendingRules = bettingRules.filter(r => r.status === 'pending');
         const activeVetoes = bettingRules.filter(r => r.status === 'approved' && r.rule_type === 'veto');
