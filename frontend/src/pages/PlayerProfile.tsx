@@ -15,7 +15,7 @@ import { SkillRadarChart } from '../components/SkillRadarChart';
 import { SkillBar } from '../components/SkillBar';
 import { AchievementBadge } from '../components/AchievementBadge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
+import { Toast } from '../components/Toast';
 import {
   Zap,
   Target,
@@ -29,7 +29,8 @@ import {
   Trophy,
   Activity,
   Heart,
-  Radar
+  Radar,
+  Share2
 } from 'lucide-react';
 
 interface Player {
@@ -83,6 +84,8 @@ export const PlayerProfile: React.FC = () => {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
 
   const touchStartX = useRef<number>(0);
   const tabs = ['Overview', 'Stats', 'Intelligence', 'Load', 'Form'];
@@ -139,7 +142,8 @@ export const PlayerProfile: React.FC = () => {
       setAchievements(achievementsData || []);
     } catch (e) {
       console.error('Error fetching player profile data:', e);
-      toast.error('Failed to load player details');
+      setToastMessage('Failed to load player details');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -176,7 +180,8 @@ export const PlayerProfile: React.FC = () => {
 
   const toggleFavorite = async () => {
     if (!user) {
-      toast.error('Please sign in to add players to your watchlist');
+      setToastMessage('Please sign in to add players to your watchlist');
+      setShowToast(true);
       return;
     }
 
@@ -189,32 +194,39 @@ export const PlayerProfile: React.FC = () => {
           .eq('player_id', id);
         setIsFavorite(false);
         setFavoritesCount(prev => Math.max(0, prev - 1));
-        toast.success('Removed from watchlist');
+        setToastMessage('Removed from watchlist');
+        setShowToast(true);
       } else {
         await supabase
           .from('favorites')
           .insert([{ user_id: user.id, player_id: id }]);
         setIsFavorite(true);
         setFavoritesCount(prev => prev + 1);
-        toast.success('Added to watchlist');
+        setToastMessage('Added to watchlist');
+        setShowToast(true);
       }
     } catch (e) {
       console.error('Error toggling watchlist:', e);
-      toast.error('Could not update watchlist');
+      setToastMessage('Could not update watchlist');
+      setShowToast(true);
     }
   };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success('Player profile link copied to clipboard!');
+    setToastMessage('Player profile link copied to clipboard!');
+    setShowToast(true);
   };
 
   // Touch handlers for swipe navigation between tabs
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    if (e.touches && e.touches.length > 0) {
+      touchStartX.current = e.touches[0].clientX;
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX.current - touchEndX;
     const threshold = 60;
@@ -544,6 +556,7 @@ export const PlayerProfile: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
     </motion.div>
   );
 };
