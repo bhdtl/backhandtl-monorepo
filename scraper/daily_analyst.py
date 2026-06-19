@@ -359,17 +359,17 @@ async def run_daily_analysis():
             })
 
     # === SELF-HEALING / RULE RECOVERY CYCLE ===
-    active_rules = []
-    recovery_recommendations = []
+    all_rules = []
+    rule_recommendations = []
     if supabase:
         try:
-            res_rules = supabase.table("scout_rules").select("*").eq("status", "approved").execute()
-            active_rules = res_rules.data or []
-            log(f"🧠 AI Agent: Loaded {len(active_rules)} active approved rules for recovery review.")
+            res_rules = supabase.table("scout_rules").select("*").execute()
+            all_rules = res_rules.data or []
+            log(f"🧠 AI Agent: Loaded {len(all_rules)} rules for recovery and re-evaluation.")
         except Exception as e:
-            log(f"⚠️ Error fetching active rules for review: {e}")
+            log(f"⚠️ Error fetching rules for re-evaluation: {e}")
 
-    if active_rules:
+    if all_rules:
         # Helper to check if a pick matches the conditions of a rule
         def matches_rule_conditions(pick, conditions):
             if "surface" in conditions:
@@ -481,36 +481,111 @@ async def run_daily_analysis():
             if p2_shadow:
                 all_shadow_picks.append(p2_shadow)
 
-        # Check recovery for each rule
-        for rule in active_rules:
+        # Check recovery/reactivation/decisions for all rules
+        for rule in all_rules:
             conds = rule.get("conditions") or {}
             desc = rule.get("description", "")
             rule_id = rule.get("id")
+            rule_status = rule.get("status", "pending")
             
-            matching_picks = [p for p in all_shadow_picks if matches_rule_conditions(p, conds)]
-            
-            if len(matching_picks) >= 5:
-                total_staked = sum(p["stake"] for p in matching_picks)
-                net_profit = sum(p["profit"] for p in matching_picks)
-                shadow_roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
-                
-                # If shadow ROI is positive (> 5%), suggest disabling the rule
-                if shadow_roi > 5.0:
-                    recovery_recommendations.append({
-                        "rule_id": rule_id,
-                        "description": desc,
-                        "shadow_bets": len(matching_picks),
-                        "shadow_roi": round(shadow_roi, 1),
-                        "shadow_profit": round(net_profit, 2)
-                    })
-                    log(f"🩹 Recovery Candidate Found: '{desc}' has a positive shadow ROI of {shadow_roi:.1f}% over {len(matching_picks)} bets.")
+            if rule_status == "approved":
+                # Active rules: compare against shadow picks (what would have been bet)
+                matching_picks = [p for p in all_shadow_picks if matches_rule_conditions(p, conds)]
+                if len(matching_picks) >= 5:
+                    total_staked = sum(p["stake"] for p in matching_picks)
+                    net_profit = sum(p["profit"] for p in matching_picks)
+                    roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    
+                    if roi > 5.0:
+                        rule_recommendations.append({
+                            "rule_id": rule_id,
+                            "description": desc,
+                            "current_status": rule_status,
+                            "recommended_status": "rejected",
+                            "action_type": "deactivate",
+                            "bets": len(matching_picks),
+                            "roi": round(roi, 1),
+                            "profit": round(net_profit, 2),
+                            "reason": "Schatten-Performance hat sich erholt (positive Rendite)."
+                        })
+                        log(f"🩹 Recovery Candidate (Deactivate): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+            else:
+                # Inactive (rejected) or pending rules: compare against actual settled picks
+                matching_picks = [p for p in settled_picks if matches_rule_conditions(p, conds)]
+                if len(matching_picks) >= 5:
+                    total_staked = sum(p["stake"] for p in matching_picks)
+                    net_profit = sum(p["profit"] for p in matching_picks)
+                    roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    
+                    if rule_status == "rejected" and roi < -15.0:
+                        rule_recommendations.append({
+                            "rule_id": rule_id,
+                            "description": desc,
+                            "current_status": rule_status,
+                            "recommended_status": "approved",
+                            "action_type": "reactivate",
+                            "bets": len(matching_picks),
+                            "roi": round(roi, 1),
+                            "profit": round(net_profit, 2),
+                            "reason": "Subgruppe verliert wieder signifikant (negative Rendite)."
+                        })
+                        log(f"🩹 Reactivation Candidate (Reactivate): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+                    elif rule_status == "pending":
+                        if roi < -15.0:
+                            rule_recommendations.append({
+                                "rule_id": rule_id,
+                                "description": desc,
+                                "current_status": rule_status,
+                                "recommended_status": "approved",
+                                "action_type": "approve",
+                                "bets": len(matching_picks),
+                                "roi": round(roi, 1),
+                                "profit": round(net_profit, 2),
+                                "reason": "Ausstehender Vorschlag bestätigt sich durch anhaltende Verluste."
+                            })
+                            log(f"🩹 Pending Candidate (Approve): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+                        elif roi > 5.0:
+                            rule_recommendations.append({
+                                "rule_id": rule_id,
+                                "description": desc,
+                                "current_status": rule_status,
+                                "recommended_status": "rejected",
+                                "action_type": "reject",
+                                "bets": len(matching_picks),
+                                "roi": round(roi, 1),
+                                "profit": round(net_profit, 2),
+                                "reason": "Ausstehender Vorschlag hinfällig (Subgruppe ist profitabel)."
+                            })
+                            log(f"🩹 Pending Candidate (Reject): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
 
-    recovery_summary = ""
-    if recovery_recommendations:
-        for idx, rec in enumerate(recovery_recommendations, 1):
-            recovery_summary += f"{idx}. {rec['description']} (ID: {rec['rule_id']}) -> Schatten-ROI: {rec['shadow_roi']:+.1f}% über {rec['shadow_bets']} Spiele (hypothetischer Profit: {rec['shadow_profit']:+.2f}u)\n"
+    rules_evaluation_summary = ""
+    if rule_recommendations:
+        deactivates = [r for r in rule_recommendations if r["action_type"] == "deactivate"]
+        reactivates = [r for r in rule_recommendations if r["action_type"] == "reactivate"]
+        approves = [r for r in rule_recommendations if r["action_type"] == "approve"]
+        rejects = [r for r in rule_recommendations if r["action_type"] == "reject"]
+        
+        if deactivates:
+            rules_evaluation_summary += "--- VORSCHLÄGE ZUR DEAKTIVIERUNG (Approved -> Rejected) ---\n"
+            for idx, r in enumerate(deactivates, 1):
+                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Schatten-Bets: {r['bets']} | Schatten-ROI: {r['roi']:+.1f}% | Schatten-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+        
+        if reactivates:
+            rules_evaluation_summary += "\n--- VORSCHLÄGE ZUR REAKTIVIERUNG (Rejected -> Approved) ---\n"
+            for idx, r in enumerate(reactivates, 1):
+                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                
+        if approves:
+            rules_evaluation_summary += "\n--- ANNAHME AUSSTEHENDER VORSCHLÄGE (Pending -> Approved) ---\n"
+            for idx, r in enumerate(approves, 1):
+                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                
+        if rejects:
+            rules_evaluation_summary += "\n--- ABLEHNUNG AUSSTEHENDER VORSCHLÄGE (Pending -> Rejected) ---\n"
+            for idx, r in enumerate(rejects, 1):
+                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
     else:
-        recovery_summary = "Keine der aktiven Regeln zeigt eine signifikante Erholung in der Schatten-Performance."
+        rules_evaluation_summary = "Aktuell keine Statusänderungen für bestehende Regeln empfohlen."
 
     # Call OpenRouter for Report Summary & Proposals
     system_prompt = (
@@ -518,7 +593,7 @@ async def run_daily_analysis():
         "Your system has three distinct agents:\n"
         "1. Daily Operations Analyst (Micro-Perspective): Reviews only the picks and results of the last 24 hours.\n"
         "2. Macro Risk & Calibration Strategist (Macro-Perspective): Reviews the 30-day statistical performance and subgroups to calibrate the system and manage risk.\n"
-        "3. Self-Healing Agent (Rule Recovery): Analyzes the shadow performance of blocked/active rules and recommends disabling them if performance has recovered.\n"
+        "3. Self-Healing Agent (Rule Recovery & Re-evaluation): Analyzes the shadow/actual performance of rules and recommends changing their status (activating/deactivating/deciding).\n"
         "Write an executive-level German report. Use clean markdown structure, Apple/Revolut clarity, and plain bold headers/bullet points. "
         "Keep it extremely analytical and direct."
     )
@@ -550,8 +625,8 @@ async def run_daily_analysis():
     {json.dumps(failures, indent=2)}
     
     =========================================
-    3. RECOVERY RECOMMENDATIONS (Self-Healing Agent):
-    {recovery_summary}
+    3. REGEL-EVALUIERUNG & STATUS-VORSCHLÄGE (Self-Healing Agent):
+    {rules_evaluation_summary}
     
     Bitte erstelle einen strukturierten Bericht auf Deutsch im Apple/Revolut-Stil mit folgenden Sektionen:
     
@@ -563,9 +638,9 @@ async def run_daily_analysis():
     - Eine detaillierte Auswertung des 30-Tage-Trends und der Subgruppen. Warum verlieren/gewinnen bestimmte Beläge (Rasen/Sand) oder Klassen (WTA/ATP, Challenger vs. Haupttour)?
     - Empfehlungen zur Kalibrierung des Scrapers (Vorschlag von Vetoes, Einsatzdämpfern per Multiplier oder Mindest-Edge-Verschiebungen).
     
-    ### 🩹 Sektion 3: Vorschläge zur Regel-Aufhebung (Self-Healing Agent)
-    - Wenn Regeln in '3. RECOVERY RECOMMENDATIONS' gelistet sind, analysiere die Performance. Erkläre in 1-2 Sätzen auf Deutsch, warum sich diese Subgruppe erholt hat, und empfehle explizit, diese Regeln im Dashboard auf 'rejected' zu setzen.
-    - Falls keine Regeln gelistet sind, schreibe einfach: 'Aktuell keine Regel-Aufhebungen empfohlen.'
+    ### 🩹 Sektion 3: Regel-Re-Evaluierung & Self-Healing (Self-Healing Agent)
+    - Wenn Regeln in '3. REGEL-EVALUIERUNG & STATUS-VORSCHLÄGE' gelistet sind, analysiere die Performance. Erkläre in 1-2 Sätzen auf Deutsch, warum sich diese Subgruppe erholt hat (Schatten-ROI positiv) oder wieder verliert (Real-ROI negativ), und empfiehle explizit die vorgeschlagene Statusänderung (Approved -> Rejected oder Rejected -> Approved oder Pending -> Approved/Rejected) im CMS.
+    - Falls keine Änderungen empfohlen werden, schreibe einfach: 'Aktuell keine Statusänderungen für bestehende Regeln empfohlen.'
     
     Gibt es Vorschläge für NEUE Regeln, formuliere sie am Ende des Berichts als JSON-Array im Format:
     PROPOSALS_JSON:
@@ -617,7 +692,7 @@ async def run_daily_analysis():
             "roi": round(roi, 1),
             "brier_score": round(avg_brier, 4),
             "breakdown": metrics_breakdown,
-            "rule_recommendations": recovery_recommendations,
+            "rule_recommendations": rule_recommendations,
             "today": {
                 "bets": today_bets,
                 "win_rate": round(today_win_rate, 1),
