@@ -126,7 +126,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const lastName = useMemo(() => {
-    return playerName.split(' ').pop() || playerName;
+    return (playerName || '').split(' ').pop() || playerName || '';
   }, [playerName]);
 
   const dbScore = useMemo(() => {
@@ -321,7 +321,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
           </div>
         ) : (
           filteredMatches.map((m) => {
-            const oppLastName = m.opponent.split(' ').pop() || 'Opponent';
+            const oppLastName = (m.opponent || '').split(' ').pop() || 'Opponent';
             return (
               <div
                 key={m.id}

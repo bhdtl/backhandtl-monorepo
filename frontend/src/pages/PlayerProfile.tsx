@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -131,7 +131,7 @@ export const PlayerProfile: React.FC = () => {
       setInsights(insightsRes.data || []);
 
       // Load matches for the player based on their last name
-      const lastName = playerData.last_name.toLowerCase();
+      const lastName = (playerData.last_name || '').toLowerCase();
       const [marketRes, historyRes] = await Promise.all([
         supabase
           .from('market_odds')
