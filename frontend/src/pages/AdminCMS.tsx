@@ -626,6 +626,26 @@ export function AdminCMS() {
     }
   };
 
+  const toggleAutopilot = async (ruleId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'approved' ? 'rejected' : 'approved';
+      const { error } = await supabase
+        .from('scout_rules')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', ruleId);
+
+      if (error) throw error;
+
+      setToastMessage(`Autopilot successfully ${newStatus === 'approved' ? 'activated' : 'deactivated'}!`);
+      setShowToast(true);
+      loadData();
+    } catch (err: any) {
+      console.error("Error toggling autopilot:", err);
+      setToastMessage("Failed to update autopilot setting.");
+      setShowToast(true);
+    }
+  };
+
   const deleteRule = async (id: string) => {
     if(!confirm('Delete rule? This cannot be undone.')) return;
     try {
@@ -956,11 +976,12 @@ export function AdminCMS() {
           </div>
         );
       case 'ai-agent':
-        const pendingRules = scoutRules.filter(r => r.status === 'pending');
-        const activeVetoes = scoutRules.filter(r => r.status === 'approved' && r.rule_type === 'veto');
-        const activeMultipliers = scoutRules.filter(r => r.status === 'approved' && r.rule_type === 'multiplier');
+        const bettingRules = scoutRules.filter(r => r.description !== 'SYSTEM_AUTOPILOT');
+        const pendingRules = bettingRules.filter(r => r.status === 'pending');
+        const activeVetoes = bettingRules.filter(r => r.status === 'approved' && r.rule_type === 'veto');
+        const activeMultipliers = bettingRules.filter(r => r.status === 'approved' && r.rule_type === 'multiplier');
         
-        const filteredRules = scoutRules.filter(r => {
+        const filteredRules = bettingRules.filter(r => {
           if (rulesFilter === 'ALL') return true;
           if (rulesFilter === 'PENDING') return r.status === 'pending';
           if (rulesFilter === 'APPROVED') return r.status === 'approved';
@@ -1302,6 +1323,50 @@ export function AdminCMS() {
               </div>
             ) : (
               <div className="space-y-8 animate-in fade-in duration-300">
+                {/* Autopilot Control Card */}
+                {autopilotRule && (
+                  <div className="relative bg-gradient-to-r from-[#111217] via-[#161a26] to-[#111217] border border-white/5 rounded-3xl p-6 md:p-8 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-tennis-lime animate-ping"></span>
+                        <span className="text-[10px] text-tennis-lime uppercase font-black tracking-widest">Syndicate Automated Risk Officer</span>
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
+                        System-Autopilot: <span className={isAutopilotOn ? "text-tennis-lime" : "text-yellow-500"}>{isAutopilotOn ? "Aktiviert (System Auto-Pilot)" : "Deaktiviert (Manueller Modus)"}</span>
+                      </h3>
+                      <p className="text-gray-400 text-xs leading-relaxed max-w-2xl">
+                        Der Syndicate Board Agent re-evaluiert jede Nacht alle Regeln. Im **Autopilot-Modus** werden Statusänderungen bei Erreichen des Signifikanz-Grenzwertes (p &lt; 0.05) vollautomatisch in Kraft gesetzt. Im **manuellen Modus** dienen die Audits als reine Empfehlungen.
+                      </p>
+                      
+                      {/* Safety Parameters Display */}
+                      <div className="flex flex-wrap gap-4 pt-2">
+                        <div className="bg-black/30 border border-white/5 px-3 py-1.5 rounded-xl text-[10px] text-gray-400 font-mono">
+                          <span className="text-gray-500 font-bold">Max. Veto-Volumen:</span> {(autopilotRule.conditions as any)?.max_veto_percentage || 35}%
+                        </div>
+                        <div className="bg-black/30 border border-white/5 px-3 py-1.5 rounded-xl text-[10px] text-gray-400 font-mono">
+                          <span className="text-gray-500 font-bold">48h Drawdown-Limit:</span> -{(autopilotRule.conditions as any)?.drawdown_limit_units || 15}u
+                        </div>
+                        <div className="bg-black/30 border border-white/5 px-3 py-1.5 rounded-xl text-[10px] text-gray-400 font-mono">
+                          <span className="text-gray-500 font-bold">Signifikanz-Gate:</span> p &lt; 0.05 (95% Skill-Garantie)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-4 w-full md:w-auto">
+                      <button
+                        onClick={() => toggleAutopilot(autopilotRule.id, autopilotRule.status)}
+                        className={`w-full md:w-auto px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 ${
+                          isAutopilotOn
+                            ? 'bg-transparent text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/10 hover:border-yellow-500/40 shadow-yellow-500/5'
+                            : 'bg-white text-black border-white hover:bg-gray-100 hover:shadow-white/5'
+                        }`}
+                      >
+                        {isAutopilotOn ? "Autopilot Stoppen" : "Autopilot Starten"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Stat Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-[#15171e]/50 backdrop-blur-xl border border-white/5 p-6 rounded-3xl shadow-xl flex items-center justify-between hover:border-white/10 transition-all cursor-pointer" onClick={() => setRulesFilter('PENDING')}>

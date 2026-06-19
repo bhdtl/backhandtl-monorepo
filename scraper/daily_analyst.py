@@ -3,11 +3,26 @@ import sys
 import re
 import json
 import httpx
+import math
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from supabase import create_client
 
 sys.stdout.reconfigure(encoding='utf-8')
+
+def compute_p_value(n_bets: int, avg_odds: float, roi: float) -> float:
+    if n_bets <= 0 or avg_odds <= 1.0:
+        return 1.0
+    se = math.sqrt((avg_odds - 1.0) / n_bets)
+    if se <= 0:
+        return 1.0
+    z = (roi / 100.0) / se
+    if roi < 0:
+        p = 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+    else:
+        p = 0.5 * (1.0 - math.erf(z / math.sqrt(2.0)))
+    return round(p, 4)
+
 
 # Supabase Credentials
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -361,13 +376,70 @@ async def run_daily_analysis():
     # === SELF-HEALING / RULE RECOVERY CYCLE ===
     all_rules = []
     rule_recommendations = []
+    autopilot_enabled = False
+    max_veto_percentage = 35.0
+    drawdown_limit = 15.0
+    autopilot_rule = None
+    drawdown_triggered = False
+    recent_profit_48h = 0.0
+
     if supabase:
         try:
             res_rules = supabase.table("scout_rules").select("*").execute()
             all_rules = res_rules.data or []
             log(f"🧠 AI Agent: Loaded {len(all_rules)} rules for recovery and re-evaluation.")
+            
+            # Find or seed SYSTEM_AUTOPILOT settings
+            autopilot_rule = next((r for r in all_rules if r.get("description") == "SYSTEM_AUTOPILOT"), None)
+            if autopilot_rule:
+                autopilot_enabled = (autopilot_rule.get("status") == "approved")
+                conds = autopilot_rule.get("conditions") or {}
+                max_veto_percentage = conds.get("max_veto_percentage", 35.0)
+                drawdown_limit = conds.get("drawdown_limit_units", 15.0)
+                log(f"🧠 Board Agent: Loaded SYSTEM_AUTOPILOT. Enabled={autopilot_enabled}, MaxVeto={max_veto_percentage}%, DrawdownLimit={drawdown_limit}u")
+            else:
+                seed_data = {
+                    "rule_type": "veto",
+                    "description": "SYSTEM_AUTOPILOT",
+                    "status": "rejected", # Starts disabled/manual mode
+                    "conditions": {"max_veto_percentage": 35.0, "drawdown_limit_units": 15.0},
+                    "confidence": 1.0
+                }
+                res_insert = supabase.table("scout_rules").insert(seed_data).execute()
+                if res_insert.data:
+                    autopilot_rule = res_insert.data[0]
+                    all_rules.append(autopilot_rule)
+                log("🧠 Board Agent: Seeded SYSTEM_AUTOPILOT settings row in database.")
         except Exception as e:
-            log(f"⚠️ Error fetching rules for re-evaluation: {e}")
+            log(f"⚠️ Error loading/seeding SYSTEM_AUTOPILOT settings: {e}")
+
+    # 48h drawdown circuit breaker check
+    if settled_picks:
+        cutoff_48h = datetime.now(timezone.utc) - timedelta(hours=48)
+        for p in settled_picks:
+            if p.get("created_at"):
+                try:
+                    p_dt = datetime.fromisoformat(p["created_at"].replace("Z", "+00:00"))
+                    if p_dt >= cutoff_48h:
+                        recent_profit_48h += p["profit"]
+                except Exception:
+                    pass
+                    
+        log(f"🧠 Board Agent: 48h Portfolio Net Profit = {recent_profit_48h:+.2f} units (Limit = -{drawdown_limit} units)")
+        if recent_profit_48h <= -drawdown_limit:
+            drawdown_triggered = True
+            log(f"🚨 EMERGENCY SHUTDOWN: 48h Drawdown Limit exceeded ({recent_profit_48h:+.2f}u <= -{drawdown_limit}u)!")
+            if autopilot_enabled:
+                autopilot_enabled = False
+                if supabase and autopilot_rule:
+                    try:
+                        supabase.table("scout_rules").update({
+                            "status": "rejected",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }).eq("id", autopilot_rule["id"]).execute()
+                        log("🚨 Autopilot has been AUTOMATICALLY DISABLED due to emergency drawdown circuit breaker.")
+                    except Exception as e:
+                        log(f"⚠️ Error disabling autopilot in database: {e}")
 
     if all_rules:
         # Helper to check if a pick matches the conditions of a rule
@@ -488,77 +560,97 @@ async def run_daily_analysis():
             rule_id = rule.get("id")
             rule_status = rule.get("status", "pending")
             
+            if desc == "SYSTEM_AUTOPILOT":
+                continue
+                
+            recommended_status = None
+            action_type = None
+            reason = None
+            matching_picks_count = 0
+            roi_val = 0.0
+            profit_val = 0.0
+            p_val = 1.0
+            
             if rule_status == "approved":
                 # Active rules: compare against shadow picks (what would have been bet)
                 matching_picks = [p for p in all_shadow_picks if matches_rule_conditions(p, conds)]
-                if len(matching_picks) >= 5:
+                matching_picks_count = len(matching_picks)
+                if matching_picks_count >= 8:
+                    avg_odds = sum(p["market_odds"] for p in matching_picks) / matching_picks_count
                     total_staked = sum(p["stake"] for p in matching_picks)
                     net_profit = sum(p["profit"] for p in matching_picks)
-                    roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    profit_val = net_profit
+                    roi_val = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    p_val = compute_p_value(matching_picks_count, avg_odds, roi_val)
                     
-                    if roi > 5.0:
-                        rule_recommendations.append({
-                            "rule_id": rule_id,
-                            "description": desc,
-                            "current_status": rule_status,
-                            "recommended_status": "rejected",
-                            "action_type": "deactivate",
-                            "bets": len(matching_picks),
-                            "roi": round(roi, 1),
-                            "profit": round(net_profit, 2),
-                            "reason": "Schatten-Performance hat sich erholt (positive Rendite)."
-                        })
-                        log(f"🩹 Recovery Candidate (Deactivate): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+                    if roi_val > 5.0 and p_val < 0.05:
+                        recommended_status = "rejected"
+                        action_type = "deactivate"
+                        reason = f"Schatten-Performance hat sich signifikant erholt (ROI: {roi_val:+.1f}%, p-Wert: {p_val})."
             else:
                 # Inactive (rejected) or pending rules: compare against actual settled picks
                 matching_picks = [p for p in settled_picks if matches_rule_conditions(p, conds)]
-                if len(matching_picks) >= 5:
+                matching_picks_count = len(matching_picks)
+                if matching_picks_count >= 8:
+                    avg_odds = sum(p["market_odds"] for p in matching_picks) / matching_picks_count
                     total_staked = sum(p["stake"] for p in matching_picks)
                     net_profit = sum(p["profit"] for p in matching_picks)
-                    roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    profit_val = net_profit
+                    roi_val = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                    p_val = compute_p_value(matching_picks_count, avg_odds, roi_val)
                     
-                    if rule_status == "rejected" and roi < -15.0:
-                        rule_recommendations.append({
-                            "rule_id": rule_id,
-                            "description": desc,
-                            "current_status": rule_status,
-                            "recommended_status": "approved",
-                            "action_type": "reactivate",
-                            "bets": len(matching_picks),
-                            "roi": round(roi, 1),
-                            "profit": round(net_profit, 2),
-                            "reason": "Subgruppe verliert wieder signifikant (negative Rendite)."
-                        })
-                        log(f"🩹 Reactivation Candidate (Reactivate): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+                    if rule_status == "rejected" and roi_val < -15.0 and p_val < 0.05:
+                        recommended_status = "approved"
+                        action_type = "reactivate"
+                        reason = f"Subgruppe verliert wieder signifikant (ROI: {roi_val:+.1f}%, p-Wert: {p_val})."
                     elif rule_status == "pending":
-                        if roi < -15.0:
-                            rule_recommendations.append({
-                                "rule_id": rule_id,
-                                "description": desc,
-                                "current_status": rule_status,
-                                "recommended_status": "approved",
-                                "action_type": "approve",
-                                "bets": len(matching_picks),
-                                "roi": round(roi, 1),
-                                "profit": round(net_profit, 2),
-                                "reason": "Ausstehender Vorschlag bestätigt sich durch anhaltende Verluste."
-                            })
-                            log(f"🩹 Pending Candidate (Approve): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
-                        elif roi > 5.0:
-                            rule_recommendations.append({
-                                "rule_id": rule_id,
-                                "description": desc,
-                                "current_status": rule_status,
-                                "recommended_status": "rejected",
-                                "action_type": "reject",
-                                "bets": len(matching_picks),
-                                "roi": round(roi, 1),
-                                "profit": round(net_profit, 2),
-                                "reason": "Ausstehender Vorschlag hinfällig (Subgruppe ist profitabel)."
-                            })
-                            log(f"🩹 Pending Candidate (Reject): '{desc}' (ROI: {roi:.1f}% over {len(matching_picks)} bets)")
+                        if roi_val < -15.0 and p_val < 0.05:
+                            recommended_status = "approved"
+                            action_type = "approve"
+                            reason = f"Ausstehender Vorschlag bestätigt sich durch signifikante Verluste (ROI: {roi_val:+.1f}%, p-Wert: {p_val})."
+                        elif roi_val > 5.0 and p_val < 0.05:
+                            recommended_status = "rejected"
+                            action_type = "reject"
+                            reason = f"Ausstehender Vorschlag hinfällig, da Subgruppe signifikant profitabel (ROI: {roi_val:+.1f}%, p-Wert: {p_val})."
 
-    rules_evaluation_summary = ""
+            if recommended_status and action_type:
+                auto_executed = False
+                if autopilot_enabled and supabase:
+                    try:
+                        # Auto-update status in database
+                        supabase.table("scout_rules").update({
+                            "status": recommended_status,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }).eq("id", rule_id).execute()
+                        auto_executed = True
+                        log(f"⚡ Autopilot Auto-Executed: Changed '{desc}' status to {recommended_status} (Action: {action_type}).")
+                    except Exception as db_err:
+                        log(f"⚠️ Autopilot error updating rule status in DB: {db_err}")
+                        
+                rule_recommendations.append({
+                    "rule_id": rule_id,
+                    "description": desc,
+                    "current_status": rule_status,
+                    "recommended_status": recommended_status,
+                    "action_type": action_type,
+                    "bets": matching_picks_count,
+                    "roi": round(roi_val, 1),
+                    "profit": round(profit_val, 2),
+                    "p_value": p_val,
+                    "auto_executed": auto_executed,
+                    "reason": reason
+                })
+
+    drawdown_warning_md = ""
+    if drawdown_triggered:
+        drawdown_warning_md = (
+            "\n> 🚨 **SYSTEM-ALARM (Emergency Circuit Breaker):**\n"
+            f"> Der Portfolio-Verlust der letzten 48 Stunden liegt bei **{recent_profit_48h:+.2f} Units** "
+            f"und hat das Limit von **-{drawdown_limit} Units** überschritten. "
+            "> Der Autopilot wurde zur Kapitalsicherung **AUTOMATISCH DEAKTIVIERT** (System wechselt in den manuellen Modus).\n\n"
+        )
+
+    rules_evaluation_summary = drawdown_warning_md
     if rule_recommendations:
         deactivates = [r for r in rule_recommendations if r["action_type"] == "deactivate"]
         reactivates = [r for r in rule_recommendations if r["action_type"] == "reactivate"]
@@ -568,24 +660,28 @@ async def run_daily_analysis():
         if deactivates:
             rules_evaluation_summary += "--- VORSCHLÄGE ZUR DEAKTIVIERUNG (Approved -> Rejected) ---\n"
             for idx, r in enumerate(deactivates, 1):
-                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Schatten-Bets: {r['bets']} | Schatten-ROI: {r['roi']:+.1f}% | Schatten-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                exec_lbl = "⚡ [AUTO-DEAKTIVIERT]" if r["auto_executed"] else "⏳ [EMPFEHLUNG]"
+                rules_evaluation_summary += f"{idx}. {exec_lbl} {r['description']} (ID: {r['rule_id']})\n   - Schatten-Bets: {r['bets']} | Schatten-ROI: {r['roi']:+.1f}% (p-Wert: {r['p_value']}) | Schatten-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
         
         if reactivates:
             rules_evaluation_summary += "\n--- VORSCHLÄGE ZUR REAKTIVIERUNG (Rejected -> Approved) ---\n"
             for idx, r in enumerate(reactivates, 1):
-                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                exec_lbl = "⚡ [AUTO-AKTIVIERT]" if r["auto_executed"] else "⏳ [EMPFEHLUNG]"
+                rules_evaluation_summary += f"{idx}. {exec_lbl} {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% (p-Wert: {r['p_value']}) | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
                 
         if approves:
             rules_evaluation_summary += "\n--- ANNAHME AUSSTEHENDER VORSCHLÄGE (Pending -> Approved) ---\n"
             for idx, r in enumerate(approves, 1):
-                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                exec_lbl = "⚡ [AUTO-APPROVED]" if r["auto_executed"] else "⏳ [EMPFEHLUNG]"
+                rules_evaluation_summary += f"{idx}. {exec_lbl} {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% (p-Wert: {r['p_value']}) | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
                 
         if rejects:
             rules_evaluation_summary += "\n--- ABLEHNUNG AUSSTEHENDER VORSCHLÄGE (Pending -> Rejected) ---\n"
             for idx, r in enumerate(rejects, 1):
-                rules_evaluation_summary += f"{idx}. {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
+                exec_lbl = "⚡ [AUTO-REJECTED]" if r["auto_executed"] else "⏳ [EMPFEHLUNG]"
+                rules_evaluation_summary += f"{idx}. {exec_lbl} {r['description']} (ID: {r['rule_id']})\n   - Real-Bets: {r['bets']} | Real-ROI: {r['roi']:+.1f}% (p-Wert: {r['p_value']}) | Real-Profit: {r['profit']:+.2f}u\n   - Grund: {r['reason']}\n"
     else:
-        rules_evaluation_summary = "Aktuell keine Statusänderungen für bestehende Regeln empfohlen."
+        rules_evaluation_summary += "Aktuell keine Statusänderungen für bestehende Regeln empfohlen."
 
     # Call OpenRouter for Report Summary & Proposals
     system_prompt = (
@@ -593,7 +689,7 @@ async def run_daily_analysis():
         "Your system has three distinct agents:\n"
         "1. Daily Operations Analyst (Micro-Perspective): Reviews only the picks and results of the last 24 hours.\n"
         "2. Macro Risk & Calibration Strategist (Macro-Perspective): Reviews the 30-day statistical performance and subgroups to calibrate the system and manage risk.\n"
-        "3. Self-Healing Agent (Rule Recovery & Re-evaluation): Analyzes the shadow/actual performance of rules and recommends changing their status (activating/deactivating/deciding).\n"
+        "3. Syndicate Board & Risk Officer Agent (Gatekeeper): Audits shadow/actual rule performance using Buchdahl p-value equations and automatically executes state transitions if Autopilot is enabled.\n"
         "Write an executive-level German report. Use clean markdown structure, Apple/Revolut clarity, and plain bold headers/bullet points. "
         "Keep it extremely analytical and direct."
     )
@@ -625,8 +721,11 @@ async def run_daily_analysis():
     {json.dumps(failures, indent=2)}
     
     =========================================
-    3. REGEL-EVALUIERUNG & STATUS-VORSCHLÄGE (Self-Healing Agent):
+    3. BOARD AUDIT & AUTOMATISCHE FREIGABEN (Syndicate Board Agent):
     {rules_evaluation_summary}
+    
+    Autopilot Status: {"Aktiviert" if autopilot_enabled else "Deaktiviert / Manueller Modus"}
+    Sicherheitsgrenzen: Max-Veto: {max_veto_percentage}%, 48h Drawdown Limit: -{drawdown_limit}u
     
     Bitte erstelle einen strukturierten Bericht auf Deutsch im Apple/Revolut-Stil mit folgenden Sektionen:
     
@@ -638,9 +737,12 @@ async def run_daily_analysis():
     - Eine detaillierte Auswertung des 30-Tage-Trends und der Subgruppen. Warum verlieren/gewinnen bestimmte Beläge (Rasen/Sand) oder Klassen (WTA/ATP, Challenger vs. Haupttour)?
     - Empfehlungen zur Kalibrierung des Scrapers (Vorschlag von Vetoes, Einsatzdämpfern per Multiplier oder Mindest-Edge-Verschiebungen).
     
-    ### 🩹 Sektion 3: Regel-Re-Evaluierung & Self-Healing (Self-Healing Agent)
-    - Wenn Regeln in '3. REGEL-EVALUIERUNG & STATUS-VORSCHLÄGE' gelistet sind, analysiere die Performance. Erkläre in 1-2 Sätzen auf Deutsch, warum sich diese Subgruppe erholt hat (Schatten-ROI positiv) oder wieder verliert (Real-ROI negativ), und empfiehle explizit die vorgeschlagene Statusänderung (Approved -> Rejected oder Rejected -> Approved oder Pending -> Approved/Rejected) im CMS.
-    - Falls keine Änderungen empfohlen werden, schreibe einfach: 'Aktuell keine Statusänderungen für bestehende Regeln empfohlen.'
+    ### 🩹 Sektion 3: Regel-Re-Evaluierung & Autopilot-Protokoll (Syndicate Board Agent)
+    - Wenn Regeln in '3. BOARD AUDIT & AUTOMATISCHE FREIGABEN' gelistet sind, analysiere die Performance. 
+    - WICHTIG: Wenn Aktionen mit '⚡ [AUTO-DEAKTIVIERT]', '⚡ [AUTO-AKTIVIERT]', '⚡ [AUTO-APPROVED]' oder '⚡ [AUTO-REJECTED]' markiert sind, erkläre, dass das System diese Statusänderung bereits sicher vollautomatisch durchgeführt hat, und begründe dies statistisch (p-Wert).
+    - Falls Aktionen mit '⏳ [EMPFEHLUNG]' markiert sind, begründe den Vorschlag und fordere den Administrator zur manuellen Freigabe auf.
+    - Falls die Drawdown-Notbremse ausgelöst wurde (Notiz vorhanden), hebe dies als oberste Priorität hervor und erkläre den Notstopp des Autopiloten.
+    - Falls keine Änderungen empfohlen/ausgeführt wurden, schreibe einfach: 'Aktuell keine automatischen Statusänderungen oder Empfehlungen.'
     
     Gibt es Vorschläge für NEUE Regeln, formuliere sie am Ende des Berichts als JSON-Array im Format:
     PROPOSALS_JSON:
