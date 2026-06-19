@@ -34,6 +34,7 @@ export function IntelligenceHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<'all' | 'injury' | 'interview' | 'news'>('all');
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInsights();
@@ -111,6 +112,10 @@ export function IntelligenceHub() {
     return true;
   });
 
+  const toggleCard = (id: string) => {
+    setExpandedCardId(prev => prev === id ? null : id);
+  };
+
   // Sentiment styling helper
   const getSentimentDetails = (sentiment: string) => {
     switch (sentiment) {
@@ -118,7 +123,7 @@ export function IntelligenceHub() {
         return {
           bg: 'bg-red-500/10 border-red-500/20 text-red-400',
           dot: 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]',
-          label: 'Critical Injury',
+          label: 'Critical',
           icon: ShieldAlert,
           shadowClass: 'hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]',
           borderAccent: 'border-l-4 border-l-red-500'
@@ -127,7 +132,7 @@ export function IntelligenceHub() {
         return {
           bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
           dot: 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]',
-          label: 'Minor Pain / Load Warning',
+          label: 'Warning',
           icon: AlertTriangle,
           shadowClass: 'hover:shadow-[0_0_30px_rgba(245,158,11,0.12)]',
           borderAccent: 'border-l-4 border-l-amber-500'
@@ -136,7 +141,7 @@ export function IntelligenceHub() {
         return {
           bg: 'bg-tennis-lime/10 border-tennis-lime/20 text-tennis-lime',
           dot: 'bg-tennis-lime shadow-[0_0_12px_rgba(200,250,50,0.6)]',
-          label: 'Peak Fitness / Confidence',
+          label: 'Fitness',
           icon: TrendingUp,
           shadowClass: 'hover:shadow-[0_0_30px_rgba(200,250,50,0.12)]',
           borderAccent: 'border-l-4 border-l-tennis-lime'
@@ -145,7 +150,7 @@ export function IntelligenceHub() {
         return {
           bg: 'bg-white/[0.04] border-white/10 text-gray-400',
           dot: 'bg-gray-500',
-          label: 'Scout Briefing',
+          label: 'Briefing',
           icon: Newspaper,
           shadowClass: 'hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]',
           borderAccent: 'border-l-4 border-l-purple-500/20'
@@ -156,11 +161,11 @@ export function IntelligenceHub() {
   const getSourceIcon = (type: string) => {
     switch (type) {
       case 'twitter':
-        return <Twitter size={14} className="text-blue-400" />;
+        return <Twitter size={13} className="text-blue-400" />;
       case 'interview':
-        return <MessageSquare size={14} className="text-purple-400" />;
+        return <MessageSquare size={13} className="text-purple-400" />;
       default:
-        return <Newspaper size={14} className="text-gray-400" />;
+        return <Newspaper size={13} className="text-gray-400" />;
     }
   };
 
@@ -186,58 +191,57 @@ export function IntelligenceHub() {
   };
 
   return (
-    <div className="w-full min-h-screen text-white flex flex-col gap-8 pb-20 relative px-1 md:px-0">
+    <div className="w-full min-h-screen text-white flex flex-col gap-6 pb-20 relative px-1 md:px-0">
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
       {/* Ambient background glows */}
       <div className="absolute top-[-10%] left-[20%] w-[40vw] h-[40vw] bg-tennis-lime/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-[30%] right-[10%] w-[35vw] h-[35vw] bg-purple-600/[0.03] rounded-full blur-[150px] pointer-events-none" />
 
       {/* HEADER HERO SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 flex flex-col gap-3 text-left">
-          <div className="flex items-center gap-2">
-            <span className="w-fit px-3 py-1 bg-tennis-lime/10 border border-tennis-lime/20 text-tennis-lime text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+      <div className="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6 items-start text-left">
+        <div className="md:col-span-2 flex flex-col gap-2">
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="w-fit px-2.5 py-0.5 bg-tennis-lime/10 border border-tennis-lime/20 text-tennis-lime text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
               Real-time Intelligence Feed
             </span>
-            <span className="flex items-center gap-1 text-[9px] text-gray-500 font-bold uppercase tracking-wider bg-white/5 border border-white/5 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-[8px] text-gray-500 font-bold uppercase tracking-wider bg-white/5 border border-white/5 px-2 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               Live Sync
             </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+          <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white leading-none">
             Intelligence <span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime to-emerald-400">Hub.</span>
           </h1>
-          <p className="text-xs md:text-sm text-gray-400 max-w-xl font-medium leading-relaxed">
+          <p className="text-[11px] md:text-xs text-gray-400 max-w-xl font-medium leading-relaxed hidden md:block">
             Dynamic scouting dashboard filtering live player interviews, medical updates, and fitness reports. Spot injuries and tactical insights before they reflect in odds.
           </p>
         </div>
 
-        {/* CRAWLER STATUS PANEL */}
-        <div className="bg-[#1a1d26]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden h-full">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-tennis-lime/5 rounded-full blur-[40px] pointer-events-none" />
-          <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-3">
-            <div className="flex items-center gap-2">
-              <Cpu size={14} className="text-tennis-lime" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">AI Scout Engine</span>
+        {/* CRAWLER STATUS PANEL - Extremely compact on mobile */}
+        <div className="w-full bg-[#1a1d26]/80 backdrop-blur-xl border border-white/5 rounded-2xl p-3.5 md:p-4 flex md:flex-col justify-between items-center md:items-stretch shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-tennis-lime/5 rounded-full blur-[30px] pointer-events-none" />
+          <div className="flex items-center gap-2 border-b border-white/5 md:pb-2 md:mb-2 border-none md:border-solid">
+            <Cpu size={12} className="text-tennis-lime" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">AI Scout Engine</span>
+          </div>
+          <div className="flex md:flex-col items-center md:items-start justify-between gap-2 w-full md:w-auto">
+            <div className="text-left flex items-baseline gap-1.5 md:block">
+              <span className="text-lg md:text-xl font-black text-white">{stats.total}</span>
+              <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Briefings (7d)</span>
             </div>
-            <span className="text-[9px] font-mono text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/20 font-bold">
+            <span className="text-[8px] font-mono text-tennis-lime bg-tennis-lime/10 px-1.5 py-0.5 rounded border border-tennis-lime/20 font-bold md:mt-2">
               ACTIVE
             </span>
-          </div>
-          <div className="flex items-end justify-between">
-            <div className="text-left">
-              <div className="text-2xl font-black text-white">{stats.total}</div>
-              <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Entries Scanned (7d)</div>
-            </div>
-            <div className="flex items-center gap-1.5 text-[9px] font-mono text-gray-600">
-              <Clock size={10} />
-              <span>Checked seconds ago</span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* STATS COUNT GRID (REVOLUT STYLE) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* STATS COUNT GRID (REVOLUT STYLE) - Hidden on mobile to save vertical space */}
+      <div className="hidden md:grid grid-cols-4 gap-3">
         <div className="bg-[#15171e]/60 backdrop-blur-md border border-white/5 rounded-2xl p-4 flex flex-col justify-between text-left hover:border-white/10 transition-colors">
           <div className="flex items-center gap-2 text-gray-500 text-[9px] font-black uppercase tracking-wider">
             <ShieldAlert size={12} className="text-red-400" />
@@ -269,46 +273,46 @@ export function IntelligenceHub() {
       </div>
 
       {/* FILTER & SEARCH PANEL (APPLE / REVOLUT STYLE) */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#15171e]/30 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-[#15171e]/30 p-2.5 rounded-2xl border border-white/5 backdrop-blur-sm">
         
         {/* Spotlight-Style Search Bar */}
         <div className="relative w-full md:max-w-md">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search players, headlines, or keywords..."
-            className="w-full pl-11 pr-12 py-3 bg-[#15171e] border border-white/5 focus:border-white/10 focus:ring-1 focus:ring-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none transition-all shadow-xl font-medium"
+            placeholder="Search players or keywords..."
+            className="w-full pl-10 pr-10 py-2.5 bg-[#15171e] border border-white/5 focus:border-white/10 focus:ring-1 focus:ring-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none transition-all shadow-xl font-medium"
           />
           {searchQuery ? (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
             >
               Clear
             </button>
           ) : (
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-mono text-gray-600 bg-white/5 px-1.5 py-0.5 rounded border border-white/5 pointer-events-none hidden sm:inline">
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[8px] font-mono text-gray-600 bg-white/5 px-1 rounded border border-white/5 pointer-events-none hidden sm:inline">
               ⌘K
             </span>
           )}
         </div>
 
-        {/* Sliding Pill Tab Picker */}
-        <div className="flex bg-[#0A0A0A]/60 p-1 rounded-xl border border-white/5 w-full md:w-auto relative overflow-hidden">
+        {/* Sliding Pill Tab Picker - Swipable / scrollable on mobile */}
+        <div className="flex bg-[#0A0A0A]/60 p-0.5 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto hide-scrollbar relative">
           {([
-            { id: 'all', label: 'All Briefings', count: stats.total },
-            { id: 'injury', label: '🚨 Injuries', count: stats.injuries },
-            { id: 'interview', label: '🎤 Interviews', count: stats.interviews },
-            { id: 'news', label: '📰 News', count: stats.generalNews }
+            { id: 'all', labelMobile: 'All', labelDesktop: 'All Briefings', count: stats.total },
+            { id: 'injury', labelMobile: '🚨 Injuries', labelDesktop: '🚨 Injuries', count: stats.injuries },
+            { id: 'interview', labelMobile: '🎤 Interviews', labelDesktop: '🎤 Interviews', count: stats.interviews },
+            { id: 'news', labelMobile: '📰 News', labelDesktop: '📰 News', count: stats.generalNews }
           ] as const).map((tab) => {
             const isActive = selectedTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id)}
-                className={`flex-1 md:flex-initial min-w-max px-4 py-2.5 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 relative ${isActive ? 'text-black' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 md:flex-initial min-w-max px-3 md:px-4 py-2 rounded-lg text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 relative ${isActive ? 'text-black' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 {isActive && (
                   <motion.div 
@@ -318,7 +322,8 @@ export function IntelligenceHub() {
                   />
                 )}
                 <span className="relative z-10 flex items-center justify-center gap-1.5">
-                  {tab.label}
+                  <span className="md:hidden">{tab.labelMobile}</span>
+                  <span className="hidden md:inline">{tab.labelDesktop}</span>
                   <span className={`text-[8px] font-mono px-1 rounded ${isActive ? 'bg-black/10 text-black' : 'bg-white/5 text-gray-600'}`}>
                     {tab.count}
                   </span>
@@ -331,101 +336,132 @@ export function IntelligenceHub() {
 
       {/* FEED LAYOUT */}
       {loading ? (
-        <div className="w-full py-28 flex flex-col items-center justify-center gap-4 bg-[#15171e]/20 border border-white/5 border-dashed rounded-3xl">
-          <Loader2 className="w-10 h-10 text-tennis-lime animate-spin" />
+        <div className="w-full py-24 flex flex-col items-center justify-center gap-4 bg-[#15171e]/20 border border-white/5 border-dashed rounded-3xl">
+          <Loader2 className="w-8 h-8 text-tennis-lime animate-spin" />
           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Querying Neural Scouting Database...</span>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
           <AnimatePresence mode="popLayout">
             {filteredInsights.length > 0 ? (
               filteredInsights.map((insight) => {
                 const sStyle = getSentimentDetails(insight.sentiment);
+                const isExpanded = expandedCardId === insight.id;
 
                 return (
                   <motion.div
                     layout
                     key={insight.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    onClick={() => toggleCard(insight.id)}
                     onMouseEnter={() => setHoveredCardId(insight.id)}
                     onMouseLeave={() => setHoveredCardId(null)}
                     className={`
                       w-full bg-[#1a1d26]/60 backdrop-blur-xl border border-white/5 hover:border-white/10 
-                      rounded-3xl p-6 flex flex-col gap-4 shadow-xl transition-all duration-300 
-                      relative overflow-hidden cursor-default ${sStyle.borderAccent} ${sStyle.shadowClass}
+                      rounded-2xl p-4 md:p-5 flex flex-col gap-3 shadow-xl transition-all duration-300 
+                      relative overflow-hidden cursor-pointer ${sStyle.borderAccent} ${sStyle.shadowClass}
                     `}
                   >
                     {/* Glass sheen highlight on hover */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.01] via-transparent to-white/[0.03] pointer-events-none" />
                     
-                    {/* Header: Source metadata & sentiment badge */}
+                    {/* Header Row */}
                     <div className="flex justify-between items-center relative z-10">
-                      <div className="flex items-center gap-2.5 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
-                        <div className="p-1.5 rounded-lg bg-white/[0.04]">
+                      <div className="flex items-center gap-2 text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-wider">
+                        <div className="p-1 rounded bg-white/[0.04] shrink-0">
                           {getSourceIcon(insight.source_type)}
                         </div>
-                        <span className="opacity-80">{insight.source_name}</span>
+                        <span className="opacity-80 truncate max-w-[80px] md:max-w-none">{insight.source_name}</span>
                       </div>
                       
-                      {/* Sentiment Badge with soft glow */}
-                      <div className={`px-3 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 ${sStyle.bg}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${sStyle.dot}`} />
-                        <span>{sStyle.label}</span>
+                      <div className="flex items-center gap-2">
+                        {/* Time Ago on Header for mobile compact layout */}
+                        <span className="text-[8px] font-mono text-gray-500 md:hidden">
+                          {formatTimeAgo(insight.published_at)}
+                        </span>
+                        
+                        <div className={`px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest flex items-center gap-1 ${sStyle.bg}`}>
+                          <span className={`w-1 h-1 rounded-full ${sStyle.dot}`} />
+                          <span>{sStyle.label}</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Associated Player & Headline */}
-                    <div className="flex flex-col gap-1.5 text-left relative z-10">
+                    <div className="flex flex-col gap-1 text-left relative z-10">
                       {insight.player ? (
-                        <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-gray-500 font-mono text-[8px] font-bold uppercase">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1 py-0.2 rounded bg-white/5 border border-white/5 text-gray-500 font-mono text-[7px] font-bold uppercase">
                             {insight.player.country.substring(0, 2)}
                           </span>
                           <Link 
                             to={`/player/${insight.player.id}`}
-                            className="text-[10px] font-black text-tennis-lime uppercase tracking-widest hover:underline flex items-center gap-1 group/p"
+                            className="text-[9px] font-black text-tennis-lime uppercase tracking-widest hover:underline flex items-center gap-0.5 group/p"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             {insight.player.first_name} {insight.player.last_name}
-                            <ArrowUpRight size={10} className="opacity-0 group-hover/p:opacity-100 transition-all translate-y-0.5 group-hover/p:translate-y-0 group-hover/p:translate-x-0.5" />
+                            <ArrowUpRight size={8} className="opacity-0 group-hover/p:opacity-100 transition-all" />
                           </Link>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5">
-                          <Sparkles size={10} className="text-purple-400" />
-                          <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Global Scouting Log</span>
+                        <div className="flex items-center gap-1 text-gray-500">
+                          <Sparkles size={8} className="text-purple-400" />
+                          <span className="text-[8px] font-mono uppercase tracking-widest">Global Scouting Log</span>
                         </div>
                       )}
                       
-                      <h3 className="text-sm md:text-base font-black tracking-tight text-white leading-snug">
+                      <h3 className="text-xs md:text-sm font-bold tracking-tight text-white leading-snug">
                         {insight.headline}
                       </h3>
                     </div>
 
-                    {/* Summary */}
-                    <p className="text-xs text-gray-400 leading-relaxed text-left relative z-10">
-                      {insight.summary}
-                    </p>
+                    {/* Collapsed/Expanded Chevron & Tap Action Row - Visible on Mobile */}
+                    <div className="flex items-center justify-between text-[8px] font-black text-gray-500 uppercase tracking-wider pt-1 border-t border-white/[0.03] md:hidden">
+                      <span>{isExpanded ? 'Collapse report' : 'Tap to expand scouting report'}</span>
+                      <motion.span 
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        className="text-gray-400"
+                      >
+                        ▼
+                      </motion.span>
+                    </div>
 
-                    {/* Bullet Takeaways Dashboard */}
-                    {insight.key_takeaways && insight.key_takeaways.length > 0 && (
-                      <div className="flex flex-col gap-2.5 pt-4 border-t border-white/5 text-left relative z-10">
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Scouting Analysis & Impact</span>
-                        <ul className="space-y-2">
-                          {insight.key_takeaways.map((takeaway, idx) => (
-                            <li key={idx} className="flex gap-2.5 items-start text-[10px] text-gray-300 font-medium leading-relaxed">
-                              <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime/40 mt-1.5 shrink-0" />
-                              <span>{takeaway}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {/* Expandable summary and key takeaways */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden flex flex-col gap-3 pt-2"
+                        >
+                          <p className="text-[11px] text-gray-300 leading-relaxed text-left border-t border-white/5 pt-2">
+                            {insight.summary}
+                          </p>
 
-                    {/* Footer: Date & Source Link Out */}
-                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-white/5 relative z-10">
+                          {insight.key_takeaways && insight.key_takeaways.length > 0 && (
+                            <div className="flex flex-col gap-1.5 text-left">
+                              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Scouting Analysis</span>
+                              <ul className="space-y-1.5">
+                                {insight.key_takeaways.map((takeaway, idx) => (
+                                  <li key={idx} className="flex gap-2 items-start text-[10px] text-gray-300 font-medium leading-relaxed">
+                                    <div className="w-1 h-1 rounded-full bg-tennis-lime/40 mt-1.5 shrink-0" />
+                                    <span>{takeaway}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Desktop Footer (always visible on desktop, hidden on mobile) */}
+                    <div className="hidden md:flex justify-between items-center mt-auto pt-3 border-t border-white/5 relative z-10">
                       <div className="flex items-center gap-1.5 text-gray-600 text-[9px] font-mono font-bold">
                         <Calendar size={11} className="text-gray-600" />
                         <span>{formatTimeAgo(insight.published_at)}</span>
@@ -437,18 +473,48 @@ export function IntelligenceHub() {
                           target="_blank" 
                           rel="noreferrer"
                           className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-tennis-lime/80 hover:text-tennis-lime transition-all group/link"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           Source Link <ArrowRight size={10} className="group-hover/link:translate-x-0.5 transition-transform" />
                         </a>
                       )}
                     </div>
+
+                    {/* Mobile Footer (only visible on mobile when expanded) */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex md:hidden justify-between items-center mt-auto pt-2.5 border-t border-white/5 relative z-10"
+                        >
+                          <div className="flex items-center gap-1 text-gray-500 text-[8px] font-mono">
+                            <Calendar size={9} />
+                            <span>{formatTimeAgo(insight.published_at)}</span>
+                          </div>
+                          
+                          {insight.url && (
+                            <a 
+                              href={insight.url} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-tennis-lime/80 hover:text-tennis-lime transition-all"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Source <ArrowRight size={8} />
+                            </a>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 );
               })
             ) : (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 bg-[#15171e]/30 border border-white/5 rounded-3xl p-8 shadow-inner text-center">
-                <div className="p-4 rounded-full bg-white/[0.02] border border-white/5 mb-2">
-                  <Brain size={36} className="text-gray-500 animate-pulse" />
+              <div className="col-span-full py-16 flex flex-col items-center justify-center gap-4 bg-[#15171e]/30 border border-white/5 rounded-3xl p-6 shadow-inner text-center">
+                <div className="p-3 rounded-full bg-white/[0.02] border border-white/5 mb-1">
+                  <Brain size={28} className="text-gray-500 animate-pulse" />
                 </div>
                 <h4 className="text-white text-xs font-black uppercase tracking-widest">No matching briefings</h4>
                 <p className="text-[10px] text-gray-500 max-w-xs leading-relaxed">
