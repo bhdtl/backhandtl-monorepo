@@ -10,12 +10,9 @@ import { SurfaceMasteryWidget } from '../components/SurfaceMasteryWidget';
 import { AdvancedQuantWidget } from '../components/AdvancedQuantWidget';
 import { VegasFormWidget } from '../components/VegasFormWidget';
 import { motion } from 'framer-motion';
+import { fadeUpVariant } from '../components/animationVariants';
 
-// Animation variant shared across sections
-const fadeUpVariant = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 20 } },
-};
+
 
 export const PlayerProfile: React.FC = () => {
   const { playerId } = useParams<{ playerId: string }>();

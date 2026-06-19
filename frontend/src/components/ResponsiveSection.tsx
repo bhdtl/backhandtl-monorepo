@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { fadeUpVariant } from '../pages/PlayerProfile'; // reuse variant defined there
+import { fadeUpVariant } from './animationVariants';
 
 interface ResponsiveSectionProps {
   id: string;
@@ -50,6 +50,7 @@ export const ResponsiveSection: React.FC<ResponsiveSectionProps> = ({ id, title,
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
+
             className="bg-[#1a1d26]/80 backdrop-blur-xl rounded-3xl p-4 border border-white/5"
           >
             {children}
