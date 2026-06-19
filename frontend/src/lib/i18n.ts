@@ -20,10 +20,9 @@ i18n
       fr: { translation: fr },
       it: { translation: it },
     },
-    lng: 'en',
     fallbackLng: 'en',
     detection: {
-      order: ['localStorage'],
+      order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },
