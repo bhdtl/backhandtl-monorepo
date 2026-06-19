@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { useAccess } from '../hooks/useAccess';
 import { PremiumLock } from './PremiumLock'; 
-import { useTranslation } from 'react-i18next'; 
 
 // --- TYPES ---
 type TimeFrame = 'ALL' | '2026' | '2025' | '2024';
@@ -35,7 +34,6 @@ interface BsiBucketStat {
 }
 
 export function BsiSpeedPerformance({ playerName }: { playerName: string }) {
-  const { t } = useTranslation(); 
   const { isElite, loading: accessLoading } = useAccess(); 
   
   const [rawMatches, setRawMatches] = useState<BsiMatch[]>([]);

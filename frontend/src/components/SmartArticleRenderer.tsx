@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Activity, Gauge, Loader2, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Loader2, TrendingUp, Zap } from 'lucide-react';
 
 // --- HELPER: CUSTOM RADAR CHART (Zero Dependencies) ---
 const RadarChart = ({ p1, p2, stats1, stats2 }: { p1: string, p2: string, stats1: any, stats2: any }) => {

@@ -34,7 +34,7 @@ import { PushOnboardingBanner } from './components/PushOnboardingBanner';
 import { AuthSuccessOverlay } from './components/AuthSuccessOverlay';
 
 import {
-  Lock, Crown, X, FileText, Scale, Cpu, Cookie, Info, Shield, Briefcase
+  Lock, Crown, X, FileText, Scale, Cpu, Cookie, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +53,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
   return <AccessDeniedScreen title="Admin Restricted" message="System Level Clearance Required" />;
 }
 
-function ScannerGuard({ children }: { children: React.ReactNode }) {
+export function ScannerGuard({ children }: { children: React.ReactNode }) {
   const { isElite, loading } = useAccess();
   if (loading) return <div className="min-h-screen bg-[#0f1115]" />;
 
@@ -68,7 +68,7 @@ function ScannerGuard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AnalyticsGuard({ children }: { children: React.ReactNode }) {
+export function AnalyticsGuard({ children }: { children: React.ReactNode }) {
     const { isElite, loading } = useAccess();
     if (loading) return <div className="min-h-screen bg-[#0f1115]" />;
 
@@ -309,7 +309,7 @@ function AppContent() {
   const [legalModal, setLegalModal] = useState<string | null>(null);
   const [showGlobalQuiz, setShowGlobalQuiz] = useState(false);
     
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 

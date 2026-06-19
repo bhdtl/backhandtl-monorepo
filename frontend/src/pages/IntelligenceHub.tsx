@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { 
-  Brain, Search, Bell, ExternalLink, Calendar, MessageSquare, 
-  Newspaper, Twitter, ArrowRight, ShieldAlert, Heart, TrendingUp, AlertTriangle, Loader2,
-  Cpu, Clock, Sparkles, Filter, ArrowUpRight, Activity
+  Brain, Search, Calendar, MessageSquare, 
+  Newspaper, Twitter, ArrowRight, ShieldAlert, TrendingUp, AlertTriangle, Loader2,
+  Cpu, Sparkles, ArrowUpRight, Activity
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -33,7 +33,6 @@ export function IntelligenceHub() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<'all' | 'injury' | 'interview' | 'news'>('all');
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -357,8 +356,6 @@ export function IntelligenceHub() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     onClick={() => toggleCard(insight.id)}
-                    onMouseEnter={() => setHoveredCardId(insight.id)}
-                    onMouseLeave={() => setHoveredCardId(null)}
                     className={`
                       w-full bg-[#1a1d26]/60 backdrop-blur-xl border border-white/5 hover:border-white/10 
                       rounded-2xl p-4 md:p-5 flex flex-col gap-3 shadow-xl transition-all duration-300 

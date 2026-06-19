@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { Trophy, Flame, AlertTriangle } from 'lucide-react';
+import { useMemo, FC } from 'react';
+import { Trophy, Flame } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface SurfaceMasteryWidgetProps {
   surfacePreference?: string;
@@ -8,11 +9,12 @@ interface SurfaceMasteryWidgetProps {
   eloMetrics?: any;
 }
 
-export const SurfaceMasteryWidget: React.FC<SurfaceMasteryWidgetProps> = ({
+export const SurfaceMasteryWidget: FC<SurfaceMasteryWidgetProps> = ({
   surfacePreference = 'All Court',
   surfaceRatings = null,
   eloMetrics = null,
 }) => {
+  const { t } = useTranslation();
   const normPref = (surfacePreference || '').toLowerCase().trim();
 
   const parsedElo = useMemo(() => {
@@ -53,10 +55,10 @@ export const SurfaceMasteryWidget: React.FC<SurfaceMasteryWidgetProps> = ({
       <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex items-center justify-between shadow-lg">
         <div className="space-y-1">
           <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
-            Preferred Surface
+            {t('surfaceMastery.preferredSurface', 'Preferred Surface')}
           </span>
           <h3 className="text-lg font-black text-white uppercase tracking-wider">
-            {surfacePreference} Specialist
+            {t('surfaceMastery.specialist', '{{surface}} Specialist', { surface: surfacePreference })}
           </h3>
         </div>
         <div className="bg-tennis-lime/10 text-tennis-lime border border-tennis-lime/20 p-3 rounded-2xl">
@@ -72,17 +74,17 @@ export const SurfaceMasteryWidget: React.FC<SurfaceMasteryWidgetProps> = ({
           const matchesTracked = parsedElo ? parsedElo[`matches_${surf.key}`] : data.matches_tracked;
           
           let rating = Number(data.rating || 5.0);
-          let textLabel = data.text || "Average";
+          let textLabel = data.text || t('surfaceMastery.rating.average', 'Average');
 
           if (trueElo) {
             rating = ((trueElo - 1400) / (2100 - 1400)) * 9.0 + 1.0;
             rating = Math.max(1.0, Math.min(10.0, rating));
             
-            if (rating >= 8.5) textLabel = "ELITE";
-            else if (rating >= 7.0) textLabel = "STRONG";
-            else if (rating >= 5.5) textLabel = "SOLID";
-            else if (rating >= 4.0) textLabel = "VULNERABLE";
-            else textLabel = "WEAKNESS";
+            if (rating >= 8.5) textLabel = t('surfaceMastery.rating.elite', 'ELITE');
+            else if (rating >= 7.0) textLabel = t('surfaceMastery.rating.strong', 'STRONG');
+            else if (rating >= 5.5) textLabel = t('surfaceMastery.rating.solid', 'SOLID');
+            else if (rating >= 4.0) textLabel = t('surfaceMastery.rating.vulnerable', 'VULNERABLE');
+            else textLabel = t('surfaceMastery.rating.weakness', 'WEAKNESS');
           }
 
           const percentage = Math.min(100, Math.max(10, rating * 10));
@@ -99,7 +101,7 @@ export const SurfaceMasteryWidget: React.FC<SurfaceMasteryWidgetProps> = ({
               <div className="flex justify-between items-start">
                 <div className="space-y-0.5">
                   <span className="text-[10px] font-bold text-gray-400 tracking-wider block">
-                    {surf.label}
+                    {t(`surfaces.${surf.key}`, surf.label)}
                   </span>
                   {trueElo && (
                     <span className="text-[10px] font-black text-tennis-lime tracking-widest block pt-0.5">
@@ -109,11 +111,11 @@ export const SurfaceMasteryWidget: React.FC<SurfaceMasteryWidgetProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] text-gray-500 font-mono block">
-                    {matchesTracked || 0} MATCHES
+                    {t('surfaceMastery.matches', '{{count}} MATCHES', { count: matchesTracked || 0 })}
                   </span>
                   {isPreferred && (
                     <span className="bg-tennis-lime/10 border border-tennis-lime/20 text-tennis-lime text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center mt-1">
-                      <Flame size={10} className="mr-1" /> BEST
+                      <Flame size={10} className="mr-1" /> {t('surfaceMastery.best', 'BEST')}
                     </span>
                   )}
                 </div>

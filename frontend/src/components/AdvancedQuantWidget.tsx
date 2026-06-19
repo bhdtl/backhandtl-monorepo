@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
-  Database, CalendarClock, Layers, Eye, Target, AlertTriangle, 
-  Activity, Zap, Swords, Shield, Crosshair, BarChart3, ShieldCheck 
+  Database, Eye, Target, AlertTriangle, 
+  Activity, Zap, Swords, Shield, Crosshair 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 

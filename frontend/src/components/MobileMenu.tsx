@@ -4,7 +4,7 @@ import {
   X, Users, Swords, Gauge, Shield,
   LogOut, Zap, Star, User, TrendingUp,
   Crown, Gift, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft,
-  LifeBuoy, DollarSign, Radar, Target, Hash, Brain
+  LifeBuoy, Radar, Target, Brain
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BrandLogo } from './BrandLogo';

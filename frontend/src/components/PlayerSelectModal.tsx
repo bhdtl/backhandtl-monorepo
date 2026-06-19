@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Search, X, Filter, Lock, Zap, ShieldAlert, ArrowDownUp } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, X, Lock, Zap, ShieldAlert, ArrowDownUp } from 'lucide-react';
 import { NeuralGameCard, GameCardPlayer } from './NeuralGameCard'; // Pfad anpassen
 import { motion, AnimatePresence } from 'framer-motion';
 

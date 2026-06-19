@@ -6,7 +6,6 @@ import {
   Trophy, 
   Swords, 
   Loader2, 
-  FileText, 
   Search, 
   Plus, 
   X, 
@@ -15,21 +14,15 @@ import {
   Activity, 
   Zap, 
   MapPin, 
-  Clock, 
   Target, 
   Gauge, 
   TrendingUp, 
-  AlertTriangle, 
   BarChart3, 
   ChevronDown, 
-  ChevronUp, 
   CheckCircle2, 
-  Circle, 
   BrainCircuit, 
   Shield, 
   Crosshair, 
-  MoveHorizontal, 
-  Cpu,
   Coins, 
   Crown,
   HelpCircle,
@@ -51,7 +44,7 @@ import { useAccess } from '../hooks/useAccess';
 import { StyleAnalysis } from '../components/StyleAnalysis'; 
 import { BsiSpeedPerformance } from '../components/BsiSpeedPerformance'; 
 import { MarketOddsPerformance } from '../components/MarketOddsPerformance'; 
-import { motion, AnimatePresence } from 'framer-motion'; 
+import { motion } from 'framer-motion'; 
 
 // Trigger fresh Vercel deployment
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
@@ -161,9 +154,9 @@ interface Player {
 }
 interface PlayerSkills { player_id: string; serve: number; forehand: number; backhand: number; volley: number; speed: number; power: number; mental: number; stamina: number; overall_rating: number; }
 interface ScoutingReport { player_id: string; strengths: string; weaknesses: string; mental_game_notes: string; }
-interface PlayerData { player: Player; skills: PlayerSkills | null; report: ScoutingReport | null; }
-interface Tournament { id: string; name: string; surface: string; bsi_rating: number; bounce?: string; notes?: string; }
-interface AnalysisResult { prediction: string; confidence_score: number; key_factor: string; summary_bullet_points: string[]; deep_dive_text: string; winner_id: string; projectedScore: string; probA: number; }
+export interface PlayerData { player: Player; skills: PlayerSkills | null; report: ScoutingReport | null; }
+export interface Tournament { id: string; name: string; surface: string; bsi_rating: number; bounce?: string; notes?: string; }
+export interface AnalysisResult { prediction: string; confidence_score: number; key_factor: string; summary_bullet_points: string[]; deep_dive_text: string; winner_id: string; projectedScore: string; probA: number; }
 
 // --- UI COMPONENTS ---
 
@@ -799,7 +792,6 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
 }
 
 const BsiInput = ({ value, onChange, label }: { value: number | string, onChange: (v: string) => void, label: string }) => {
-    const { t } = useTranslation();
     return (
         <div className="flex flex-col w-full">
             <label className="text-[10px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1.5 md:mb-1.5">{label}</label>
@@ -851,7 +843,7 @@ function InternalMatchupCard({ playerA, playerB, prediction, context, isAnalyzin
       );
   }
 
-  const { winner_prediction: winnerName, confidence_score: score, key_factor: keyFactor, probA } = prediction;
+  const { winner_prediction: winnerName, confidence_score: score, key_factor: keyFactor } = prediction;
   const isWinnerA = winnerName.toLowerCase().includes(pA.name.toLowerCase().trim().split(' ').pop().toLowerCase());
   const winnerObj = isWinnerA ? pA : pB;
 
@@ -1021,7 +1013,6 @@ export function MatchupAnalyzer() {
   const [loadingStatusText, setLoadingStatusText] = useState(() => t('matchup.loadingInitializing', 'Initializing...')); 
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [accessInfo, setAccessInfo] = useState<any>(null); 
   
   // 🚀 NEU: DATA EXPLORER STATES (Apple-like Tab System)
   const [activeMobilePlayer, setActiveMobilePlayer] = useState<'A' | 'B'>('A');

@@ -40,7 +40,7 @@ export const validateImageFile = (file: File): { valid: boolean; error?: string 
 
 // Diese Funktion behalten wir bei, sie ist gut für die Performance!
 export const resizeImage = (file: File): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     // Wenn es kein Standard-Bild ist (z.B. HEIC), überspringen wir Resize
     // damit es nicht abstürzt, und laden das Original hoch.
     if (!['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.type)) {

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeUpVariant } from './animationVariants';
+import { useTranslation } from 'react-i18next';
 
 interface MatchForm {
   id: string;
@@ -66,7 +67,7 @@ const parseScoreDetails = (scoreStr: string | null, playerWon: boolean): number 
   return Math.min(Math.max(dominance, 0.0), 1.0);
 };
 
-const calculateQuantumRating = (matchesList: MatchForm[], playerLastName: string) => {
+const calculateQuantumRating = (matchesList: MatchForm[], _playerLastName: string) => {
   let currentRating = 6.5; 
   const historyLog: { res: 'W'|'L', odds: number, delta: number, tooltip: string }[] = [];
   const sortedMatches = [...matchesList].reverse();
@@ -121,6 +122,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
   dbFormRating = null,
   matches = []
 }) => {
+  const { t } = useTranslation();
   const [surfaceFilter, setSurfaceFilter] = useState<'all' | 'hard' | 'clay' | 'grass'>('all');
   const [resultFilter, setResultFilter] = useState<'all' | 'win' | 'loss'>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -194,7 +196,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
       {/* Central Quantum Rating Card */}
       <div className="bg-[#151821]/80 backdrop-blur-md rounded-3xl p-6 border border-white/5 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
-          Quantum Form Engine
+          {t('vegasForm.quantumEngine', 'Quantum Form Engine')}
         </span>
         <div className="flex flex-col items-center gap-3">
           <div className={`relative w-24 h-24 ${visuals.bg} rounded-2xl ${visuals.glow} flex flex-col items-center justify-center border-[3px] border-[#0f1115] transform transition-all duration-300 hover:scale-105 overflow-hidden`}>
@@ -202,7 +204,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-30 animate-shimmer" />
             )}
             <span className={`text-[10px] uppercase font-black ${visuals.text} opacity-90 tracking-tighter mb-[-2px]`}>
-              FORM
+              {t('vegasForm.form', 'FORM')}
             </span>
             <span className={`text-4xl font-black ${visuals.text} leading-none drop-shadow-md`}>
               {displayRating}
@@ -223,7 +225,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
       <div className="bg-[#151821]/80 border border-white/5 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider block">
-            Recent Form (Last 5)
+            {t('vegasForm.recentForm', 'Recent Form (Last 5)')}
           </span>
           <div className="flex items-center space-x-2 mt-1">
             {marketMatchesOnly.length > 0 ? (
@@ -240,13 +242,13 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
                 </div>
               ))
             ) : (
-              <span className="text-xs text-gray-400">No match records found.</span>
+              <span className="text-xs text-gray-400">{t('vegasForm.noMatchRecords', 'No match records found.')}</span>
             )}
           </div>
         </div>
         <div className="text-center sm:text-right">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider block">
-            Overall Win / Loss Rate
+            {t('vegasForm.overallWinLoss', 'Overall Win / Loss Rate')}
           </span>
           <span className="text-2xl font-black text-white leading-none">
             {recentWins}W – {recentLosses}L
@@ -257,7 +259,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
       {/* Sofascore-style Filter & Sort Controls */}
       <div className="bg-[#151821]/80 border border-white/5 rounded-2xl p-4 space-y-3">
         <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider block text-left">
-          Filter & Sort Matches
+          {t('vegasForm.filterSortMatches', 'Filter & Sort Matches')}
         </span>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {/* Surface Filter */}
@@ -299,7 +301,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
             onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
             className="ml-auto px-2.5 py-1 bg-black/30 hover:bg-[#2a2d36]/50 rounded-lg border border-white/5 text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
           >
-            Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+            {t('vegasForm.sort', 'Sort')}: {sortOrder === 'desc' ? t('vegasForm.newest', 'Newest') : t('vegasForm.oldest', 'Oldest')}
           </button>
         </div>
       </div>
@@ -308,16 +310,16 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
       <div className="space-y-3">
         <div className="flex justify-between items-center pl-2">
           <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">
-            Match Log & Betting Odds
+            {t('vegasForm.matchLog', 'Match Log & Betting Odds')}
           </h3>
           <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider pr-2">
-            Showing {filteredMatches.length} Matches
+            {t('vegasForm.showingMatches', 'Showing {{count}} Matches', { count: filteredMatches.length })}
           </span>
         </div>
 
         {filteredMatches.length === 0 ? (
           <div className="bg-[#151821]/40 border border-white/5 rounded-2xl p-8 text-center text-gray-500 text-xs font-semibold">
-            No matches found matching the selected filters.
+            {t('vegasForm.noMatchesFound', 'No matches found matching the selected filters.')}
           </div>
         ) : (
           filteredMatches.map((m) => {
@@ -345,13 +347,13 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
                     <div className="flex items-center space-x-2">
                       <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center min-w-[70px]">
                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block truncate max-w-[65px]">
-                          Quote {lastName}
+                          {t('vegasForm.quote', 'Quote')} {lastName}
                         </span>
                         <span className="text-xs font-black text-white">{m.odds.myOdds.toFixed(2)}</span>
                       </div>
                       <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center min-w-[70px]">
                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block truncate max-w-[65px]">
-                          Quote {oppLastName}
+                          {t('vegasForm.quote', 'Quote')} {oppLastName}
                         </span>
                         <span className="text-xs font-black text-white">{m.odds.oppOdds.toFixed(2)}</span>
                       </div>
@@ -364,7 +366,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
                         : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                     }`}
                   >
-                    {m.isWin ? 'Won' : 'Lost'}
+                    {m.isWin ? t('vegasForm.won', 'Won') : t('vegasForm.lost', 'Lost')}
                   </div>
                 </div>
               </div>
@@ -378,25 +380,24 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
         <div className="flex justify-between items-start mb-3">
           <div className="space-y-0.5">
             <span className="text-[9px] font-black text-rose-500 uppercase tracking-wider">
-              Exclusive Partner Offer
+              {t('vegasForm.partnerOffer', 'Exclusive Partner Offer')}
             </span>
             <h4 className="text-sm font-black text-white uppercase tracking-wider">
-              NEO.bet Live Betting Action
+              {t('vegasForm.liveAction', 'NEO.bet Live Betting Action')}
             </h4>
           </div>
           <span className="bg-rose-500 text-white font-black text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full">
-            Partnership
+            {t('vegasForm.partnership', 'Partnership')}
           </span>
         </div>
         <p className="text-[11px] text-gray-400 leading-normal mb-4">
-          Open a bet directly inside NEO.bet for this player's next match. Lock in premium ATP/WTA 
-          odds and leverage Backhand Tennis Line daily AI insights to maximize your edge.
+          {t('vegasForm.partnerDesc', 'Open a bet directly inside NEO.bet for this player\'s next match. Lock in premium ATP/WTA odds and leverage Backhand Tennis Line daily AI insights to maximize your edge.')}
         </p>
         <button
           onClick={() => window.open('https://neo.bet', '_blank')}
           className="w-full bg-[#fa1f4b] hover:bg-[#d91238] text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center space-x-1"
         >
-          <span>Bet Live on NEO.bet</span>
+          <span>{t('vegasForm.betLive', 'Bet Live on NEO.bet')}</span>
           <ArrowUpRight size={14} />
         </button>
       </div>

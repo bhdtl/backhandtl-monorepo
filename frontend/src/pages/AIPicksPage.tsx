@@ -3,12 +3,13 @@ import { supabase } from '../lib/supabase';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { safeLocalStorage } from '../lib/storage';
 import { 
-  Target, Zap, Clock, Shield, Flame, Wallet, ArrowRight, Layers, Activity, CheckCircle2, TrendingUp, TrendingDown, MapPin,
+  Target, Zap, Clock, Shield, Flame, Wallet,
+  Activity, TrendingUp, TrendingDown, MapPin,
   Brain, ChevronDown, ChevronUp, AlignLeft, Crosshair, Gift, Search, X, Calendar
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { PremiumLock } from '../components/PremiumLock';
 import { useAccess } from '../hooks/useAccess';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
@@ -50,7 +51,6 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     const pick = pickName.trim();
     const lowerPick = pick.toLowerCase();
     const p1 = match.player1_name || match.p1Name || "";
-    const p2 = match.player2_name || match.p2Name || "";
     
     // 1. OVER / UNDER GAMES
     if (lowerPick.includes("over") || lowerPick.includes("under")) {
@@ -235,7 +235,7 @@ const getCountryCode = (countryName: string) => {
 };
 
 // --- FRAMER MOTION VARIANTS ---
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -243,7 +243,7 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } }
 };

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
   Search, MessageSquare, Plus, ThumbsUp, LifeBuoy, 
-  ChevronDown, ChevronUp, Send, CheckCircle2, Clock, 
-  AlertCircle, Loader2, Filter, X, Mail, Twitter, Shield 
+  ChevronDown, ChevronUp, CheckCircle2, 
+  Loader2, Mail, Twitter, Shield 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';

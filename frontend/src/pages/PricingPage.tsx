@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
-import { Check, Crown, Zap, Swords, Gauge, Target, Shield, Loader2, Lock, Sparkles, ChevronRight, Radar, DollarSign } from 'lucide-react';
+import { Check, Zap, Swords, Gauge, Target, Shield, Loader2, Lock, Sparkles, ChevronRight, Radar } from 'lucide-react';
 import { MemberCard } from '../components/MemberCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';

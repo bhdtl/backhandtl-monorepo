@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   motion, 
   AnimatePresence, 
@@ -15,8 +15,6 @@ import {
   Zap, 
   Sun, 
   ShieldCheck, 
-  Gem, 
-  Wifi, 
   Copy,
   LucideIcon
 } from 'lucide-react';

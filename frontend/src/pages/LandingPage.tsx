@@ -1,17 +1,17 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { safeLocalStorage } from '../lib/storage';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { BrandLogo } from '../components/BrandLogo';
 import { 
   Zap, Activity, BrainCircuit, 
-  TrendingUp, ArrowRight, X, Database, Eye, Lock, ShieldCheck, Check, FileText, Scale, Cpu, Cookie, Info, CreditCard 
+  TrendingUp, ArrowRight, X, Database, Eye, Lock, ShieldCheck, CreditCard 
 } from 'lucide-react';
 // 🚀 SOTA FIX: Importiere Lenis für das "Butter Smooth Scrolling" aus dem Video
 import Lenis from '@studio-freight/lenis';
 import { PartnerBadge } from '../components/PartnerBadge';
 import { NeoBetBanner } from '../components/NeoBetBanner';
+import { useTranslation } from 'react-i18next';
 
 // --- INTERFACES ---
 interface OnboardingData {
@@ -27,12 +27,12 @@ interface LandingPageProps {
 }
 
 // --- ANIMATION VARIANTS (Hardware Accelerated) ---
-const fadeInUp = {
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30, transform: 'translate3d(0, 30px, 0)' },
   visible: { opacity: 1, y: 0, transform: 'translate3d(0, 0px, 0)', transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -302,6 +302,7 @@ function ExplainerModal({ onClose }: { onClose: () => void }) {
 
 // 🚀 MAIN LANDING COMPONENT
 export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: LandingPageProps) {
+  const { t } = useTranslation();
   const [showQuiz, setShowQuiz] = useState(false);
   const [showExplainer, setShowExplainer] = useState(false);
   const [playerCount, setPlayerCount] = useState<number | null>(null);
@@ -314,13 +315,13 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
     if (!isTouchDevice) {
       const lenis = new Lenis({
         duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Apple-like easing
+        easing: (time: number) => Math.min(1, 1.001 - Math.pow(2, -10 * time)), // Apple-like easing
         direction: 'vertical',
         gestureDirection: 'vertical',
         smooth: true,
         smoothTouch: false, // Touch devices use native scroll
         touchMultiplier: 2,
-      });
+      } as any);
 
       function raf(time: number) {
         lenis.raf(time);
@@ -394,24 +395,24 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">
-                  System Live
+                  {t('landing.systemLive', 'System Live')}
                 </span>
               </div>
               <div className="w-px h-3 bg-white/10"></div>
               <span className="text-[10px] font-mono text-gray-400">
-                {playerCount ? `${playerCount.toLocaleString()} Players Tracked` : 'Connecting Database...'}
+                {playerCount ? t('landing.playersTracked', '{{count}} Players Tracked', { count: playerCount }) : t('landing.connectingDb', 'Connecting Database...')}
               </span>
             </motion.div>
 
             <motion.h1 variants={fadeInUp} className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.95] mb-8 text-white">
-              The Edge <br />
+              {t('landing.headlineLine1', 'The Edge')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-600">
-                You're Missing.
+                {t('landing.headlineLine2', "You're Missing.")}
               </span>
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="text-lg md:text-xl text-gray-400 max-w-xl mb-12 leading-relaxed font-medium">
-              We combine visual surface physics (BSI), institutional-grade data, and proprietary neural networks to expose market inefficiencies.
+              {t('landing.subheadline', 'We combine visual surface physics (BSI), institutional-grade data, and proprietary neural networks to expose market inefficiencies.')}
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
@@ -419,7 +420,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                 onClick={handleStartAnalysis}
                 className="group relative px-8 py-4 bg-tennis-lime text-black font-black text-sm uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:shadow-[0_0_50px_rgba(204,255,0,0.5)] transform-gpu"
               >
-                Start Analysis
+                {t('landing.startAnalysis', 'Start Analysis')}
                 <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={16} />
               </button>
               
@@ -428,7 +429,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                 id="how-it-works"
                 className="px-8 py-4 bg-transparent border border-white/10 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:bg-white/5 transition-colors transform-gpu"
               >
-                How it works
+                {t('landing.howItWorks', 'How it works')}
               </button>
             </motion.div>
 

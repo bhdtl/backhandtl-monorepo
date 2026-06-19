@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 import { safeLocalStorage } from '../lib/storage';
 import { X, Mail, Lock, User, Loader2, ArrowRight, KeyRound, Globe } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext'; 
 
 interface OnboardingData {
@@ -33,7 +32,6 @@ const GoogleIcon = () => (
 );
 
 export function AuthModal({ isOpen, onClose, initialMode = 'login', onboardingData, onOpenLegal, onRequestQuiz }: AuthModalProps) {
-  const { t } = useTranslation();
   const { signIn } = useAuth(); 
   
   const [isReset, setIsReset] = useState(false);

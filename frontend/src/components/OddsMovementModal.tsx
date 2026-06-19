@@ -14,7 +14,7 @@ import { MarketOddsPerformance } from './MarketOddsPerformance';
 import { BsiSpeedPerformance } from './BsiSpeedPerformance';
 
 // --- TYPES ---
-interface RawMatchRow {
+export interface RawMatchRow {
   id: string;
   player1_name?: string;
   player2_name?: string;
@@ -89,7 +89,6 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     const pick = pickName.trim();
     const lowerPick = pick.toLowerCase();
     const p1 = match.player1_name || match.p1Name || "";
-    const p2 = match.player2_name || match.p2Name || "";
     
     // 1. OVER / UNDER GAMES
     if (lowerPick.includes("over") || lowerPick.includes("under")) {
@@ -202,7 +201,6 @@ export function OddsMovementModal({
   // --- STATE ---
   const [rawHistory, setRawHistory] = useState<OddsHistoryRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // 🚀 SOTA: Match Center Tab Navigation
   const [activeTab, setActiveTab] = useState<'ODDS' | 'P1' | 'P2'>('ODDS');
@@ -224,7 +222,6 @@ export function OddsMovementModal({
       setDragY(0); 
       setIsDragging(false);
       setActivePoint(null);
-      setErrorMsg(null);
       setRawHistory([]);
       setTimeFrame('24h');
       setActiveTab('ODDS'); // Reset to default tab
@@ -261,7 +258,7 @@ export function OddsMovementModal({
 
       const fetchHistory = async () => {
           if (!match?.id) {
-              setErrorMsg("Invalid Match ID");
+              console.warn("Invalid Match ID");
               return;
           }
 
@@ -277,7 +274,6 @@ export function OddsMovementModal({
               setRawHistory(data || []);
           } catch (err: any) {
               console.error("❌ [OddsModal] FATAL:", err);
-              setErrorMsg(err.message || "Connection Error");
           } finally {
               setLoading(false);
           }
@@ -305,7 +301,7 @@ export function OddsMovementModal({
 
   // --- CORE LOGIC FOR CHART ---
   const { 
-      graphData, currentOdds, entryOdds, playerColor, playerName, isPositiveTrend, yDomain, percentChange
+      graphData, currentOdds, entryOdds, playerColor, yDomain
   } = useMemo(() => {
       const safeDefault = { 
           graphData: [], currentOdds: 0, entryOdds: 0, 
@@ -354,13 +350,13 @@ export function OddsMovementModal({
           : ((Number(openVal) && !isNaN(Number(openVal))) ? Number(openVal) : finalLive);
 
       // --- SCALING HELPERS ---
-      let mlFirst = openVal;
-      let mlLast = liveVal;
+      let mlFirst: number = Number(openVal) || 1;
+      let mlLast: number = Number(liveVal) || 1;
       if (rawHistory.length > 0) {
           const firstRow = rawHistory[0];
           const lastRow = rawHistory[rawHistory.length - 1];
-          mlFirst = baseIsP1 ? firstRow.odds1 : firstRow.odds2;
-          mlLast = baseIsP1 ? lastRow.odds1 : lastRow.odds2;
+          mlFirst = Number(baseIsP1 ? firstRow.odds1 : firstRow.odds2) || 1;
+          mlLast = Number(baseIsP1 ? lastRow.odds1 : lastRow.odds2) || 1;
       }
 
       const scaleOdds = (mlVal: number) => {

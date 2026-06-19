@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Settings, LogOut, ExternalLink, AlertTriangle, Trash2, ChevronRight, Bell } from 'lucide-react';
 import { useAccess } from '../hooks/useAccess'; 
@@ -59,7 +59,7 @@ export function MemberCardModal({ isOpen, onClose }: MemberCardModalProps) {
   const checkSubscriptionStatus = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('push_subscriptions')
         .select('push_level')
         .eq('user_id', user.id)

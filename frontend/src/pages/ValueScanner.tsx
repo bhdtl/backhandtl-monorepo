@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { safeLocalStorage, safeSessionStorage } from '../lib/storage';
 import { 
-  Zap, Search, Clock, ArrowDown,
-  AlertTriangle, CheckCircle2, Shield, XCircle,
-  ChevronRight, Filter, Lock, Crown, Target, Activity, HelpCircle, Eye, Settings,
+  Zap, Search, Clock,
+  AlertTriangle, CheckCircle2, XCircle,
+  ChevronRight, Filter, Target, Activity, HelpCircle,
   TrendingUp, TrendingDown, BookOpen, BarChart3, Crosshair, Layers, Flame, Wallet, Gift
 } from 'lucide-react';
 import { ScrollToTop } from '../components/ScrollToTop';
@@ -15,7 +15,7 @@ import { useAccess } from '../hooks/useAccess';
 import { motion } from 'framer-motion';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
 import { OddsMovementModal } from '../components/OddsMovementModal'; 
-import { LiveValueMatch, Player, ParsedBet, GamesPrediction } from '../types/tennis'; 
+import { LiveValueMatch, Player, ParsedBet } from '../types/tennis'; 
 import { QuantumGamesBadge } from '../components/QuantumGamesBadge';
 import { PremiumLock } from '../components/PremiumLock';
 import { trackEvent } from '../lib/analytics';
@@ -50,6 +50,8 @@ interface MarketOddsRow {
   games_prediction?: any; 
   is_visible_in_scanner?: boolean; 
   bookmaker_odds?: Record<string, { odds1: number, odds2: number }>;
+  neobet_spreads?: any;
+  neobet_over_unders?: any;
 }
 
 // --- HELPER: UNIVERSAL VALUE PARSER ---
@@ -135,7 +137,6 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     const pick = pickName.trim();
     const lowerPick = pick.toLowerCase();
     const p1 = match.player1_name || match.playerA?.last_name || "";
-    const p2 = match.player2_name || match.playerB?.last_name || "";
     
     // 1. OVER / UNDER GAMES
     if (lowerPick.includes("over") || lowerPick.includes("under")) {
@@ -385,9 +386,9 @@ export function ValueScanner() {
 
   useEffect(() => {
     if (!accessLoading && isElite) {
-        trackEvent('value_scanner_view', {});
+        trackEvent('value_scanner_view', { geoSafe: isGeoSafe });
     }
-  }, [isElite, accessLoading]);
+  }, [isElite, accessLoading, isGeoSafe]);
 
   const datePills = useMemo(() => {
     const dates = [];
@@ -522,7 +523,7 @@ export function ValueScanner() {
     setSelectedMatch(match);
   };
 
-  const handleDateChange = (dateValue: string, label: string) => {
+  const handleDateChange = (dateValue: string, _label: string) => {
       setSelectedDate(dateValue);
   };
 
@@ -1143,7 +1144,7 @@ export function ValueScanner() {
                                 {match.bookmakerOdds && Object.keys(match.bookmakerOdds).length > 0 && (
                                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1 pb-1">
                                         <div className="text-[7px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap pl-1">Best Lines:</div>
-                                        {Object.entries(match.bookmakerOdds).sort(([bookieA, oddsA]: any, [bookieB, oddsB]: any) => {
+                                        {Object.entries(match.bookmakerOdds).sort(([_bookieA, oddsA]: any, [_bookieB, oddsB]: any) => {
                                             const valA = p1IsPick ? oddsA.odds1 : oddsA.odds2;
                                             const valB = p1IsPick ? oddsB.odds1 : oddsB.odds2;
                                             return valB - valA; 

@@ -65,7 +65,10 @@
       "live": "LIVE",
       "winRate": "Taux Victoire",
       "avgOdds": "Cote Moy.",
-      "profit": "Profit"
+      "profit": "Profit",
+      "netProfit": "Bénéfice Net",
+      "yieldRoi": "Rendement (ROI)",
+      "avgClv": "CLV Moyenne"
     },
     "filters": {
       "selected": "Sélectionnés",
@@ -409,35 +412,13 @@
     "footer": "La note globale est une moyenne pondérée des compétences techniques, de la condition physique et du jeu mental."
   },
   "playerProfile": {
-    "track": "Suivre Joueur",
-    "tracking": "Suivi",
-    "headers": {
-      "scoutingReport": "Rapport de Scouting Tactique",
-      "psychological": "Profil Psychologique",
-      "achievements": "Succès"
-    },
-    "sections": {
-      "strengths": "Points Forts",
-      "weaknesses": "Vulnérabilités",
-      "mental": "Profil Psychologique"
-    },
-    "notFound": "Joueur non trouvé",
-    "noMentalData": "Aucune donnée psychologique disponible.",
-    "gamified": {
-      "backToPlayers": "Retour aux Joueurs",
-      "favoritedBy": "utilisateurs suivent ce joueur",
-      "ctaTrackTitle": "Suivre cette étoile montante ?",
-      "ctaTrackButton": "Rejoignez pour sauvegarder",
-      "lastUpdated": "MàJ : {{date}}",
-      "liveData": "EN DIRECT",
-      "updated": "MIS À JOUR !",
-      "performanceRadar": "Radar de Performance",
-      "coreStrengths": "Forces Principales",
-      "developmentAreas": "Zones de Développement",
-      "mentalAnalysis": "Analyse Mentale",
-      "noDataTitle": "Pas encore de données de scouting",
-      "noDataDesc": "Revenez bientôt pour des analyses détaillées"
-    }
+    "specialty": "Spécialité",
+    "tourRating": "Classement Tour",
+    "court": "Court",
+    "ovr": "OVR",
+    "allCourt": "Tout Court",
+    "performanceRadar": "Radar de Performance",
+    "skillRatings": "Classement des Compétences"
   },
   "playerCard": {
     "labels": {
@@ -568,39 +549,8 @@
     "login": "Connexion"
   },
   "mobileMenu": {
-    "menu": "Menu",
-    "myAccount": "Mon Compte",
-    "redeemCode": "Échanger un Code",
-    "enterPromoCode": "ENTRER CODE PROMO",
-    "unlockFullAccess": "Débloquer l'Accès Complet",
-    "loginNow": "Se Connecter",
-    "loginSignUp": "Se Connecter / S'Inscrire",
-    "logout": "Déconnexion",
-    "status": {
-      "pro": "STATUT PRO",
-      "free": "STATUT GRATUIT",
-      "expires": "Expire",
-      "balance": "Solde",
-      "credits": "Crédits"
-    },
     "nav": {
-      "playerDatabase": "Base de Données de Joueurs",
-      "watchlist": "Liste de Suivi",
-      "membershipPlans": "Plans d'Adhésion",
-      "intelligenceHub": "Hub d'Intelligence",
-      "matchupAnalyzer": "Analyseur de Matchs",
-      "valueScanner": "Scanner de Valeur",
-      "aiPicks": "Sélections IA",
-      "bsiCourtIndex": "Indice BSI des Courts",
-      "aiPerformance": "Performance IA",
-      "supportIdeas": "Support et Idées",
-      "systemAdmin": "Administrateur Système"
-    },
-    "badges": {
-      "upgrade": "Améliorer",
-      "new": "Nouveau",
-      "hot": "Chaud",
-      "help": "Aide"
+      "tournamentOracle": "Oracle du Tournoi"
     }
   },
   "picks": {
@@ -681,6 +631,15 @@
     "description": "Cotes exclusives, interface en tempo réel et placement ultra-rapide des coupons de pari pour une performance maximale.",
     "licensedRegulated": "Agréé et Réglementé (Liste Blanche)"
   },
+  "header": {
+    "member": "Membre"
+  },
+  "surfaces": {
+    "hard": "Dur",
+    "grass": "Gazon",
+    "clay": "Terre Battue",
+    "overall": "Général"
+  },
   "playStyle": {
     "Aggressive Baseliner": "Attaquant de Fond de Court",
     "Counter Puncher": "Contre-Attaquant",
@@ -697,5 +656,101 @@
     "Balanced": "Équilibré",
     "Versatile": "Polyvalent",
     "Dominant Style": "Style Dominant"
+  },
+  "courts": {
+    "alerts": {
+      "invalidBsi": "Évaluation BSI invalide. Doit être comprise entre 1 et 100.",
+      "saveError": "Échec de l'enregistrement des détails du court.",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce court ?",
+      "deleteError": "Échec de la suppression du court."
+    },
+    "loading": "Chargement des données des courts..."
+  },
+  "loadManagement": {
+    "statusText": {
+      "fresh": "FRAIS",
+      "critical": "CHARGE CRITIQUE",
+      "heavy": "JAMBES LOURDES",
+      "rhythm": "RYTHME DE MATCH"
+    },
+    "descriptions": {
+      "fresh": "Condition physique optimale. Aucun signe de fatigue attendu.",
+      "critical": "Fatigue extrême. Risque massif de baisse de performance en fin de manche.",
+      "heavy": "Charge accrue au cours des 2 dernières semaines. Déficit de récupération probable.",
+      "rhythm": "Rythme de match parfait. Le joueur est concentré sans être surmené."
+    },
+    "title": "Statut de Charge Physiologique",
+    "timeOnCourt": "Temps sur le Court (14 Derniers Jours)",
+    "min": "Min",
+    "assessment": "Évaluation de la Charge",
+    "comebackRating": "Indice de Comeback",
+    "post1stSetLoss": "Après perte du 1er set",
+    "statsSummary": "{{wins}}V – {{losses}}D ({{rate}}%)",
+    "comebackDesc": "Mesure la capacité du joueur à arracher une victoire après avoir perdu le premier set, calculée à partir de ses récents résultats de match."
+  },
+  "intelligence": {
+    "briefings": "Briefings d'Intelligence IA",
+    "viewHub": "Voir le Centre",
+    "noAlerts": "Aucune alerte d'intelligence récente trouvée. Le joueur semble physiquement et mentalement stable.",
+    "keyTakeaways": "Points clés à retenir :",
+    "readOriginal": "Lire la source originale",
+    "scoutingDossier": "Dossier de Scouting & Calme",
+    "updated": "Mis à jour",
+    "coreStrengths": "Forces Clés",
+    "noStrengths": "Aucun détail sur les forces enregistré.",
+    "developmentAreas": "Axes de Développement",
+    "noWeaknesses": "Aucun détail sur les faiblesses enregistré.",
+    "psychologicalProfile": "Profil Psychologique",
+    "defaultMental": "Les indicateurs de résilience mentale sont standard. Aucune alerte de calme spécifique générée."
+  },
+  "scouting": {
+    "defaultStrengths": "Jeu de fond de court d'élite, premier service puissant et couverture de terrain latérale rapide.",
+    "defaultWeaknesses": "Vulnérable sous pression sur le retour de second service ; fautes directes occasionnelles sur les coups droits à haut rebond.",
+    "defaultMental": "Maintient un niveau de concentration élevé. Fait preuve d'une solide résilience dans les tie-breaks mais manque parfois de calme face à des breaks rapides."
+  },
+  "playerDropdown": {
+    "unknownPlayer": "Joueur Inconnu",
+    "searchPlaceholder": "Rechercher des joueurs par nom...",
+    "noResultsSearch": "Aucun joueur trouvé correspondant à votre recherche.",
+    "noPlayers": "Aucun joueur disponible."
+  },
+  "skillBar": {
+    "ariaLabel": "Évaluation des Compétences"
+  },
+  "surfaceMastery": {
+    "preferredSurface": "Surface Préférée",
+    "specialist": "Spécialiste de {{surface}}",
+    "rating": {
+      "average": "Moyen",
+      "elite": "ÉLITE",
+      "strong": "FORT",
+      "solid": "SOLIDE",
+      "vulnerable": "VULNÉRABLE",
+      "weakness": "FAIBLESSE"
+    },
+    "matches": "{{count}} MATCHS",
+    "best": "MEILLEUR"
+  },
+  "vegasForm": {
+    "quantumEngine": "Moteur de Forme Quantum",
+    "form": "FORME",
+    "recentForm": "Forme Récente (5 Derniers)",
+    "noMatchRecords": "Aucun enregistrement de match trouvé.",
+    "overallWinLoss": "Taux Global Victoire / Défaite",
+    "filterSortMatches": "Filtrer & Trier les Matchs",
+    "sort": "Trier",
+    "newest": "Plus Récents",
+    "oldest": "Plus Anciens",
+    "matchLog": "Journal des Matchs & Cotes",
+    "showingMatches": "Affichage de {{count}} Matchs",
+    "noMatchesFound": "Aucun match trouvé avec les filtres sélectionnés.",
+    "quote": "Cote",
+    "won": "Gagné",
+    "lost": "Perdu",
+    "partnerOffer": "Offre Exclusive Partenaire",
+    "liveAction": "Paris en Direct NEO.bet",
+    "partnership": "Partenariat",
+    "partnerDesc": "Placez un pari directement sur NEO.bet pour le prochain match de ce joueur. Profitez de cotes ATP/WTA premium et utilisez nos analyses quotidiennes pour maximiser votre avantage.",
+    "betLive": "Parier en Direct sur NEO.bet"
   }
 }

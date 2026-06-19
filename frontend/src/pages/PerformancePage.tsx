@@ -3,11 +3,10 @@ import { supabase } from '../lib/supabase';
 import { safeLocalStorage } from '../lib/storage';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { 
-  ArrowLeft, CheckCircle2, XCircle, TrendingUp, BarChart3, Target, Zap, History, ArrowUpRight, ArrowDownRight,
-  ChevronLeft, ChevronRight, Percent, TrendingDown, Scale, Shield, Crown, Activity, Wallet, PieChart, Calendar, Swords,
+  ArrowLeft, BarChart3, Target, Zap, History, ArrowUpRight, ArrowDownRight,
+  ChevronLeft, ChevronRight, Shield, Crown, Activity, Wallet, PieChart, Calendar, Swords,
   Download, HelpCircle
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -135,7 +134,6 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     const pick = pickName.trim();
     const lowerPick = pick.toLowerCase();
     const p1 = match.player1_name || "";
-    const p2 = match.player2_name || "";
     
     // 1. OVER / UNDER GAMES
     if (lowerPick.includes("over") || lowerPick.includes("under")) {

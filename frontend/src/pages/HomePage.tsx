@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, TrendingUp, Award, Zap, ArrowRight, BarChart3, AlertTriangle, Percent, Target, Scale, Wallet, PieChart, Gift } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, Zap, ArrowRight, AlertTriangle, Wallet, PieChart } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { safeLocalStorage, safeSessionStorage } from '../lib/storage';
 import { PlayerCard } from '../components/PlayerCard';
@@ -11,7 +11,6 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { PartnerBadge } from '../components/PartnerBadge';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
-import { motion } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
@@ -135,7 +134,6 @@ const getClosingOddsForPlay = (pickName: string, match: any): number => {
     const pick = pickName.trim();
     const lowerPick = pick.toLowerCase();
     const p1 = match.player1_name || "";
-    const p2 = match.player2_name || "";
     
     // 1. OVER / UNDER GAMES
     if (lowerPick.includes("over") || lowerPick.includes("under")) {
@@ -452,7 +450,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 <span className={`text-sm font-bold mb-0.5 ${stats.totalUnits >= 0 ? 'text-tennis-lime/70' : 'text-red-500/70'}`}>u</span>
             </div>
             <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-                <Wallet size={10} /> NET PROFIT
+                <Wallet size={10} /> {t('homePage.aiStats.netProfit', 'NET PROFIT')}
             </div>
         </div>
 
@@ -466,7 +464,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 <span className={`text-sm font-bold mb-0.5 ${stats.roi >= 0 ? 'text-blue-400/70' : 'text-red-500/70'}`}>%</span>
             </div>
             <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-                <PieChart size={10} /> YIELD (ROI)
+                <PieChart size={10} /> {t('homePage.aiStats.yieldRoi', 'YIELD (ROI)')}
             </div>
         </div>
 
@@ -480,7 +478,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 <span className={`text-sm font-bold mb-0.5 ${stats.avgClv >= 0 ? 'text-emerald-400/70' : 'text-gray-500'}`}>%</span>
             </div>
             <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-                <Zap size={10} /> AVG. CLV
+                <Zap size={10} /> {t('homePage.aiStats.avgClv', 'AVG. CLV')}
             </div>
         </div>
         

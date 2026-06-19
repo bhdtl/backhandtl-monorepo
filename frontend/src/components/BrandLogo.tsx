@@ -1,4 +1,3 @@
-import React from 'react';
 
 export function BrandLogo({ className = "", withText = false }: { className?: string, withText?: boolean }) {
   // Statische ID verhindert Hydration-Probleme

@@ -2,17 +2,17 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, Save, X, Sliders, Award, Zap, Search, Upload, 
-  Link as LinkIcon, Image as ImageIcon, ShieldAlert, Loader2, ChevronDown, 
-  ChevronUp, Brain, Activity, Tag, LayoutGrid, Users, BarChart3, Ticket,
-  CheckCircle2, Circle, Languages, Menu, Palette, Sparkles, FileText, Eye, Swords, Gauge, PenTool, Layout, Filter,
+  Image as ImageIcon, ShieldAlert, Loader2, ChevronDown, 
+  Brain, Activity, LayoutGrid, Users, BarChart3, Ticket,
+  CheckCircle2, Circle, Languages, Palette, Sparkles, FileText, Eye, Swords, Gauge, PenTool,
   Type, 
-  MessageSquare, ThumbsUp, LifeBuoy, AlertTriangle, Briefcase,
+  ThumbsUp, LifeBuoy, Briefcase,
   Copy // 🚀 SOTA FIX: Briefcase für Partner Tab hinzugefügt
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useAccess } from '../hooks/useAccess';
-import { uploadPlayerImage, validateImageFile } from '../lib/imageUpload';
+import { uploadPlayerImage } from '../lib/imageUpload';
 import { Toast } from '../components/Toast';
 import { CourtsManager } from '../components/CourtsManager';
 import { ScrollToTop } from '../components/ScrollToTop';

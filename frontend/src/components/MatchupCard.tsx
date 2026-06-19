@@ -1,5 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
-import { Trophy, Zap, Gauge, MapPin, Activity, Clock } from 'lucide-react';
+import { Trophy, Zap, MapPin, Activity, Clock } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { useTranslation } from 'react-i18next'; // 1. Import
 

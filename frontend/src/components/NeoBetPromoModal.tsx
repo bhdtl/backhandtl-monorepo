@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { X, Gift, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,20 +13,20 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
+    const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const registrationUrl = "https://neo.bet/de/Sportwetten/Tennis?affiliateId=backhandtl-promo-popup";
 
-  const steps = [
+  const promoSteps = [
     {
-      title: t('picks.promoStep1Title', 'Create Account'),
-      desc: t('picks.promoStep1Desc', 'Register for free with our partner NEO.bet using our dynamic referral link.')
+      title: t('picks.promoStep1Title', 'Register via our link'),
+      desc: t('picks.promoStep1Desc', 'Click the "Activate Promo" button to register a new account on NEO.bet.')
     },
     {
       title: t('picks.promoStep2Title', 'Get €25 Freebet'),
@@ -39,7 +39,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
   ];
 
   // Revolut & Apple native modal animation variants
-  const modalVariants = {
+  const modalVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: isMobile ? '100%' : 30, 
@@ -123,7 +123,7 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
                 {/* Vertical Connector Line */}
                 <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-white/5" />
 
-                {steps.map((step, idx) => (
+                {promoSteps.map((step: { title: string; desc: string }, idx: number) => (
                   <div key={idx} className="relative flex flex-col items-start gap-1">
                     {/* Timeline Node Badge */}
                     <div className="absolute -left-[27px] top-0 w-[22px] h-[22px] rounded-full bg-[#0f1115] border border-white/10 flex items-center justify-center text-[10px] font-black text-tennis-lime font-mono">

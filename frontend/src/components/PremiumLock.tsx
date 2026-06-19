@@ -15,7 +15,7 @@ interface PremiumLockProps {
   isLocked: boolean;
 }
 
-export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl", children, isLocked }: PremiumLockProps) {
+export function PremiumLock({ title: _title, description, minTier, blurAmount = "blur-xl", children, isLocked }: PremiumLockProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { country, loading: countryLoading } = useCountry();
@@ -38,7 +38,7 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
 
     const checkRequestStatus = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('affiliate_requests')
           .select('neobet_username, status, rejection_reason')
           .eq('user_id', user.id)
@@ -114,7 +114,6 @@ export function PremiumLock({ title, description, minTier, blurAmount = "blur-xl
   if (!isDeOrAt) {
     const tierKey = (minTier || 'ELITE').toString().toUpperCase().trim();
     const isElite = tierKey === 'ELITE';
-    const borderColor = isElite ? 'border-yellow-500/30' : 'border-fuchsia-500/30';
     const iconColor = isElite ? 'text-yellow-400' : 'text-fuchsia-400';
     const Icon = isElite ? Zap : Crown;
 

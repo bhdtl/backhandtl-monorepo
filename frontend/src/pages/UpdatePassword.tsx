@@ -3,10 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Loader2, ArrowRight, X, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
-import { useTranslation } from 'react-i18next';
 
 export function UpdatePassword() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   
   const [password, setPassword] = useState('');

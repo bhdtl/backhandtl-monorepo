@@ -24,7 +24,6 @@ import {
   Swords,
   Award,
   Users,
-  TrendingUp,
   Trophy,
   Activity,
   Heart,
@@ -51,6 +50,7 @@ interface ScoutingReport {
   weaknesses: string;
   mental_game_notes: string;
   last_updated: string;
+  translations?: any;
 }
 
 interface PlayerSkills {
@@ -74,7 +74,7 @@ export const PlayerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [player, setPlayer] = useState<Player | null>(null);
   const [report, setReport] = useState<ScoutingReport | null>(null);
@@ -356,6 +356,23 @@ export const PlayerProfile: React.FC = () => {
     return { rating, wins: successCount, total: totalOpp, rate };
   }, [matches, player]);
 
+  const translatedReport = useMemo(() => {
+    if (!report) return null;
+    let strengths = report.strengths;
+    let weaknesses = report.weaknesses;
+    let mentalGameNotes = report.mental_game_notes;
+    
+    const currentLang = i18n.language ? i18n.language.substring(0, 2).toLowerCase() : 'en';
+    if (currentLang !== 'en' && report.translations && report.translations[currentLang]) {
+      const trans = report.translations[currentLang];
+      if (trans.strengths) strengths = trans.strengths;
+      if (trans.weaknesses) weaknesses = trans.weaknesses;
+      if (trans.mental) mentalGameNotes = trans.mental;
+    }
+    
+    return { strengths, weaknesses, mentalGameNotes };
+  }, [report, i18n.language]);
+
   if (loading) return <LoadingScreen />;
 
   if (!player) {
@@ -514,12 +531,12 @@ export const PlayerProfile: React.FC = () => {
                 {/* Surface preference / details card */}
                 <div className="bg-gradient-to-br from-[#161a25]/60 to-[#0f1115]/80 p-5 rounded-2xl border border-white/5 flex items-center justify-between shadow-lg">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-wider block">Specialty</span>
-                    <h3 className="text-base font-black text-white uppercase tracking-wider">{player.surface_preference || 'All Court'} Court</h3>
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-wider block">{t('playerProfile.specialty', 'Specialty')}</span>
+                    <h3 className="text-base font-black text-white uppercase tracking-wider">{player.surface_preference ? t(`surfaces.${player.surface_preference.toLowerCase()}`, player.surface_preference) : t('playerProfile.allCourt', 'All Court')} {t('playerProfile.court', 'Court')}</h3>
                   </div>
                   <div className="space-y-1 text-right">
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-wider block">Tour Rating</span>
-                    <span className="text-base font-black text-tennis-lime italic">{overallRating} OVR</span>
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-wider block">{t('playerProfile.tourRating', 'Tour Rating')}</span>
+                    <span className="text-base font-black text-tennis-lime italic">{overallRating} {t('playerProfile.ovr', 'OVR')}</span>
                   </div>
                 </div>
 
@@ -537,7 +554,7 @@ export const PlayerProfile: React.FC = () => {
                   <div className="bg-[#151821]/80 backdrop-blur-md p-6 rounded-3xl border border-white/5 shadow-xl text-center">
                     <h3 className="text-white font-black text-sm uppercase tracking-wider mb-4 flex items-center justify-center">
                       <Activity className="mr-2 text-tennis-lime" size={18} />
-                      Performance Radar
+                      {t('playerProfile.performanceRadar', 'Performance Radar')}
                     </h3>
                     <SkillRadarChart skills={radarSkills} />
                   </div>
@@ -548,7 +565,7 @@ export const PlayerProfile: React.FC = () => {
                   <div className="bg-[#151821]/80 backdrop-blur-md p-6 rounded-3xl border border-white/5 shadow-xl space-y-4">
                     <h3 className="text-white font-black text-sm uppercase tracking-wider mb-2 flex items-center">
                       <Award className="mr-2 text-tennis-lime" size={18} />
-                      Skill Ratings
+                      {t('playerProfile.skillRatings', 'Skill Ratings')}
                     </h3>
                     <div className="space-y-4">
                       {radarSkills.map((skill, idx) => (
@@ -575,9 +592,9 @@ export const PlayerProfile: React.FC = () => {
             {/* Scouting Tab */}
             {activeTab === 'Scouting' && (
               <PlayerIntelligenceWidget
-                strengths={report?.strengths}
-                weaknesses={report?.weaknesses}
-                mentalGameNotes={report?.mental_game_notes}
+                strengths={translatedReport?.strengths}
+                weaknesses={translatedReport?.weaknesses}
+                mentalGameNotes={translatedReport?.mentalGameNotes}
                 lastUpdated={report?.last_updated}
                 onlyScouting={true}
               />

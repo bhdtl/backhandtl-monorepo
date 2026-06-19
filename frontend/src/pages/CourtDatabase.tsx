@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Gauge, MapPin, Search, ArrowUpDown, Filter, ChevronDown, ChevronRight } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { trackEvent } from '../lib/analytics';
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -22,7 +21,6 @@ interface Tournament {
 
 export function CourtDatabase() {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
   const { isElite, loading: accessLoading } = useAccess();
   const navigate = useNavigate();
   

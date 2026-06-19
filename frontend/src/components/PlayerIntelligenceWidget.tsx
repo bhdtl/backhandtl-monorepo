@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeUpVariant } from './animationVariants';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerIntelligenceWidgetProps {
   insights?: any[];
@@ -19,13 +20,14 @@ interface PlayerIntelligenceWidgetProps {
 
 export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> = ({
   insights = [],
-  strengths = 'Elite baseline play, powerful first serve, and quick lateral court speed.',
-  weaknesses = 'Vulnerable under pressure on second serve return; occasional unforced errors on high-bounce forehands.',
-  mentalGameNotes = 'Maintains high concentration levels. Demonstrates solid resilience in tiebreaks but occasionally lacks composure when facing early breaks.',
+  strengths,
+  weaknesses,
+  mentalGameNotes,
   lastUpdated,
   onlyScouting = false,
   onlyNews = false,
 }) => {
+  const { t } = useTranslation();
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
 
   const getSentimentDetails = (sentiment: string) => {
@@ -100,8 +102,16 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
       .filter((item) => item.length > 0);
   };
 
-  const strengthList = parseBulletPoints(strengths);
-  const weaknessList = parseBulletPoints(weaknesses);
+  const defaultStrengths = t('scouting.defaultStrengths', 'Elite baseline play, powerful first serve, and quick lateral court speed.');
+  const defaultWeaknesses = t('scouting.defaultWeaknesses', 'Vulnerable under pressure on second serve return; occasional unforced errors on high-bounce forehands.');
+  const defaultMental = t('scouting.defaultMental', 'Maintains high concentration levels. Demonstrates solid resilience in tiebreaks but occasionally lacks composure when facing early breaks.');
+
+  const actualStrengths = strengths || defaultStrengths;
+  const actualWeaknesses = weaknesses || defaultWeaknesses;
+  const actualMental = mentalGameNotes || defaultMental;
+
+  const strengthList = parseBulletPoints(actualStrengths);
+  const weaknessList = parseBulletPoints(actualWeaknesses);
 
   return (
     <motion.div
@@ -118,19 +128,19 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
         <div className="flex items-center justify-between gap-4 mb-4 border-b border-white/5 pb-4">
           <h3 className="text-white font-black text-sm uppercase tracking-wider flex items-center gap-2 relative z-10">
             <Brain className="text-tennis-lime" size={18}/> 
-            <span>AI Intelligence Briefings</span>
+            <span>{t('intelligence.briefings', 'AI Intelligence Briefings')}</span>
           </h3>
           <Link 
             to="/intelligence" 
             className="text-[10px] font-black uppercase tracking-widest text-tennis-lime hover:underline flex items-center gap-1 transition-all"
           >
-            View Hub <ArrowLeft size={10} className="rotate-180" />
+            {t('intelligence.viewHub', 'View Hub')} <ArrowLeft size={10} className="rotate-180" />
           </Link>
         </div>
 
         {insights.length === 0 ? (
           <div className="text-center py-6 text-gray-500 text-xs font-semibold">
-            No recent intelligence alerts found. The player appears physically and mentally stable.
+            {t('intelligence.noAlerts', 'No recent intelligence alerts found. The player appears physically and mentally stable.')}
           </div>
         ) : (
           <div className="flex flex-col gap-3 relative z-10">
@@ -178,7 +188,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
                         className="overflow-hidden mt-3 pt-3 border-t border-white/5 text-left"
                       >
                         <h5 className="text-[9px] font-black uppercase text-tennis-lime tracking-widest mb-1.5">
-                          Key Takeaways:
+                          {t('intelligence.keyTakeaways', 'Key Takeaways:')}
                         </h5>
                         <ul className="list-disc list-inside text-gray-300 text-[11px] space-y-1 pl-1">
                           {insight.key_takeaways && insight.key_takeaways.map((takeaway: string, idx: number) => (
@@ -195,7 +205,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
                             className="mt-3 inline-flex items-center gap-1 text-[10px] font-black uppercase text-tennis-lime/80 hover:text-tennis-lime tracking-wider"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            Read Original Source <ExternalLink size={10} />
+                            {t('intelligence.readOriginal', 'Read Original Source')} <ExternalLink size={10} />
                           </a>
                         )}
                       </motion.div>
@@ -214,12 +224,12 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
         <div className="space-y-4 text-left">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-white font-black text-sm uppercase tracking-wider">
-            Scouting & Composure Dossier
+            {t('intelligence.scoutingDossier', 'Scouting & Composure Dossier')}
           </h3>
           {lastUpdated && (
             <div className="flex items-center text-[10px] text-gray-500 bg-white/5 px-3 py-1 rounded-full border border-white/5">
               <Calendar size={10} className="mr-1.5 text-gray-400" />
-              <span>Updated: {new Date(lastUpdated).toLocaleDateString()}</span>
+              <span>{t('intelligence.updated', 'Updated')}: {new Date(lastUpdated).toLocaleDateString()}</span>
             </div>
           )}
         </div>
@@ -229,7 +239,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
           <div className="bg-gradient-to-br from-[#121b18]/60 to-[#0e1215]/80 p-6 rounded-2xl border border-emerald-500/10 shadow-lg shadow-black/30">
             <h3 className="text-emerald-400 font-bold text-sm uppercase tracking-wider mb-4 flex items-center">
               <Award className="mr-2 text-emerald-400" size={18} />
-              Core Strengths
+              {t('intelligence.coreStrengths', 'Core Strengths')}
             </h3>
             {strengthList.length > 0 ? (
               <ul className="space-y-3">
@@ -241,7 +251,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-400 italic">No strength details recorded.</p>
+              <p className="text-xs text-gray-400 italic">{t('intelligence.noStrengths', 'No strength details recorded.')}</p>
             )}
           </div>
 
@@ -249,7 +259,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
           <div className="bg-gradient-to-br from-[#1b1315]/60 to-[#0e1215]/80 p-6 rounded-2xl border border-rose-500/10 shadow-lg shadow-black/30">
             <h3 className="text-rose-400 font-bold text-sm uppercase tracking-wider mb-4 flex items-center">
               <Target className="mr-2 text-rose-400" size={18} />
-              Development Areas
+              {t('intelligence.developmentAreas', 'Development Areas')}
             </h3>
             {weaknessList.length > 0 ? (
               <ul className="space-y-3">
@@ -261,7 +271,7 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-400 italic">No vulnerability details recorded.</p>
+              <p className="text-xs text-gray-400 italic">{t('intelligence.noWeaknesses', 'No vulnerability details recorded.')}</p>
             )}
           </div>
         </div>
@@ -270,10 +280,10 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
         <div className="bg-gradient-to-br from-[#15131b]/60 to-[#0e1215]/80 p-6 rounded-2xl border border-purple-500/10 shadow-lg shadow-black/30">
           <h3 className="text-purple-400 font-bold text-sm uppercase tracking-wider mb-3 flex items-center">
             <Brain className="mr-2 text-purple-400" size={18} />
-            Psychological Profile
+            {t('intelligence.psychologicalProfile', 'Psychological Profile')}
           </h3>
           <p className="text-xs text-gray-300 leading-relaxed">
-            {mentalGameNotes || 'Mental resilience indicators are standard. No specific composure alerts generated.'}
+            {actualMental}
           </p>
         </div>
         </div>

@@ -65,7 +65,10 @@
       "live": "LIVE",
       "winRate": "Siegquote",
       "avgOdds": "Ø Quote",
-      "profit": "Profit"
+      "profit": "Profit",
+      "netProfit": "Reingewinn",
+      "yieldRoi": "Rendite (ROI)",
+      "avgClv": "Ø CLV"
     },
     "filters": {
       "selected": "Gewählt",
@@ -409,35 +412,13 @@
     "footer": "Die Gesamtbewertung ist ein gewichteter Durchschnitt aus technischen Fähigkeiten, körperlicher Verfassung & mentaler Stärke."
   },
   "playerProfile": {
-    "track": "Spieler merken",
-    "tracking": "Gemerkt",
-    "headers": {
-      "scoutingReport": "Taktischer Scouting Report",
-      "psychological": "Psychologisches Profil",
-      "achievements": "Errungenschaften"
-    },
-    "sections": {
-      "strengths": "Hauptstärken",
-      "weaknesses": "Schwachstellen",
-      "mental": "Psychologisches Profil"
-    },
-    "notFound": "Spieler nicht gefunden",
-    "noMentalData": "Noch keine psychologischen Daten verfügbar.",
-    "gamified": {
-      "backToPlayers": "Zurück zur Übersicht",
-      "favoritedBy": "Nutzer beobachten diesen Spieler",
-      "ctaTrackTitle": "Diesen Spieler verfolgen?",
-      "ctaTrackButton": "Jetzt registrieren & speichern",
-      "lastUpdated": "Letztes Update: {{date}}",
-      "liveData": "LIVE DATEN",
-      "updated": "AKTUALISIERT!",
-      "performanceRadar": "Leistungs-Radar",
-      "coreStrengths": "Kernstärken",
-      "developmentAreas": "Entwicklungsfelder",
-      "mentalAnalysis": "Mentale Analyse",
-      "noDataTitle": "Noch keine Scouting-Daten",
-      "noDataDesc": "Detaillierte Analysen folgen in Kürze"
-    }
+    "specialty": "Spezialgebiet",
+    "tourRating": "Tour-Rating",
+    "court": "Belag",
+    "ovr": "OVR",
+    "allCourt": "Allcourt",
+    "performanceRadar": "Leistungs-Radar",
+    "skillRatings": "Fähigkeiten-Ratings"
   },
   "playerCard": {
     "labels": {
@@ -568,39 +549,8 @@
     "login": "Login"
   },
   "mobileMenu": {
-    "menu": "Menü",
-    "myAccount": "Mein Konto",
-    "redeemCode": "Code einlösen",
-    "enterPromoCode": "PROMO CODE EINGEBEN",
-    "unlockFullAccess": "Vollzugriff freischalten",
-    "loginNow": "Jetzt anmelden",
-    "loginSignUp": "Anmelden / Registrieren",
-    "logout": "Abmelden",
-    "status": {
-      "pro": "PRO STATUS",
-      "free": "FREE STATUS",
-      "expires": "Läuft ab",
-      "balance": "Guthaben",
-      "credits": "Credits"
-    },
     "nav": {
-      "playerDatabase": "Spielerdatenbank",
-      "watchlist": "Merkliste",
-      "membershipPlans": "Mitgliedschaftspläne",
-      "intelligenceHub": "Intelligence Hub",
-      "matchupAnalyzer": "Match-Analyse",
-      "valueScanner": "Value Scanner",
-      "aiPicks": "KI-Picks",
-      "bsiCourtIndex": "BSI Court Index",
-      "aiPerformance": "KI-Performance",
-      "supportIdeas": "Support & Ideen",
-      "systemAdmin": "System Admin"
-    },
-    "badges": {
-      "upgrade": "Upgrade",
-      "new": "Neu",
-      "hot": "Hot",
-      "help": "Hilfe"
+      "tournamentOracle": "Turnier-Orakel"
     }
   },
   "picks": {
@@ -681,6 +631,15 @@
     "description": "Exklusive Quoten, Echtzeit-Schnittstelle & blitzschnelle Wettschein-Abgabe für maximale Performance.",
     "licensedRegulated": "Offiziell lizenziert (Whitelist)"
   },
+  "header": {
+    "member": "Mitglied"
+  },
+  "surfaces": {
+    "hard": "Hartplatz",
+    "grass": "Rasen",
+    "clay": "Sand",
+    "overall": "Gesamt"
+  },
   "playStyle": {
     "Aggressive Baseliner": "Aggressiver Grundlinienspieler",
     "Counter Puncher": "Konterspieler",
@@ -697,5 +656,101 @@
     "Balanced": "Ausgewogen",
     "Versatile": "Vielseitig",
     "Dominant Style": "Dominanter Spielstil"
+  },
+  "courts": {
+    "alerts": {
+      "invalidBsi": "Ungültiges BSI-Rating. Muss zwischen 1 und 100 liegen.",
+      "saveError": "Fehler beim Speichern der Court-Details.",
+      "deleteConfirm": "Bist du sicher, dass du diesen Court löschen möchtest?",
+      "deleteError": "Fehler beim Löschen des Courts."
+    },
+    "loading": "Lade Platzdaten..."
+  },
+  "loadManagement": {
+    "statusText": {
+      "fresh": "FRISCH",
+      "critical": "KRITISCHE BELASTUNG",
+      "heavy": "SCHWERE BEINE",
+      "rhythm": "SPIELRHYTHMUS"
+    },
+    "descriptions": {
+      "fresh": "Optimaler körperlicher Zustand. Keine Anzeichen von Müdigkeit erwartet.",
+      "critical": "Extreme Müdigkeit. Massives Risiko von Leistungseinbrüchen in späten Sätzen.",
+      "heavy": "Erhöhte Belastung in den letzten 2 Wochen. Erholungsdefizit wahrscheinlich.",
+      "rhythm": "Perfekter Spielrhythmus. Spieler ist eingespielt, ohne überarbeitet zu sein."
+    },
+    "title": "Physiologischer Belastungsstatus",
+    "timeOnCourt": "Zeit auf dem Platz (Letzte 14 Tage)",
+    "min": "Min",
+    "assessment": "Belastungsanalyse",
+    "comebackRating": "Comeback Rating",
+    "post1stSetLoss": "Nach Satzverlust (1. Satz)",
+    "statsSummary": "{{wins}}S – {{losses}}N ({{rate}}%)",
+    "comebackDesc": "Misst die Fähigkeit des Spielers, nach dem Verlust des ersten Satzes das Match noch zu drehen, basierend auf den jüngsten Spielergebnissen."
+  },
+  "intelligence": {
+    "briefings": "KI-Analysen & Berichte",
+    "viewHub": "Hub ansehen",
+    "noAlerts": "Keine aktuellen Warnungen gefunden. Der Spieler scheint physisch und mental stabil zu sein.",
+    "keyTakeaways": "Wichtigste Erkenntnisse:",
+    "readOriginal": "Originalquelle lesen",
+    "scoutingDossier": "Scouting & Composure Dossier",
+    "updated": "Aktualisiert",
+    "coreStrengths": "Kernstärken",
+    "noStrengths": "Keine Details zu Stärken aufgezeichnet.",
+    "developmentAreas": "Schwachstellen & Entwicklung",
+    "noWeaknesses": "Keine Details zu Schwachstellen aufgezeichnet.",
+    "psychologicalProfile": "Psychologisches Profil",
+    "defaultMental": "Mentale Resilienz-Indikatoren sind im Standardbereich. Keine spezifischen composure Warnungen vorliegend."
+  },
+  "scouting": {
+    "defaultStrengths": "Elitäres Grundlinienspiel, kraftvoller erster Aufschlag und schnelle laterale Platzabdeckung.",
+    "defaultWeaknesses": "Anfällig unter Druck beim Return des zweiten Aufschlags; gelegentliche unerzwungene Fehler bei hohen Vorhandbällen.",
+    "defaultMental": "Behält eine hohe Konzentration bei. Zeigt solide Resilienz im Tiebreak, lässt aber gelegentlich die Fassung vermissen bei frühen Breaks."
+  },
+  "playerDropdown": {
+    "unknownPlayer": "Unbekannter Spieler",
+    "searchPlaceholder": "Spieler nach Name suchen...",
+    "noResultsSearch": "Keine Spieler gefunden, die deiner Suche entsprechen.",
+    "noPlayers": "Keine Spieler verfügbar."
+  },
+  "skillBar": {
+    "ariaLabel": "Fähigkeits-Bewertung"
+  },
+  "surfaceMastery": {
+    "preferredSurface": "Bevorzugter Belag",
+    "specialist": "{{surface}}-Spezialist",
+    "rating": {
+      "average": "Durchschnittlich",
+      "elite": "ELITE",
+      "strong": "STARK",
+      "solid": "SOLIDE",
+      "vulnerable": "ANFÄLLIG",
+      "weakness": "SCHWÄCHE"
+    },
+    "matches": "{{count}} SPIELE",
+    "best": "BESTER"
+  },
+  "vegasForm": {
+    "quantumEngine": "Quantum Form Engine",
+    "form": "FORM",
+    "recentForm": "Aktuelle Form (Letzte 5)",
+    "noMatchRecords": "Keine Spielergebnisse gefunden.",
+    "overallWinLoss": "Gesamt-Siegquote",
+    "filterSortMatches": "Spiele filtern & sortieren",
+    "sort": "Sortierung",
+    "newest": "Neueste zuerst",
+    "oldest": "Älteste zuerst",
+    "matchLog": "Spielprotokoll & Wettquoten",
+    "showingMatches": "Zeige {{count}} Spiele",
+    "noMatchesFound": "Keine Spiele gefunden, die den ausgewählten Filtern entsprechen.",
+    "quote": "Quote",
+    "won": "Gewonnen",
+    "lost": "Verloren",
+    "partnerOffer": "Exklusives Partnerangebot",
+    "liveAction": "NEO.bet Live-Wetten",
+    "partnership": "Partnerschaft",
+    "partnerDesc": "Platziere eine Wette direkt bei NEO.bet für das nächste Spiel dieses Spielers. Sichere dir erstklassige ATP/WTA-Quoten und nutze die täglichen KI-Erkenntnisse von Backhand Tennis Line, um deinen Vorteil zu maximieren.",
+    "betLive": "Live wetten bei NEO.bet"
   }
 }

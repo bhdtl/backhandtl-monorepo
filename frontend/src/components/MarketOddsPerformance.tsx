@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
-  TrendingUp, TrendingDown, Target, ChevronDown, Filter, DollarSign, Activity, Calendar
+  TrendingUp, TrendingDown, Target, ChevronDown, Filter, DollarSign, Calendar
 } from 'lucide-react';
 import { useAccess } from '../hooks/useAccess';
 import { PremiumLock } from './PremiumLock'; 
-import { useTranslation } from 'react-i18next'; 
 
 // --- TYPES ---
 type ViewMode = 'ROLE' | 'MY_ODDS' | 'OPP_ODDS' | 'SURFACE' | 'BSI_SPEED';
@@ -32,7 +31,6 @@ interface BucketStat {
 }
 
 export function MarketOddsPerformance({ playerName }: { playerName: string }) {
-  const { t } = useTranslation(); 
   const { isElite, loading: accessLoading } = useAccess(); 
   
   const [rawMatches, setRawMatches] = useState<MarketMatch[]>([]);

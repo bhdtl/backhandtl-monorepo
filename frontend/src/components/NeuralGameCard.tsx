@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Target, Zap, Activity, Shield } from 'lucide-react';
+import { Target, Activity } from 'lucide-react';
 
 // --- INTERFACES ---
 export interface GameCardPlayer {

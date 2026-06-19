@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { MobileMenu } from './MobileMenu';
 import { BrandLogo } from './BrandLogo';
 import { AdminNotificationWidget } from './AdminNotificationWidget'; // 🚀 SOTA: Admin Widget Import
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   onLoginClick: () => void;
@@ -15,6 +16,7 @@ interface HeaderProps {
 export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 'home' }: HeaderProps) {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleNavClick = (page: string) => {
     onNavigate?.(page);
@@ -45,7 +47,7 @@ export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 
                     className="mr-1 px-4 py-1.5 bg-tennis-lime text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-tennis-lime/20 flex items-center gap-2"
                   >
                     <LogIn size={14} />
-                    <span>Login</span>
+                    <span>{t('auth.links.login', 'Login')}</span>
                   </button>
                 ) : (
                   <button
@@ -55,7 +57,7 @@ export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 
                     <div className="liquid-header-avatar">
                       <User size={15} className="text-gray-400 group-hover:text-tennis-lime transition-colors" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Member</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">{t('header.member', 'Member')}</span>
                   </button>
                 )}
 

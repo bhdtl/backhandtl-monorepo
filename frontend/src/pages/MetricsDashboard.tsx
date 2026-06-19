@@ -2,13 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  Activity, Users, Crown, Zap, Swords, TrendingUp, AlertTriangle, Lock, Database
+  Activity, Users, Crown, Swords, TrendingUp, AlertTriangle, Lock, Database
 } from 'lucide-react';
 import { 
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, BarChart, Bar, Legend 
+  Tooltip, ResponsiveContainer, Bar, Legend 
 } from 'recharts';
-import { LoadingScreen } from '../components/LoadingScreen'; 
 import { useTranslation } from 'react-i18next';
 
 // --- INTERFACES ---
