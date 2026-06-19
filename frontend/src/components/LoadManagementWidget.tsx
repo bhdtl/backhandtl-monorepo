@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 
 interface LoadManagementWidgetProps {
   sackmannMetrics?: any;
+  comebackStats?: { rating: number; wins: number; total: number; rate: number };
 }
 
 export const LoadManagementWidget: React.FC<LoadManagementWidgetProps> = ({
   sackmannMetrics = null,
+  comebackStats,
 }) => {
   const parsedMetrics = useMemo(() => {
     if (!sackmannMetrics) return null;
@@ -52,10 +54,6 @@ export const LoadManagementWidget: React.FC<LoadManagementWidgetProps> = ({
     borderClass = 'border-sky-400/20';
     description = 'Perfect match rhythm. Player is dialed in without being overworked.';
   }
-
-  // Calculate auxiliary metrics derived from actual fatigue
-  const recoveryScore = Math.max(20, Math.min(98, 100 - Math.round(percentage * 0.7)));
-  const injuryRisk = Math.max(5, Math.min(95, Math.round(percentage * 0.9)));
 
   return (
     <div className="space-y-6">
@@ -120,30 +118,34 @@ export const LoadManagementWidget: React.FC<LoadManagementWidgetProps> = ({
         </div>
       </div>
 
-      {/* Auxiliary Wellness Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Recovery Index</span>
-          <div className="flex items-baseline space-x-1 mt-2">
-            <span className="text-3xl font-black text-emerald-400">{recoveryScore}%</span>
-            <span className="text-xs text-gray-500">HRV</span>
+      {/* Comeback Rating Card */}
+      {comebackStats && (
+        <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex flex-col justify-between shadow-lg">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 block">
+                Comeback Rating
+              </span>
+              <div className="flex items-baseline space-x-2 mt-1">
+                <span className="text-3xl font-black text-tennis-lime">
+                  {comebackStats.rating} <span className="text-xs text-gray-500 font-bold">/ 10</span>
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 block">
+                Post 1st-Set Loss
+              </span>
+              <span className="text-sm font-black text-white block mt-1">
+                {comebackStats.wins}W – {comebackStats.total - comebackStats.wins}L ({comebackStats.rate}%)
+              </span>
+            </div>
           </div>
-          <p className="text-[10px] text-gray-400 mt-2 leading-normal">
-            Calculated adaptation capability based on stamina metrics.
+          <p className="text-[11px] text-gray-400 mt-3 leading-normal border-t border-white/5 pt-3">
+            Measures the player's capacity to salvage a victory after losing the opening set, calculated from their recent match history logs.
           </p>
         </div>
-
-        <div className="bg-[#151821]/80 backdrop-blur-md p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Injury Risk Probability</span>
-          <div className="flex items-baseline space-x-1 mt-2">
-            <span className="text-3xl font-black text-rose-500">{injuryRisk}%</span>
-            <span className="text-xs text-gray-500">Alert</span>
-          </div>
-          <p className="text-[10px] text-gray-400 mt-2 leading-normal">
-            Accumulated tissue strain risk calculated from recent court volume.
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,8 @@ interface PlayerIntelligenceWidgetProps {
   weaknesses?: string;
   mentalGameNotes?: string;
   lastUpdated?: string;
+  onlyScouting?: boolean;
+  onlyNews?: boolean;
 }
 
 export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> = ({
@@ -21,6 +23,8 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
   weaknesses = 'Vulnerable under pressure on second serve return; occasional unforced errors on high-bounce forehands.',
   mentalGameNotes = 'Maintains high concentration levels. Demonstrates solid resilience in tiebreaks but occasionally lacks composure when facing early breaks.',
   lastUpdated,
+  onlyScouting = false,
+  onlyNews = false,
 }) => {
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
 
@@ -107,7 +111,8 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
       className="space-y-8"
     >
       {/* AI Intelligence Briefings accordion list */}
-      <div className="bg-[#1a1d26]/80 backdrop-blur-md rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden text-left">
+      {!onlyScouting && (
+        <div className="bg-[#1a1d26]/80 backdrop-blur-md rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden text-left mb-8">
         <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 opacity-10 rounded-full blur-[40px] pointer-events-none" />
         
         <div className="flex items-center justify-between gap-4 mb-4 border-b border-white/5 pb-4">
@@ -199,12 +204,14 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
                 </div>
               );
             })}
-          </div>
+            </div>
         )}
       </div>
+      )}
 
       {/* Scouting report dossier section */}
-      <div className="space-y-4 text-left">
+      {!onlyNews && (
+        <div className="space-y-4 text-left">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-white font-black text-sm uppercase tracking-wider">
             Scouting & Composure Dossier
@@ -269,7 +276,8 @@ export const PlayerIntelligenceWidget: React.FC<PlayerIntelligenceWidgetProps> =
             {mentalGameNotes || 'Mental resilience indicators are standard. No specific composure alerts generated.'}
           </p>
         </div>
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 };

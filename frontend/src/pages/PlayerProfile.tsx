@@ -13,7 +13,6 @@ import { AdvancedQuantWidget } from '../components/AdvancedQuantWidget';
 import { VegasFormWidget } from '../components/VegasFormWidget';
 import { SkillRadarChart } from '../components/SkillRadarChart';
 import { SkillBar } from '../components/SkillBar';
-import { AchievementBadge } from '../components/AchievementBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from '../components/Toast';
 import {
@@ -69,10 +68,7 @@ interface PlayerSkills {
   advanced_stats?: any;
 }
 
-interface PlayerAchievement {
-  achievement_key: string;
-  unlocked: boolean;
-}
+
 
 export const PlayerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,8 +79,8 @@ export const PlayerProfile: React.FC = () => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [report, setReport] = useState<ScoutingReport | null>(null);
   const [skills, setSkills] = useState<PlayerSkills | null>(null);
-  const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
   
   const [activeTab, setActiveTab] = useState<string>('Overview');
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
@@ -94,7 +90,7 @@ export const PlayerProfile: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>('');
 
   const touchStartX = useRef<number>(0);
-  const tabs = ['Overview', 'Stats', 'Intelligence', 'Load', 'Form'];
+  const tabs = ['Overview', 'Stats', 'Scouting', 'News', 'Load', 'Form'];
 
   useEffect(() => {
     if (id) {
@@ -110,12 +106,11 @@ export const PlayerProfile: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load player, skills, report, achievements, and insights in parallel
-      const [playerRes, skillsRes, reportRes, achievementsRes, insightsRes] = await Promise.all([
+      // Load player, skills, report, and insights in parallel
+      const [playerRes, skillsRes, reportRes, insightsRes] = await Promise.all([
         supabase.from('players').select('*').eq('id', id).maybeSingle(),
         supabase.from('player_skills').select('*').eq('player_id', id).maybeSingle(),
         supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle(),
-        supabase.from('player_achievements').select('*').eq('player_id', id),
         supabase.from('tennis_insights')
           .select('*')
           .eq('player_id', id)
@@ -128,11 +123,88 @@ export const PlayerProfile: React.FC = () => {
         setPlayer(null);
         return;
       }
-      setPlayer(playerRes.data);
+      
+      const playerData = playerRes.data;
+      setPlayer(playerData);
       setSkills(skillsRes.data || null);
       setReport(reportRes.data || null);
-      setAchievements(achievementsRes.data || []);
       setInsights(insightsRes.data || []);
+
+      // Load matches for the player based on their last name
+      const lastName = playerData.last_name.toLowerCase();
+      const [marketRes, historyRes] = await Promise.all([
+        supabase
+          .from('market_odds')
+          .select('player1_name, player2_name, odds1, odds2, actual_winner_name, score, tournament, created_at')
+          .or(`player1_name.ilike.%${lastName}%,player2_name.ilike.%${lastName}%`)
+          .not('actual_winner_name', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('historical_matches')
+          .select('match_date, winner_name, loser_name, score, tourney_name, surface')
+          .or('winner_name.ilike.%' + lastName + '%,loser_name.ilike.%' + lastName + '%')
+          .order('match_date', { ascending: false })
+          .limit(100)
+      ]);
+
+      const parsed: any[] = [];
+      const seen = new Set<string>();
+
+      // Process market data
+      if (marketRes.data) {
+        marketRes.data.forEach((m: any, idx) => {
+          const isP1 = m.player1_name.toLowerCase().includes(lastName);
+          const opponent = isP1 ? m.player2_name : m.player1_name;
+          const isWin = m.actual_winner_name.toLowerCase().includes(lastName);
+          const date = new Date(m.created_at).toISOString().split('T')[0];
+          const key = `${date}-${opponent.toLowerCase()}`;
+
+          if (!seen.has(key)) {
+            seen.add(key);
+            parsed.push({
+              id: `market-${idx}`,
+              opponent,
+              isWin,
+              date,
+              tournament: m.tournament || 'ATP Event',
+              score: m.score || undefined,
+              surface: 'overall',
+              odds: m.odds1 && m.odds2 ? {
+                myOdds: isP1 ? parseFloat(m.odds1) : parseFloat(m.odds2),
+                oppOdds: isP1 ? parseFloat(m.odds2) : parseFloat(m.odds1)
+              } : undefined
+            });
+          }
+        });
+      }
+
+      // Process historical data
+      if (historyRes.data) {
+        historyRes.data.forEach((h: any, idx) => {
+          const isWinner = h.winner_name.toLowerCase().includes(lastName);
+          const opponent = isWinner ? h.loser_name : h.winner_name;
+          const key = `${h.match_date}-${opponent.toLowerCase()}`;
+
+          if (!seen.has(key)) {
+            seen.add(key);
+            parsed.push({
+              id: `hist-${idx}`,
+              opponent,
+              isWin: isWinner,
+              date: h.match_date,
+              score: h.score || undefined,
+              tournament: h.tourney_name || 'ATP Match',
+              surface: (h.surface || 'overall').toLowerCase()
+            });
+          }
+        });
+      }
+
+      // Sort combined matches by date descending
+      parsed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setMatches(parsed);
+
     } catch (e) {
       console.error('Error fetching player profile data:', e);
       setToastMessage('Failed to load player details');
@@ -252,54 +324,37 @@ export const PlayerProfile: React.FC = () => {
     });
   };
 
-  const getAchievements = (playerAchievements: PlayerAchievement[]) => {
-    const achievementMap: { [key: string]: { icon: any; title: string; description: string; color: string } } = {
-      power_hitter: {
-        icon: Zap,
-        title: t('achievements.power_hitter.title', 'Power Hitter'),
-        description: t('achievements.power_hitter.desc', 'Explosive groundstrokes'),
-        color: 'from-yellow-600 to-orange-600'
-      },
-      defensive_master: {
-        icon: Shield,
-        title: t('achievements.defensive_master.title', 'Defensive Master'),
-        description: t('achievements.defensive_master.desc', 'Elite save rate on break points'),
-        color: 'from-blue-600 to-cyan-600'
-      },
-      hot_streak: {
-        icon: Flame,
-        title: t('achievements.hot_streak.title', 'Hot Streak'),
-        description: t('achievements.hot_streak.desc', 'Constant performance under pressure'),
-        color: 'from-red-600 to-pink-600'
-      },
-      tactical_genius: {
-        icon: Brain,
-        title: t('achievements.tactical_genius.title', 'Tactical Genius'),
-        description: t('achievements.tactical_genius.desc', 'Outstanding tactical adaptations'),
-        color: 'from-purple-600 to-indigo-600'
-      },
-      precision_pro: {
-        icon: Target,
-        title: t('achievements.precision_pro.title', 'Precision Pro'),
-        description: t('achievements.precision_pro.desc', 'Remarkable landing accuracy'),
-        color: 'from-green-600 to-emerald-600'
-      },
-      aggressive_play: {
-        icon: Swords,
-        title: t('achievements.aggressive_play.title', 'Aggressive Play'),
-        description: t('achievements.aggressive_play.desc', 'Dominates play from the start'),
-        color: 'from-orange-600 to-red-600'
-      }
-    };
+  const comebackStats = useMemo(() => {
+    if (!matches || matches.length === 0 || !player) return { rating: 6.0, wins: 0, total: 0, rate: 0 };
+    let successCount = 0;
+    let failureCount = 0;
 
-    return Object.keys(achievementMap).map(key => {
-      const achievement = playerAchievements.find(a => a.achievement_key === key);
-      return {
-        ...achievementMap[key],
-        unlocked: achievement?.unlocked || false
-      };
+    matches.forEach(m => {
+      if (!m.score) return;
+      
+      const firstSetMatch = m.score.match(/^(\d+)-(\d+)/);
+      if (!firstSetMatch) return;
+
+      const gamesWinner = parseInt(firstSetMatch[1]);
+      const gamesLoser = parseInt(firstSetMatch[2]);
+
+      if (m.isWin) {
+        if (gamesWinner < gamesLoser) {
+          successCount++;
+        }
+      } else {
+        if (gamesWinner > gamesLoser) {
+          failureCount++;
+        }
+      }
     });
-  };
+
+    const totalOpp = successCount + failureCount;
+    if (totalOpp === 0) return { rating: 6.0, wins: 0, total: 0, rate: 0 };
+    const rate = Math.round((successCount / totalOpp) * 100);
+    const rating = Number((rate / 10).toFixed(1));
+    return { rating, wins: successCount, total: totalOpp, rate };
+  }, [matches, player]);
 
   if (loading) return <LoadingScreen />;
 
@@ -320,7 +375,6 @@ export const PlayerProfile: React.FC = () => {
   }
 
   const radarSkills = getRadarSkills(skills);
-  const achievementsList = getAchievements(achievements);
   const overallRating = skills?.overall_rating ? Math.round(Number(skills.overall_rating)) : 70;
   const fullName = `${player.first_name} ${player.last_name}`;
 
@@ -469,6 +523,15 @@ export const PlayerProfile: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Surface Mastery Card (Prioritized ELO Focus) */}
+                {player && (
+                  <SurfaceMasteryWidget
+                    surfacePreference={player.surface_preference}
+                    surfaceRatings={player.surface_ratings}
+                    eloMetrics={skills?.elo_metrics}
+                  />
+                )}
+
                 {/* Radar Chart section */}
                 {skills && (
                   <div className="bg-[#151821]/80 backdrop-blur-md p-6 rounded-3xl border border-white/5 shadow-xl text-center">
@@ -501,30 +564,6 @@ export const PlayerProfile: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Achievements list */}
-                {achievementsList.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-white font-black text-sm uppercase tracking-wider pl-2 flex items-center">
-                      <Trophy className="mr-2 text-tennis-lime" size={18} />
-                      Achievements
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {achievementsList.map((achievement, idx) => (
-                        <AchievementBadge key={idx} {...achievement} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Surface Mastery Card */}
-                {player && (
-                  <SurfaceMasteryWidget
-                    surfacePreference={player.surface_preference}
-                    surfaceRatings={player.surface_ratings}
-                    eloMetrics={skills?.elo_metrics}
-                  />
-                )}
               </div>
             )}
 
@@ -533,14 +572,22 @@ export const PlayerProfile: React.FC = () => {
               <AdvancedQuantWidget playerName={fullName} advancedStats={skills?.advanced_stats} />
             )}
 
-            {/* Intelligence Tab */}
-            {activeTab === 'Intelligence' && (
+            {/* Scouting Tab */}
+            {activeTab === 'Scouting' && (
               <PlayerIntelligenceWidget
-                insights={insights}
                 strengths={report?.strengths}
                 weaknesses={report?.weaknesses}
                 mentalGameNotes={report?.mental_game_notes}
                 lastUpdated={report?.last_updated}
+                onlyScouting={true}
+              />
+            )}
+
+            {/* News Tab */}
+            {activeTab === 'News' && (
+              <PlayerIntelligenceWidget
+                insights={insights}
+                onlyNews={true}
               />
             )}
 
@@ -548,12 +595,13 @@ export const PlayerProfile: React.FC = () => {
             {activeTab === 'Load' && (
               <LoadManagementWidget
                 sackmannMetrics={skills?.sackmann_metrics}
+                comebackStats={comebackStats}
               />
             )}
 
             {/* Form Tab */}
             {activeTab === 'Form' && (
-              <VegasFormWidget playerName={player.last_name} dbFormRating={player.form_rating} />
+              <VegasFormWidget playerName={player.last_name} dbFormRating={player.form_rating} matches={matches} />
             )}
           </motion.div>
         </AnimatePresence>

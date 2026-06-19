@@ -1,13 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Swords } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { TrendingUp, TrendingDown, Minus, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeUpVariant } from './animationVariants';
-
-interface VegasFormWidgetProps {
-  playerName?: string;
-  dbFormRating?: any;
-}
 
 interface MatchForm {
   id: string;
@@ -16,7 +10,14 @@ interface MatchForm {
   date: string;
   tournament: string;
   score?: string;
+  surface?: string;
   odds?: { myOdds: number; oppOdds: number };
+}
+
+interface VegasFormWidgetProps {
+  playerName?: string;
+  dbFormRating?: any;
+  matches?: MatchForm[];
 }
 
 const getVegasVisuals = (rating: number) => {
@@ -65,19 +66,17 @@ const parseScoreDetails = (scoreStr: string | null, playerWon: boolean): number 
   return Math.min(Math.max(dominance, 0.0), 1.0);
 };
 
-const calculateQuantumRating = (matches: any[], playerName: string) => {
+const calculateQuantumRating = (matchesList: MatchForm[], playerLastName: string) => {
   let currentRating = 6.5; 
   const historyLog: { res: 'W'|'L', odds: number, delta: number, tooltip: string }[] = [];
-  const sortedMatches = [...matches].reverse();
+  const sortedMatches = [...matchesList].reverse();
 
   sortedMatches.forEach((m, idx) => {
-    const isP1 = m.player1_name.toLowerCase().includes(playerName.toLowerCase());
-    let odds = isP1 ? m.odds1 : m.odds2;
-    if (!odds || odds <= 1.0) odds = 1.01;
+    let odds = m.odds ? m.odds.myOdds : 1.01;
+    if (odds <= 1.0) odds = 1.01;
 
-    const winner = m.actual_winner_name || "";
-    const won = winner.toLowerCase().includes(playerName.toLowerCase());
-    const dominance = parseScoreDetails(m.score, won);
+    const won = m.isWin;
+    const dominance = parseScoreDetails(m.score || null, won);
     let delta = 0.0;
 
     if (won) {
@@ -92,8 +91,7 @@ const calculateQuantumRating = (matches: any[], playerName: string) => {
       if (odds < 1.20) delta = -1.5 - (1.0 - dominance);
       else if (odds <= 2.00) delta = -0.6 - (0.5 - dominance);
       else if (odds <= 3.00) {
-        if (dominance > 0.45) delta = -0.2;
-        else delta = -0.2;
+        delta = -0.2;
       } else {
         if (dominance > 0.4) delta = +0.2; 
         else delta = 0.0;
@@ -103,12 +101,11 @@ const calculateQuantumRating = (matches: any[], playerName: string) => {
     const weight = 0.5 + (idx * 0.2); 
     currentRating += (delta * weight);
     
-    const opponent = isP1 ? m.player2_name : m.player1_name;
     historyLog.push({
       res: won ? 'W' : 'L',
       odds: odds,
       delta: delta,
-      tooltip: `${won ? 'WIN' : 'LOSS'} vs ${opponent} (@${odds})\nScore: ${m.score || 'N/A'}`
+      tooltip: `${won ? 'WIN' : 'LOSS'} vs ${m.opponent} (@${odds})\nScore: ${m.score || 'N/A'}`
     });
   });
 
@@ -121,14 +118,15 @@ const calculateQuantumRating = (matches: any[], playerName: string) => {
 
 export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({ 
   playerName = '', 
-  dbFormRating = null 
+  dbFormRating = null,
+  matches = []
 }) => {
-  const [matches, setMatches] = useState<MatchForm[]>([]);
-  const [stats, setStats] = useState<{ rating: number; history: any[] } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [surfaceFilter, setSurfaceFilter] = useState<'all' | 'hard' | 'clay' | 'grass'>('all');
+  const [resultFilter, setResultFilter] = useState<'all' | 'win' | 'loss'>('all');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const lastName = useMemo(() => {
-    return playerName.split(' ').pop()?.toLowerCase() || playerName.toLowerCase();
+    return playerName.split(' ').pop() || playerName;
   }, [playerName]);
 
   const dbScore = useMemo(() => {
@@ -141,108 +139,42 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
     }
   }, [dbFormRating]);
 
-  useEffect(() => {
-    if (playerName) {
-      loadData();
+  // Extract top 5 market matches (with odds) for the Quantum Form Score calculation
+  const marketMatchesOnly = useMemo(() => {
+    return matches.filter(m => m.id.startsWith('market-')).slice(0, 5);
+  }, [matches]);
+
+  const stats = useMemo(() => {
+    if (marketMatchesOnly.length > 0) {
+      return calculateQuantumRating(marketMatchesOnly, lastName);
     }
-  }, [playerName]);
+    return { rating: 6.5, history: [] };
+  }, [marketMatchesOnly, lastName]);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  // Apply filters and sorting to matches for the log list view
+  const filteredMatches = useMemo(() => {
+    let result = [...matches];
 
-      // Fetch from market_odds for both Quantum calculation and logs
-      const { data: marketData } = await supabase
-        .from('market_odds')
-        .select('player1_name, player2_name, odds1, odds2, actual_winner_name, score, tournament, created_at')
-        .or(`player1_name.ilike.%${lastName}%,player2_name.ilike.%${lastName}%`)
-        .not('actual_winner_name', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      // Fetch from historical_matches
-      const { data: historyData } = await supabase
-        .from('historical_matches')
-        .select('match_date, winner_name, loser_name, tourney_name, score, surface')
-        .or(`winner_name.ilike.%${lastName}%,loser_name.ilike.%${lastName}%`)
-        .order('match_date', { ascending: false })
-        .limit(10);
-
-      // Calculate Quantum rating using the 5 most recent market_odds matches
-      if (marketData && marketData.length > 0) {
-        const calculated = calculateQuantumRating(marketData.slice(0, 5), lastName);
-        setStats(calculated);
-      } else {
-        setStats({ rating: 6.5, history: [] });
-      }
-
-      // Format combined matches for UI log list
-      const parsed: MatchForm[] = [];
-      const seen = new Set<string>();
-
-      if (marketData) {
-        marketData.forEach((m: any, idx) => {
-          const isP1 = m.player1_name.toLowerCase().includes(lastName);
-          const opponent = isP1 ? m.player2_name : m.player1_name;
-          const isWin = m.actual_winner_name.toLowerCase().includes(lastName);
-          const date = new Date(m.created_at).toISOString().split('T')[0];
-          const key = `${date}-${opponent.toLowerCase()}`;
-
-          if (!seen.has(key)) {
-            seen.add(key);
-            parsed.push({
-              id: `market-${idx}`,
-              opponent,
-              isWin,
-              date,
-              tournament: m.tournament || 'ATP Event',
-              score: m.score || undefined,
-              odds: m.odds1 && m.odds2 ? {
-                myOdds: isP1 ? parseFloat(m.odds1) : parseFloat(m.odds2),
-                oppOdds: isP1 ? parseFloat(m.odds2) : parseFloat(m.odds1)
-              } : undefined
-            });
-          }
-        });
-      }
-
-      if (historyData) {
-        historyData.forEach((h: any, idx) => {
-          const isWinner = h.winner_name.toLowerCase().includes(lastName);
-          const opponent = isWinner ? h.loser_name : h.winner_name;
-          const key = `${h.match_date}-${opponent.toLowerCase()}`;
-
-          if (!seen.has(key)) {
-            seen.add(key);
-            parsed.push({
-              id: `hist-${idx}`,
-              opponent,
-              isWin: isWinner,
-              date: h.match_date,
-              score: h.score || undefined,
-              tournament: h.tourney_name || 'ATP Match'
-            });
-          }
-        });
-      }
-
-      // Sort combined matches by date
-      parsed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setMatches(parsed.slice(0, 5));
-    } catch (e) {
-      console.error('Error loading matches for Form:', e);
-    } finally {
-      setLoading(false);
+    // Apply surface filter
+    if (surfaceFilter !== 'all') {
+      result = result.filter(m => m.surface === surfaceFilter);
     }
-  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-10">
-        <div className="w-6 h-6 border-2 border-tennis-lime border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+    // Apply outcome filter
+    if (resultFilter !== 'all') {
+      const wantWin = resultFilter === 'win';
+      result = result.filter(m => m.isWin === wantWin);
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      const timeA = new Date(a.date).getTime();
+      const timeB = new Date(b.date).getTime();
+      return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+    });
+
+    return result;
+  }, [matches, surfaceFilter, resultFilter, sortOrder]);
 
   const { rating: calcRating, history } = stats || { rating: 6.5, history: [] };
   const displayRating = dbScore !== null ? Number(dbScore.toFixed(1)) : calcRating;
@@ -294,8 +226,8 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
             Recent Form (Last 5)
           </span>
           <div className="flex items-center space-x-2 mt-1">
-            {matches.length > 0 ? (
-              matches.map((m, idx) => (
+            {marketMatchesOnly.length > 0 ? (
+              marketMatchesOnly.map((m, idx) => (
                 <div
                   key={idx}
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
@@ -314,7 +246,7 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
         </div>
         <div className="text-center sm:text-right">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider block">
-            Win / Loss Rate
+            Overall Win / Loss Rate
           </span>
           <span className="text-2xl font-black text-white leading-none">
             {recentWins}W – {recentLosses}L
@@ -322,54 +254,123 @@ export const VegasFormWidget: React.FC<VegasFormWidgetProps> = ({
         </div>
       </div>
 
-      {/* Vegas Match List */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider pl-2">
-          Match Log & Betting Odds
-        </h3>
-        {matches.map((m) => (
-          <div
-            key={m.id}
-            className="bg-[#151821]/60 border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-white/10 transition-colors shadow-md"
-          >
-            <div className="space-y-1">
-              <span className="text-[9px] font-black text-tennis-lime uppercase tracking-wider bg-tennis-lime/10 px-2 py-0.5 rounded-full border border-tennis-lime/10">
-                {m.tournament}
-              </span>
-              <h4 className="text-sm font-bold text-white flex items-center">
-                vs {m.opponent}
-              </h4>
-              <div className="flex items-center space-x-2 text-[10px] text-gray-500">
-                <span>{new Date(m.date).toLocaleDateString()}</span>
-                {m.score && <span>• Score: {m.score}</span>}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4 self-end sm:self-center">
-              {m.odds && (
-                <div className="flex items-center space-x-2">
-                  <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center">
-                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block">Backhand</span>
-                    <span className="text-xs font-black text-white">{m.odds.myOdds.toFixed(2)}</span>
-                  </div>
-                  <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center">
-                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block">Opponent</span>
-                    <span className="text-xs font-black text-white">{m.odds.oppOdds.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-              <div
-                className={`text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-xl ${
-                  m.isWin
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+      {/* Sofascore-style Filter & Sort Controls */}
+      <div className="bg-[#151821]/80 border border-white/5 rounded-2xl p-4 space-y-3">
+        <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider block text-left">
+          Filter & Sort Matches
+        </span>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          {/* Surface Filter */}
+          <div className="flex bg-black/30 p-0.5 rounded-lg border border-white/5">
+            {['all', 'hard', 'clay', 'grass'].map((surf) => (
+              <button
+                key={surf}
+                onClick={() => setSurfaceFilter(surf as any)}
+                className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-colors ${
+                  surfaceFilter === surf ? 'bg-[#2a2d36] text-white border border-white/5 shadow-sm' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                {m.isWin ? 'Won' : 'Lost'}
-              </div>
-            </div>
+                {surf}
+              </button>
+            ))}
           </div>
-        ))}
+
+          {/* Outcome Filter */}
+          <div className="flex bg-black/30 p-0.5 rounded-lg border border-white/5">
+            {[
+              { id: 'all', label: 'All' },
+              { id: 'win', label: 'Wins' },
+              { id: 'loss', label: 'Losses' }
+            ].map((res) => (
+              <button
+                key={res.id}
+                onClick={() => setResultFilter(res.id as any)}
+                className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-colors ${
+                  resultFilter === res.id ? 'bg-[#2a2d36] text-white border border-white/5 shadow-sm' : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {res.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sorting */}
+          <button
+            onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+            className="ml-auto px-2.5 py-1 bg-black/30 hover:bg-[#2a2d36]/50 rounded-lg border border-white/5 text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
+          >
+            Sort: {sortOrder === 'desc' ? 'Newest' : 'Oldest'}
+          </button>
+        </div>
+      </div>
+
+      {/* Vegas Match List */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center pl-2">
+          <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">
+            Match Log & Betting Odds
+          </h3>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider pr-2">
+            Showing {filteredMatches.length} Matches
+          </span>
+        </div>
+
+        {filteredMatches.length === 0 ? (
+          <div className="bg-[#151821]/40 border border-white/5 rounded-2xl p-8 text-center text-gray-500 text-xs font-semibold">
+            No matches found matching the selected filters.
+          </div>
+        ) : (
+          filteredMatches.map((m) => {
+            const oppLastName = m.opponent.split(' ').pop() || 'Opponent';
+            return (
+              <div
+                key={m.id}
+                className="bg-[#151821]/60 border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-white/10 transition-colors shadow-md text-left"
+              >
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-tennis-lime uppercase tracking-wider bg-tennis-lime/10 px-2 py-0.5 rounded-full border border-tennis-lime/10">
+                    {m.tournament}
+                  </span>
+                  <h4 className="text-sm font-bold text-white flex items-center">
+                    vs {m.opponent}
+                  </h4>
+                  <div className="flex items-center space-x-2 text-[10px] text-gray-500">
+                    <span>{new Date(m.date).toLocaleDateString()}</span>
+                    {m.score && <span>• Score: {m.score}</span>}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 self-end sm:self-center">
+                  {m.odds && (
+                    <div className="flex items-center space-x-2">
+                      <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center min-w-[70px]">
+                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block truncate max-w-[65px]">
+                          Quote {lastName}
+                        </span>
+                        <span className="text-xs font-black text-white">{m.odds.myOdds.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-[#242938] border border-white/5 px-3 py-1.5 rounded-xl text-center min-w-[70px]">
+                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider block truncate max-w-[65px]">
+                          Quote {oppLastName}
+                        </span>
+                        <span className="text-xs font-black text-white">{m.odds.oppOdds.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+                  <div
+                    className={`text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-xl min-w-[60px] text-center ${
+                      m.isWin
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    }`}
+                  >
+                    {m.isWin ? 'Won' : 'Lost'}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Interactive NEO.bet Betting Slip Placement */}
