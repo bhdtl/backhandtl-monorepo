@@ -173,6 +173,8 @@ const LoadManagementWidget = ({ sackmannMetrics }: { sackmannMetrics: any }) => 
                     <p className="text-xs text-gray-300 leading-snug">{description}</p>
                 </div>
             </div>
+        </motion.div>
+    );
 };
 
 // ============================================================================
