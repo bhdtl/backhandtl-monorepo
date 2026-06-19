@@ -198,7 +198,7 @@ async def run_daily_analysis():
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     try:
         res = supabase.table("market_odds")\
-            .select("player1_name, player2_name, odds1, odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text")\
+            .select("player1_name, player2_name, odds1, odds2, opening_odds1, opening_odds2, ai_fair_odds1, ai_fair_odds2, actual_winner_name, score, created_at, tournament, ai_analysis_text")\
             .not_.is_("actual_winner_name", "null")\
             .gte("created_at", cutoff_date)\
             .execute()
@@ -358,13 +358,168 @@ async def run_daily_analysis():
                 "roi": sub_roi
             })
 
+    # === SELF-HEALING / RULE RECOVERY CYCLE ===
+    active_rules = []
+    recovery_recommendations = []
+    if supabase:
+        try:
+            res_rules = supabase.table("scout_rules").select("*").eq("status", "approved").execute()
+            active_rules = res_rules.data or []
+            log(f"🧠 AI Agent: Loaded {len(active_rules)} active approved rules for recovery review.")
+        except Exception as e:
+            log(f"⚠️ Error fetching active rules for review: {e}")
+
+    if active_rules:
+        # Helper to check if a pick matches the conditions of a rule
+        def matches_rule_conditions(pick, conditions):
+            if "surface" in conditions:
+                rule_surf = conditions["surface"].lower().strip()
+                cand_surf = pick["surface"].lower().strip()
+                if rule_surf != cand_surf:
+                    return False
+            if "is_favorite" in conditions:
+                if conditions["is_favorite"] != pick["is_favorite"]:
+                    return False
+            if "is_challenger" in conditions:
+                if conditions["is_challenger"] != pick["is_challenger"]:
+                    return False
+            if "tour" in conditions:
+                rule_tour = conditions["tour"].upper().strip()
+                if rule_tour != pick["tour"].upper().strip():
+                    return False
+            return True
+
+        # Helper to compute shadow picks
+        def run_shadow_kelly(fair_odds, market_odds, opening_odds, surface, is_favorite, is_challenger, tour, player_name, actual_winner):
+            if not fair_odds or not market_odds or fair_odds <= 1.01 or market_odds <= 1.01:
+                return None
+            
+            fair_prob = 1.0 / fair_odds
+            raw_edge = (fair_prob * market_odds) - 1.0
+            actual_edge = raw_edge * 0.40
+            edge_percent = round(actual_edge * 100, 1)
+            
+            if edge_percent > 12.0:
+                return None
+                
+            if opening_odds and opening_odds > 1.01:
+                drop_pct = (opening_odds - market_odds) / opening_odds
+                if drop_pct > 0.10:
+                    return None
+                    
+            min_edge = 0.015 if market_odds < 1.80 else 0.040
+            if actual_edge < min_edge:
+                return None
+                
+            is_win = False
+            if actual_winner and player_name:
+                p_clean = player_name.lower().strip()
+                w_clean = actual_winner.lower().strip()
+                is_win = (p_clean in w_clean) or (w_clean in p_clean)
+                
+            full_kelly = actual_edge / (market_odds - 1.0) if market_odds > 1.0 else 0.0
+            raw_stake = (full_kelly * 100) * 0.15
+            stake = round(min(5.0, max(0.1, raw_stake)), 1)
+            profit = stake * (market_odds - 1.0) if is_win else -stake
+            
+            return {
+                "player_name": player_name,
+                "surface": surface,
+                "is_favorite": is_favorite,
+                "is_challenger": is_challenger,
+                "tour": tour,
+                "market_odds": market_odds,
+                "stake": stake,
+                "profit": profit,
+                "is_win": is_win
+            }
+
+        # Reconstruct shadow picks for all matches in the last 30 days
+        all_shadow_picks = []
+        for m in matches:
+            tournament = (m.get("tournament") or "").lower()
+            surface = "hard"
+            if "clay" in tournament or "sand" in tournament or "erde" in tournament or "terre" in tournament:
+                surface = "clay"
+            elif "grass" in tournament or "rasen" in tournament:
+                surface = "grass"
+                
+            is_challenger = "challenger" in tournament or "itf" in tournament
+            tour = "WTA" if "WTA" in (m.get("tournament") or "").upper() else "ATP"
+            winner_name = m.get("actual_winner_name")
+            
+            p1_name = m.get("player1_name")
+            p2_name = m.get("player2_name")
+            
+            # P1
+            p1_shadow = run_shadow_kelly(
+                fair_odds=m.get("ai_fair_odds1"),
+                market_odds=m.get("odds1"),
+                opening_odds=m.get("opening_odds1"),
+                surface=surface,
+                is_favorite=m.get("odds1", 2.0) < 1.80,
+                is_challenger=is_challenger,
+                tour=tour,
+                player_name=p1_name,
+                actual_winner=winner_name
+            )
+            if p1_shadow:
+                all_shadow_picks.append(p1_shadow)
+                
+            # P2
+            p2_shadow = run_shadow_kelly(
+                fair_odds=m.get("ai_fair_odds2"),
+                market_odds=m.get("odds2"),
+                opening_odds=m.get("opening_odds2"),
+                surface=surface,
+                is_favorite=m.get("odds2", 2.0) < 1.80,
+                is_challenger=is_challenger,
+                tour=tour,
+                player_name=p2_name,
+                actual_winner=winner_name
+            )
+            if p2_shadow:
+                all_shadow_picks.append(p2_shadow)
+
+        # Check recovery for each rule
+        for rule in active_rules:
+            conds = rule.get("conditions") or {}
+            desc = rule.get("description", "")
+            rule_id = rule.get("id")
+            
+            matching_picks = [p for p in all_shadow_picks if matches_rule_conditions(p, conds)]
+            
+            if len(matching_picks) >= 5:
+                total_staked = sum(p["stake"] for p in matching_picks)
+                net_profit = sum(p["profit"] for p in matching_picks)
+                shadow_roi = (net_profit / total_staked) * 100 if total_staked > 0 else 0.0
+                
+                # If shadow ROI is positive (> 5%), suggest disabling the rule
+                if shadow_roi > 5.0:
+                    recovery_recommendations.append({
+                        "rule_id": rule_id,
+                        "description": desc,
+                        "shadow_bets": len(matching_picks),
+                        "shadow_roi": round(shadow_roi, 1),
+                        "shadow_profit": round(net_profit, 2)
+                    })
+                    log(f"🩹 Recovery Candidate Found: '{desc}' has a positive shadow ROI of {shadow_roi:.1f}% over {len(matching_picks)} bets.")
+
+    recovery_summary = ""
+    if recovery_recommendations:
+        for idx, rec in enumerate(recovery_recommendations, 1):
+            recovery_summary += f"{idx}. {rec['description']} (ID: {rec['rule_id']}) -> Schatten-ROI: {rec['shadow_roi']:+.1f}% über {rec['shadow_bets']} Spiele (hypothetischer Profit: {rec['shadow_profit']:+.2f}u)\n"
+    else:
+        recovery_summary = "Keine der aktiven Regeln zeigt eine signifikante Erholung in der Schatten-Performance."
+
     # Call OpenRouter for Report Summary & Proposals
     system_prompt = (
         "You are a Multi-Agent AI Reporting System at an elite sports betting syndicate. "
-        "Your system has two distinct agents:\n"
+        "Your system has three distinct agents:\n"
         "1. Daily Operations Analyst (Micro-Perspective): Reviews only the picks and results of the last 24 hours.\n"
         "2. Macro Risk & Calibration Strategist (Macro-Perspective): Reviews the 30-day statistical performance and subgroups to calibrate the system and manage risk.\n"
-        "Write an executive-level German report. Use clean markdown structure, Apple/Revolut clarity, and GitHub alerts (e.g. > [!NOTE], > [!IMPORTANT], > [!WARNING]). "
+        "3. Self-Healing Agent (Rule Recovery): Analyzes the shadow performance of blocked/active rules and recommends disabling them if performance has recovered.\n"
+        "Write an executive-level German report. Use clean markdown structure, Apple/Revolut clarity, and plain bold headers/bullet points. "
         "Keep it extremely analytical and direct."
     )
     
@@ -394,6 +549,10 @@ async def run_daily_analysis():
     Identifizierte Schwachstellen (ROI < -15%):
     {json.dumps(failures, indent=2)}
     
+    =========================================
+    3. RECOVERY RECOMMENDATIONS (Self-Healing Agent):
+    {recovery_summary}
+    
     Bitte erstelle einen strukturierten Bericht auf Deutsch im Apple/Revolut-Stil mit folgenden Sektionen:
     
     ### 📊 Sektion 1: Daily Operations Audit (Micro Ops Agent)
@@ -404,7 +563,11 @@ async def run_daily_analysis():
     - Eine detaillierte Auswertung des 30-Tage-Trends und der Subgruppen. Warum verlieren/gewinnen bestimmte Beläge (Rasen/Sand) oder Klassen (WTA/ATP, Challenger vs. Haupttour)?
     - Empfehlungen zur Kalibrierung des Scrapers (Vorschlag von Vetoes, Einsatzdämpfern per Multiplier oder Mindest-Edge-Verschiebungen).
     
-    Gibt es Vorschläge, formuliere sie am Ende des Berichts als JSON-Array im Format:
+    ### 🩹 Sektion 3: Vorschläge zur Regel-Aufhebung (Self-Healing Agent)
+    - Wenn Regeln in '3. RECOVERY RECOMMENDATIONS' gelistet sind, analysiere die Performance. Erkläre in 1-2 Sätzen auf Deutsch, warum sich diese Subgruppe erholt hat, und empfehle explizit, diese Regeln im Dashboard auf 'rejected' zu setzen.
+    - Falls keine Regeln gelistet sind, schreibe einfach: 'Aktuell keine Regel-Aufhebungen empfohlen.'
+    
+    Gibt es Vorschläge für NEUE Regeln, formuliere sie am Ende des Berichts als JSON-Array im Format:
     PROPOSALS_JSON:
     [
       {{
@@ -454,6 +617,7 @@ async def run_daily_analysis():
             "roi": round(roi, 1),
             "brier_score": round(avg_brier, 4),
             "breakdown": metrics_breakdown,
+            "rule_recommendations": recovery_recommendations,
             "today": {
                 "bets": today_bets,
                 "win_rate": round(today_win_rate, 1),
