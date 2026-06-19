@@ -4,7 +4,7 @@ import {
   X, Users, Swords, Gauge, Shield,
   LogOut, Zap, Star, User, TrendingUp,
   Crown, Gift, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft,
-  LifeBuoy, DollarSign, Radar, Target, Hash
+  LifeBuoy, DollarSign, Radar, Target, Hash, Brain
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BrandLogo } from './BrandLogo';
@@ -109,6 +109,7 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
   const navItems = [
     { id: 'home', label: t('mobileMenu.nav.playerDatabase'), icon: Users },
     { id: 'watchlist', label: t('mobileMenu.nav.watchlist'), icon: Star },
+    { id: 'intelligence', label: t('mobileMenu.nav.intelligenceHub'), icon: Brain },
     { id: 'pricing', label: t('mobileMenu.nav.membershipPlans'), icon: Crown, badge: t('mobileMenu.badges.upgrade') },
     { id: 'scanner', label: t('mobileMenu.nav.valueScanner'), icon: Zap, badge: t('mobileMenu.badges.hot') },
     { id: 'picks', label: t('mobileMenu.nav.aiPicks', { defaultValue: 'AI Picks' }), icon: Target, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) },

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   Shield, Swords, Zap, Activity, Trophy, MapPin, Brain,
   ArrowLeft, Flame, Target, TrendingUp, TrendingDown,
   Minus, Layers, ClipboardList, Database, Lock, Crosshair, Battery,
-  AlertTriangle, Eye, CalendarClock, HeartPulse
+  AlertTriangle, Eye, CalendarClock, HeartPulse,
+  ShieldAlert, Newspaper, Twitter, MessageSquare, ExternalLink
 } from 'lucide-react';
 import { AchievementBadge } from '../components/AchievementBadge';
 import { useAuth } from '../contexts/AuthContext';
@@ -172,8 +173,184 @@ const LoadManagementWidget = ({ sackmannMetrics }: { sackmannMetrics: any }) => 
                     <p className="text-xs text-gray-300 leading-snug">{description}</p>
                 </div>
             </div>
-        </motion.div>
-    );
+};
+
+// ============================================================================
+// 🧠 AI INTELLIGENCE BRIEFINGS WIDGET
+// ============================================================================
+interface PlayerIntelligenceWidgetProps {
+  insights: any[];
+}
+
+const PlayerIntelligenceWidget = ({ insights }: PlayerIntelligenceWidgetProps) => {
+  const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
+
+  const getSentimentDetails = (sentiment: string) => {
+    switch (sentiment) {
+      case 'critical_injury':
+        return {
+          bg: 'bg-red-500/10 border-red-500/20 text-red-400',
+          dot: 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]',
+          label: 'Critical Injury',
+          icon: ShieldAlert
+        };
+      case 'negative':
+        return {
+          bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+          dot: 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]',
+          label: 'Injury / Minor Pain',
+          icon: AlertTriangle
+        };
+      case 'positive':
+        return {
+          bg: 'bg-tennis-lime/10 border-tennis-lime/20 text-tennis-lime',
+          dot: 'bg-tennis-lime shadow-[0_0_12px_rgba(200,250,50,0.5)]',
+          label: 'Fit & Confident',
+          icon: TrendingUp
+        };
+      default:
+        return {
+          bg: 'bg-white/[0.03] border-white/5 text-gray-400',
+          dot: 'bg-gray-500',
+          label: 'General Briefing',
+          icon: Newspaper
+        };
+    }
+  };
+
+  const getSourceIcon = (type: string) => {
+    switch (type) {
+      case 'twitter':
+        return <Twitter size={14} className="text-blue-400" />;
+      case 'interview':
+        return <MessageSquare size={14} className="text-purple-400" />;
+      default:
+        return <Newspaper size={14} className="text-gray-400" />;
+    }
+  };
+
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const now = new Date();
+      const date = new Date(dateStr);
+      const diffMs = now.getTime() - date.getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      
+      if (diffHours < 1) {
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        return `${diffMins}m ago`;
+      }
+      if (diffHours < 24) {
+        return `${diffHours}h ago`;
+      }
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return '';
+    }
+  };
+
+  return (
+    <motion.div 
+      variants={fadeUpVariant} 
+      className="bg-[#1a1d26]/80 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl relative overflow-hidden group mb-6 text-left"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 opacity-10 rounded-full blur-[50px] pointer-events-none" />
+      
+      <div className="flex items-center justify-between gap-4 mb-4 border-b border-white/5 pb-4">
+        <h3 className="text-white font-black text-lg flex items-center gap-2 relative z-10">
+          <Brain className="text-tennis-lime" size={20}/> 
+          <span className="uppercase tracking-widest text-sm bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+            AI Intelligence Briefings
+          </span>
+        </h3>
+        <Link 
+          to="/intelligence" 
+          className="text-[10px] font-black uppercase tracking-widest text-tennis-lime hover:underline flex items-center gap-1 transition-all"
+        >
+          View Hub <ArrowLeft size={10} className="rotate-180" />
+        </Link>
+      </div>
+
+      {insights.length === 0 ? (
+        <div className="text-center py-6 text-gray-500 text-xs font-semibold">
+          No recent intelligence alerts found. The player appears physically and mentally stable.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 relative z-10">
+          {insights.map((insight) => {
+            const details = getSentimentDetails(insight.sentiment);
+            const isExpanded = expandedInsight === insight.id;
+            
+            return (
+              <div 
+                key={insight.id} 
+                className="bg-[#0f1115]/50 border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-all cursor-pointer text-left"
+                onClick={() => setExpandedInsight(isExpanded ? null : insight.id)}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold border ${details.bg}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${details.dot}`} />
+                      {details.label}
+                    </span>
+                    <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase">
+                      {getSourceIcon(insight.source_type)}
+                      {insight.source_name}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono text-gray-500">
+                    {formatTimeAgo(insight.published_at)}
+                  </span>
+                </div>
+
+                <h4 className="text-white text-xs font-bold leading-snug">
+                  {insight.headline}
+                </h4>
+                
+                <p className="text-gray-400 text-[11px] mt-1.5 leading-relaxed font-medium">
+                  {insight.summary}
+                </p>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden mt-3 pt-3 border-t border-white/5 text-left"
+                    >
+                      <h5 className="text-[9px] font-black uppercase text-tennis-lime tracking-widest mb-1.5">
+                        Key Takeaways:
+                      </h5>
+                      <ul className="list-disc list-inside text-gray-300 text-[11px] space-y-1 pl-1">
+                        {insight.key_takeaways.map((takeaway: string, idx: number) => (
+                          <li key={idx} className="leading-relaxed">
+                            {takeaway}
+                          </li>
+                        ))}
+                      </ul>
+                      {insight.url && (
+                        <a 
+                          href={insight.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="mt-3 inline-flex items-center gap-1 text-[10px] font-black uppercase text-tennis-lime/80 hover:text-tennis-lime tracking-wider"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Read Original Source <ExternalLink size={10} />
+                        </a>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </motion.div>
+  );
 };
 
 // ============================================================================
@@ -745,6 +922,7 @@ export function PlayerProfile() {
   const [skills, setSkills] = useState<any>(null);
   const [report, setReport] = useState<any>(null);
   const [achievements, setAchievements] = useState<any[]>([]); 
+  const [insights, setInsights] = useState<any[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -752,17 +930,23 @@ export function PlayerProfile() {
     const loadData = async () => {
       if (!id) return;
       try {
-          const [p, s, r, a] = await Promise.all([
+          const [p, s, r, a, ins] = await Promise.all([
               supabase.from('players').select('*').eq('id', id).single(),
               supabase.from('player_skills').select('*').eq('player_id', id).maybeSingle(),
               supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle(),
-              supabase.from('player_achievements').select('*').eq('player_id', id)
+              supabase.from('player_achievements').select('*').eq('player_id', id),
+              supabase.from('tennis_insights')
+                .select('*')
+                .eq('player_id', id)
+                .order('published_at', { ascending: false })
+                .limit(5)
           ]);
           
           if (p.data) setPlayer(p.data);
           setSkills(s.data || {}); 
           if (r.data) setReport(r.data);
           if (a.data) setAchievements(a.data);
+          if (ins.data) setInsights(ins.data);
       } catch (error) {
           console.error("Error loading player data:", error);
       } finally {
@@ -936,6 +1120,9 @@ export function PlayerProfile() {
               
               {/* 🔋 SOTA: LOAD MANAGEMENT WIDGET */}
               <LoadManagementWidget sackmannMetrics={skills?.sackmann_metrics} />
+
+              {/* 🧠 AI INTELLIGENCE BRIEFINGS */}
+              <PlayerIntelligenceWidget insights={insights} />
 
               {/* SURFACE MASTERY WIDGET (WITH TRUE ELO) */}
               <SurfaceMasteryWidget 
