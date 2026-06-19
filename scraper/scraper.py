@@ -2554,7 +2554,8 @@ async def run_pipeline():
     global GLOBAL_ACTIVE_RULES
     try:
         res = supabase.table("scout_rules").select("*").eq("status", "approved").execute()
-        GLOBAL_ACTIVE_RULES = res.data or []
+        raw_rules = res.data or []
+        GLOBAL_ACTIVE_RULES = [r for r in raw_rules if r.get("description") != "SYSTEM_AUTOPILOT"]
         log(f"🧠 AI Agent: Loaded {len(GLOBAL_ACTIVE_RULES)} approved scout rules.")
     except Exception as e:
         err_msg = str(e)
