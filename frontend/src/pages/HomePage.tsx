@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, Zap, ArrowRight, AlertTriangle, Wallet, PieChart } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin, Activity, Layers, Filter, Sparkles, Zap, ArrowRight, AlertTriangle, Wallet, PieChart, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { safeLocalStorage, safeSessionStorage } from '../lib/storage';
 import { PlayerCard } from '../components/PlayerCard';
@@ -11,6 +11,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { PartnerBadge } from '../components/PartnerBadge';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
@@ -564,6 +565,171 @@ interface Player {
   tour: 'ATP' | 'WTA';
 }
 
+interface FilterSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  countries: string[];
+  playStyles: string[];
+  surfaces: string[];
+  countryFilter: string;
+  setCountryFilter: (c: string) => void;
+  playStyleFilter: string[];
+  setPlayStyleFilter: (s: string[]) => void;
+  surfaceFilter: string;
+  setSurfaceFilter: (s: string) => void;
+  ratingFilter: number;
+  setRatingFilter: (r: number) => void;
+  sortBy: 'name' | 'rating';
+  setSortBy: (s: 'name' | 'rating') => void;
+  totalResults: number;
+  onReset: () => void;
+}
+
+function FilterSheet({
+  isOpen,
+  onClose,
+  countries,
+  playStyles,
+  surfaces,
+  countryFilter,
+  setCountryFilter,
+  playStyleFilter,
+  setPlayStyleFilter,
+  surfaceFilter,
+  setSurfaceFilter,
+  ratingFilter,
+  setRatingFilter,
+  sortBy,
+  setSortBy,
+  totalResults,
+  onReset
+}: FilterSheetProps) {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="fixed inset-0 z-[100] flex justify-center items-end md:items-center no-select">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+        onClick={onClose}
+      />
+      
+      <motion.div
+        initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+        animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+        exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 260 }}
+        className="relative w-full md:max-w-lg max-h-[85vh] md:max-h-[90vh] bg-[#13151b] border-t md:border border-white/10 rounded-t-[2.5rem] md:rounded-[2.5rem] flex flex-col overflow-hidden z-10 shadow-2xl"
+      >
+        <div className="md:hidden flex justify-center py-3">
+          <div className="w-10 h-1 bg-white/20 rounded-full" />
+        </div>
+        
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-sm font-medium">Cancel</button>
+          <span className="text-sm font-black uppercase tracking-widest text-white">Refine Scout</span>
+          <button onClick={onClose} className="text-tennis-lime hover:text-tennis-lime/80 text-sm font-black uppercase tracking-wider">Done</button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar pb-32">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.footer.sortBy')}</label>
+            <div className="flex bg-black/40 p-0.5 rounded-xl border border-white/10 h-10 select-none relative">
+              <button
+                onClick={() => setSortBy('name')}
+                className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                style={{ color: sortBy === 'name' ? '#000' : 'rgba(255,255,255,0.45)' }}
+              >
+                {t('homePage.footer.name')}
+              </button>
+              <button
+                onClick={() => setSortBy('rating')}
+                className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                style={{ color: sortBy === 'rating' ? '#000' : 'rgba(255,255,255,0.45)' }}
+              >
+                {t('homePage.footer.rating')}
+              </button>
+              <motion.div
+                layoutId="activeSortBg"
+                className="absolute top-0.5 bottom-0.5 rounded-[10px] bg-tennis-lime shadow-md"
+                style={{
+                  left: sortBy === 'name' ? '2px' : '50%',
+                  width: 'calc(50% - 4px)',
+                }}
+                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allCountries')}</label>
+            <SearchableSelect 
+              placeholder={t('homePage.filters.allCountries')}
+              options={countries}
+              value={countryFilter}
+              onChange={setCountryFilter}
+              icon={MapPin}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.filterStyles')}</label>
+            <MultiSelect 
+              placeholder={t('homePage.filters.filterStyles')}
+              options={playStyles}
+              selected={playStyleFilter}
+              onChange={setPlayStyleFilter}
+              icon={Activity}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allSurfaces')}</label>
+            <SearchableSelect 
+              placeholder={t('homePage.filters.allSurfaces')}
+              options={surfaces}
+              value={surfaceFilter}
+              onChange={setSurfaceFilter}
+              icon={Layers}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allRatings')}</label>
+            <div className="relative group">
+              <select
+                value={ratingFilter}
+                onChange={(e) => setRatingFilter(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-[#1a1d26] border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime text-white text-sm appearance-none cursor-pointer transition-colors"
+              >
+                <option value="0">{t('homePage.filters.allRatings')}</option>
+                <option value="90">90+ Elite</option>
+                <option value="80">80+ Excellent</option>
+                <option value="70">70+ Very Good</option>
+                <option value="60">60+ Good</option>
+              </select>
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 group-hover:text-tennis-lime transition-colors">
+                <ChevronDown size={16} />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="absolute bottom-0 left-0 right-0 bg-[#13151b]/95 backdrop-blur-md border-t border-white/[0.06] p-6 flex items-center justify-between gap-4">
+          <button onClick={onReset} className="text-gray-400 hover:text-red-400 text-xs font-black uppercase tracking-wider transition-colors">
+            Reset All
+          </button>
+          <button onClick={onClose} className="px-8 py-3.5 bg-tennis-lime text-black font-black uppercase tracking-wider text-xs rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-tennis-lime/20 flex-1 text-center">
+            Show {totalResults} Players
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 interface HomePageProps {
   onPlayerClick: (playerId: string) => void;
 }
@@ -572,6 +738,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   const { t } = useTranslation();
   const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
@@ -606,9 +773,6 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
   const [loading, setLoading] = useState(() => {
     return !safeLocalStorage.getItem('bh_cached_players');
   });
-    
-  const [showFilters, setShowFilters] = useState(false);
-  const [overflowVisible, setOverflowVisible] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -666,17 +830,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
     };
   }, []);
 
-  useEffect(() => {
-    let timeout: any;
-    if (showFilters) {
-        timeout = setTimeout(() => {
-            setOverflowVisible(true);
-        }, 500); 
-    } else {
-        setOverflowVisible(false);
-    }
-    return () => clearTimeout(timeout);
-  }, [showFilters]);
+  // Filters panel removed in favor of iOS FilterSheet
 
   useEffect(() => {
     filterPlayers();
@@ -855,36 +1009,58 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
                     placeholder={t('homePage.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime focus:bg-black/40 text-white placeholder-gray-500 text-sm transition-all shadow-inner"
+                    className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime focus:bg-black/40 text-white placeholder-gray-500 text-sm transition-all shadow-inner"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"
+                    aria-label="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto">
-                <div className="flex bg-black/20 p-1 rounded-xl border border-white/10 flex-1 md:flex-none relative">
+                <div className="flex bg-black/40 p-0.5 rounded-xl border border-white/5 relative h-10 w-full md:w-44 select-none">
                     <button 
                         onClick={() => handleTourChange('ATP')}
-                        className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black tracking-widest transition-all duration-300 ${tourFilter === 'ATP' ? 'bg-tennis-lime text-black shadow-[0_0_15px_rgba(132,204,22,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                        className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                        style={{ color: tourFilter === 'ATP' ? '#000' : 'rgba(255,255,255,0.45)' }}
                     >ATP</button>
                     <button 
                         onClick={() => handleTourChange('WTA')}
-                        className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black tracking-widest transition-all duration-300 ${tourFilter === 'WTA' ? 'bg-tennis-lime text-black shadow-[0_0_15px_rgba(132,204,22,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                        className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                        style={{ color: tourFilter === 'WTA' ? '#000' : 'rgba(255,255,255,0.45)' }}
                     >WTA</button>
+                    <motion.div
+                      layoutId="activeTourBg"
+                      className="absolute top-0.5 bottom-0.5 rounded-[10px] bg-tennis-lime shadow-md"
+                      style={{
+                        left: tourFilter === 'ATP' ? '2px' : '50%',
+                        width: 'calc(50% - 4px)',
+                      }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
                 </div>
 
                 <button 
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`p-3 rounded-xl border transition-all duration-300 relative group ${showFilters || hasActiveFilters ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-black/20 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'}`}
+                    onClick={() => setIsFilterSheetOpen(true)}
+                    className={`p-3 rounded-xl border transition-all duration-300 relative group ${hasActiveFilters ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-black/20 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'}`}
                 >
-                    {showFilters ? <X size={20} /> : <SlidersHorizontal size={20} className="group-hover:scale-110 transition-transform"/>}
-                    {!showFilters && hasActiveFilters && (
-                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-tennis-lime rounded-full border-2 border-[#1a1d26]"></span>
+                    <SlidersHorizontal size={20} className="group-hover:scale-110 transition-transform"/>
+                    {playStyleFilter.length + (countryFilter ? 1 : 0) + (surfaceFilter ? 1 : 0) + (ratingFilter > 0 ? 1 : 0) > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-tennis-lime text-black border-2 border-[#1a1d26] rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-black">
+                            {playStyleFilter.length + (countryFilter ? 1 : 0) + (surfaceFilter ? 1 : 0) + (ratingFilter > 0 ? 1 : 0)}
+                        </span>
                     )}
                 </button>
             </div>
         </div>
         
         {/* ACTIVE FILTERS VISUALIZATION */}
-        {(countryFilter || playStyleFilter.length > 0 || surfaceFilter || ratingFilter > 0) && (
+        {hasActiveFilters && (
             <div className="px-4 pb-4 flex flex-wrap gap-2 animate-in slide-in-from-top-2 border-t border-white/5 pt-3">
                 {countryFilter && (
                     <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold uppercase tracking-wider shadow-sm">
@@ -910,68 +1086,22 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
                         <button onClick={() => setRatingFilter(0)} className="hover:text-white transition-colors"><X size={12} /></button>
                     </div>
                 )}
-                
-                <button onClick={resetFilters} className="text-[10px] text-gray-500 hover:text-red-400 underline ml-auto transition-colors font-medium">{t('homePage.filters.clearAll')}</button>
             </div>
         )}
 
-        {/* COLLAPSIBLE ADVANCED FILTERS */}
-        <div className={`transition-[max-height,opacity] duration-500 ease-in-out ${showFilters ? 'max-h-[500px] opacity-100 border-t border-white/5' : 'max-h-0 opacity-0'} ${overflowVisible ? 'overflow-visible' : 'overflow-hidden'}`}>
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-black/20">
-                <SearchableSelect 
-                    placeholder={t('homePage.filters.allCountries')}
-                    options={countries}
-                    value={countryFilter}
-                    onChange={setCountryFilter}
-                    icon={MapPin}
-                />
-                <MultiSelect 
-                    placeholder={t('homePage.filters.filterStyles')}
-                    options={playStyles}
-                    selected={playStyleFilter}
-                    onChange={setPlayStyleFilter}
-                    icon={Activity}
-                />
-                <SearchableSelect 
-                    placeholder={t('homePage.filters.allSurfaces')}
-                    options={surfaces}
-                    value={surfaceFilter}
-                    onChange={setSurfaceFilter}
-                    icon={Layers}
-                />
-                <div className="relative group">
-                    <select
-                        value={ratingFilter}
-                        onChange={(e) => setRatingFilter(Number(e.target.value))}
-                        className="w-full px-4 py-3 bg-[#15171e] border border-white/10 rounded-xl focus:outline-none focus:border-tennis-lime text-white text-sm appearance-none cursor-pointer transition-colors"
-                    >
-                        <option value="0">{t('homePage.filters.allRatings')}</option>
-                        <option value="90">90+ Elite</option>
-                        <option value="80">80+ Excellent</option>
-                        <option value="70">70+ Very Good</option>
-                        <option value="60">60+ Good</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500 group-hover:text-tennis-lime transition-colors">
-                        <Sparkles size={16} />
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        {/* FOOTER BAR */}
-         <div className="px-4 py-3 bg-black/40 border-t border-white/5 flex flex-wrap justify-between items-center gap-3 text-xs md:text-sm rounded-b-2xl">
-            <span className="text-gray-500 font-medium">{t('homePage.footer.found', { count: filteredPlayers.length })} <span className="text-white font-bold">{filteredPlayers.length}</span> {t('homePage.footer.players')}</span>
-            
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-black/20 px-2 py-1 rounded-lg border border-white/5">
-                    <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">{t('homePage.footer.sortBy')}</span>
-                    <button onClick={() => setSortBy('name')} className={`font-bold transition-colors ${sortBy === 'name' ? 'text-tennis-lime' : 'text-gray-400 hover:text-white'}`}>{t('homePage.footer.name')}</button>
-                    <span className="text-gray-700">|</span>
-                    <button onClick={() => setSortBy('rating')} className={`font-bold transition-colors ${sortBy === 'rating' ? 'text-tennis-lime' : 'text-gray-400 hover:text-white'}`}>{t('homePage.footer.rating')}</button>
-                </div>
-            </div>
-        </div>
+      </div>
 
+      {/* RESULTS COUNT & ACTIVE TAGS SUMMARY */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <span className="text-gray-500 font-bold text-xs uppercase tracking-wider">
+              {filteredPlayers.length} {t('homePage.footer.players')} found
+          </span>
+          
+          {hasActiveFilters && (
+              <button onClick={resetFilters} className="text-[10px] text-gray-500 hover:text-red-400 underline transition-colors font-bold uppercase tracking-wider">
+                  {t('homePage.filters.clearAll')}
+              </button>
+          )}
       </div>
 
       {/* PLAYER GRID */}
@@ -1003,6 +1133,30 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
       </div>
 
 
+
+      <AnimatePresence>
+        {isFilterSheetOpen && (
+          <FilterSheet 
+            isOpen={isFilterSheetOpen}
+            onClose={() => setIsFilterSheetOpen(false)}
+            countries={countries}
+            playStyles={playStyles}
+            surfaces={surfaces}
+            countryFilter={countryFilter}
+            setCountryFilter={setCountryFilter}
+            playStyleFilter={playStyleFilter}
+            setPlayStyleFilter={setPlayStyleFilter}
+            surfaceFilter={surfaceFilter}
+            setSurfaceFilter={setSurfaceFilter}
+            ratingFilter={ratingFilter}
+            setRatingFilter={setRatingFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            totalResults={filteredPlayers.length}
+            onReset={resetFilters}
+          />
+        )}
+      </AnimatePresence>
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
