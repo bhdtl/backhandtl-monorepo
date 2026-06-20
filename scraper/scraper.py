@@ -1056,23 +1056,42 @@ async def call_openrouter(prompt: str, model: str = MODEL_NAME, temp: float = 0.
         "HTTP-Referer": "https://neuralscout.com",
         "X-Title": "NeuralScout"
     }
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": "You are an elite tactical data extraction AI. Return ONLY valid JSON."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": temp, 
-        "response_format": {"type": "json_object"}
-    }
+    
+    # Models to try in order: primary model, gemini-2.5-flash, and auto-routing free models
+    models_to_try = [model, "google/gemini-2.5-flash", "openrouter/free"]
+    
+    # Deduplicate while preserving order
+    seen = set()
+    models_to_try = [x for x in models_to_try if not (x in seen or seen.add(x))]
+    
+    system_prompt = "You are an elite tactical data extraction AI. Return ONLY valid JSON."
+    
     async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(url, headers=headers, json=payload, timeout=45.0)
-            if response.status_code != 200: 
-                return None
-            return response.json()['choices'][0]['message']['content']
-        except Exception as e: 
-            return None
+        for current_model in models_to_try:
+            log(f"Calling OpenRouter with model: {current_model}...")
+            payload = {
+                "model": current_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": temp, 
+                "response_format": {"type": "json_object"}
+            }
+            try:
+                response = await client.post(url, headers=headers, json=payload, timeout=45.0)
+                if response.status_code == 200:
+                    content = response.json()['choices'][0]['message']['content']
+                    if content:
+                        log(f"✅ OpenRouter API call succeeded with model: {current_model}.")
+                        return content
+                else:
+                    log(f"⚠️ OpenRouter Error with model {current_model}: HTTP {response.status_code} - Response: {response.text}")
+            except Exception as e:
+                log(f"⚠️ OpenRouter Exception with model {current_model}: {e}")
+                
+    log("❌ All models failed in OpenRouter API calls.")
+    return None
 
 # =================================================================
 # 7. DATA FETCHING & ORACLE (API INTEGRATED + DATA LAKE)

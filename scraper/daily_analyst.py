@@ -159,6 +159,7 @@ def check_play_result(pick_name: str, match: dict) -> bool:
 
 async def call_openrouter(prompt: str, system_prompt: str, model: str = MODEL_NAME, temp: float = 0.15) -> str:
     if not OPENROUTER_API_KEY:
+        log("⚠️ OPENROUTER_API_KEY is missing. Skipping API call.")
         return ""
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
@@ -167,23 +168,39 @@ async def call_openrouter(prompt: str, system_prompt: str, model: str = MODEL_NA
         "HTTP-Referer": "https://neuralscout.com",
         "X-Title": "NeuralScout AI Analyst"
     }
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": temp
-    }
+    
+    # Models to try in order: primary model, gemini-2.5-flash, and auto-routing free models
+    models_to_try = [model, "google/gemini-2.5-flash", "openrouter/free"]
+    
+    # Deduplicate while preserving order
+    seen = set()
+    models_to_try = [x for x in models_to_try if not (x in seen or seen.add(x))]
+    
     async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(url, headers=headers, json=payload, timeout=60.0)
-            if response.status_code != 200:
-                return ""
-            return response.json()['choices'][0]['message']['content']
-        except Exception as e:
-            log(f"⚠️ OpenRouter Error: {e}")
-            return ""
+        for current_model in models_to_try:
+            log(f"Calling OpenRouter with model: {current_model}...")
+            payload = {
+                "model": current_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": temp
+            }
+            try:
+                response = await client.post(url, headers=headers, json=payload, timeout=60.0)
+                if response.status_code == 200:
+                    content = response.json()['choices'][0]['message']['content']
+                    if content:
+                        log(f"✅ OpenRouter API call succeeded with model: {current_model}.")
+                        return content
+                else:
+                    log(f"⚠️ OpenRouter Error with model {current_model}: HTTP {response.status_code} - Response: {response.text}")
+            except Exception as e:
+                log(f"⚠️ OpenRouter Exception with model {current_model}: {e}")
+                
+    log("❌ All models failed in OpenRouter API calls.")
+    return ""
 
 async def run_daily_analysis():
     if not supabase:
