@@ -71,9 +71,10 @@ interface MobileMenuProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   onOpenMemberCard?: () => void;
+  onOpenLegal?: (type: string) => void;
 }
 
-export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMemberCard }: MobileMenuProps) {
+export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMemberCard, onOpenLegal }: MobileMenuProps) {
   const { user, isAdmin, signOut } = useAuth();
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
@@ -266,8 +267,8 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
 
             </div>
 
-            <div className="px-5 py-4 border-t border-white/[0.06]">
-              <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="px-5 py-4 border-t border-white/[0.06] bg-black/[0.15]">
+              <div className="flex items-center justify-between gap-4 mb-4">
                 <LanguageSelector />
                 {user && (
                   <button onClick={handleLogout} className="text-xs font-bold text-red-400/80 hover:text-red-400 flex items-center gap-1.5 px-3 py-2 hover:bg-red-500/10 rounded-xl transition-colors">
@@ -276,10 +277,28 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
                 )}
               </div>
               {!user && (
-                <button onClick={() => { onClose(); onNavigate('login'); }} className="w-full py-3 bg-white text-black font-black text-xs uppercase rounded-xl hover:bg-tennis-lime transition-colors">
+                <button onClick={() => { onClose(); onNavigate('login'); }} className="w-full py-3 bg-white text-black font-black text-xs uppercase rounded-xl hover:bg-tennis-lime transition-colors mb-4">
                   {t('mobileMenu.loginSignUp')}
                 </button>
               )}
+
+              {/* Apple-style Legal & System Info Links */}
+              <div className="mt-4 pt-3 border-t border-white/[0.04] flex flex-wrap justify-center gap-x-3 gap-y-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                <button onClick={() => { onClose(); onOpenLegal?.('imprint'); }} className="hover:text-white transition-colors">Imprint</button>
+                <span className="text-gray-700 select-none">•</span>
+                <button onClick={() => { onClose(); onOpenLegal?.('privacy'); }} className="hover:text-white transition-colors">Privacy</button>
+                <span className="text-gray-700 select-none">•</span>
+                <button onClick={() => { onClose(); onOpenLegal?.('terms'); }} className="hover:text-white transition-colors">Terms</button>
+                <span className="text-gray-700 select-none">•</span>
+                <button onClick={() => { onClose(); onOpenLegal?.('cookies'); }} className="hover:text-white transition-colors">Cookies</button>
+                <span className="text-gray-700 select-none">•</span>
+                <button onClick={() => { onClose(); onOpenLegal?.('ai'); }} className="hover:text-white transition-colors">AI Disclosure</button>
+              </div>
+
+              {/* Whitelist regulatory footer indicator inside settings drawer */}
+              <div className="mt-3 text-center text-[8px] font-mono text-gray-600 uppercase tracking-tight leading-normal">
+                Spielteilnahme ab 18 | Glücksspiel kann süchtig machen | Hilfe: check-dein-spiel.de / BZgA: 0800 1372700
+              </div>
             </div>
 
           </div>

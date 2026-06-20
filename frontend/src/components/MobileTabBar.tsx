@@ -27,56 +27,45 @@ export function MobileTabBar({ onMenuAction, isLoggedIn }: MobileTabBarProps) {
       {/* 🚀 SCHWEBENDER ADMIN COMMAND BUTTON (NUR FÜR DICH AUF MOBILE) */}
       <AdminNotificationWidget isMobile={true} />
 
-      <div className="px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <nav className="liquid-glass-bar pointer-events-auto">
-          <div className="liquid-glass-inner">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = location.pathname.startsWith(tab.path);
-              return (
-                <Link
-                  key={tab.path}
-                  to={tab.path}
-                  className="liquid-tab-item group"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabBg"
-                      className="liquid-tab-active-bg"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <div className={`liquid-tab-content ${isActive ? 'liquid-tab-active' : 'liquid-tab-inactive'}`}>
-                    <Icon
-                      size={20}
-                      strokeWidth={isActive ? 2.5 : 1.8}
-                    />
-                    <span className="liquid-tab-label">
-                      {t(`mobileTabBar.${tab.key}`, tab.key.charAt(0).toUpperCase() + tab.key.slice(1))}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-
-            <div className="liquid-tab-divider" />
-
-            <button
-              onClick={onMenuAction}
-              className="liquid-tab-item liquid-tab-menu group"
-            >
-              <div className="liquid-tab-content liquid-tab-inactive">
-                <div className={`liquid-tab-avatar ${isLoggedIn ? 'liquid-tab-avatar-active' : ''}`}>
-                  <UserIcon size={14} />
+      <nav className="ios-tab-bar pointer-events-auto">
+        <div className="ios-tab-inner">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = location.pathname.startsWith(tab.path);
+            return (
+              <Link
+                key={tab.path}
+                to={tab.path}
+                className="ios-tab-item group"
+              >
+                <div className={`ios-tab-content ${isActive ? 'ios-tab-active' : 'ios-tab-inactive'}`}>
+                  <Icon
+                    size={20}
+                    strokeWidth={isActive ? 2.5 : 1.8}
+                  />
+                  <span className="ios-tab-label">
+                    {t(`mobileTabBar.${tab.key}`, tab.key.charAt(0).toUpperCase() + tab.key.slice(1))}
+                  </span>
                 </div>
-                <span className="liquid-tab-label">
-                  {t(isLoggedIn ? 'mobileTabBar.menu' : 'mobileTabBar.login', isLoggedIn ? 'Menu' : 'Login')}
-                </span>
+              </Link>
+            );
+          })}
+
+          <button
+            onClick={onMenuAction}
+            className="ios-tab-item group"
+          >
+            <div className="ios-tab-content ios-tab-inactive">
+              <div className={`ios-tab-avatar ${isLoggedIn ? 'ios-tab-avatar-active' : ''}`}>
+                <UserIcon size={13} />
               </div>
-            </button>
-          </div>
-        </nav>
-      </div>
+              <span className="ios-tab-label">
+                {t(isLoggedIn ? 'mobileTabBar.menu' : 'mobileTabBar.login', isLoggedIn ? 'Menu' : 'Login')}
+              </span>
+            </div>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

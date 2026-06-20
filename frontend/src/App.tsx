@@ -258,13 +258,11 @@ function UserProtectedRoute({ children, onLoginRequired }: { children: React.Rea
 
 function MobileHeader() {
     return (
-        <div className="md:hidden fixed top-0 left-0 right-0 z-40 px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
-            <div className="liquid-glass-mobile-header">
-                <Link to="/scout" className="relative z-10">
-                    <BrandLogo className="h-7 text-white" />
-                </Link>
-            </div>
-        </div>
+        <header className="md:hidden fixed top-0 left-0 right-0 z-40 ios-nav-bar pt-[env(safe-area-inset-top,0px)]">
+            <Link to="/scout" className="relative z-10">
+                <BrandLogo className="h-6 text-white" />
+            </Link>
+        </header>
     );
 }
 
@@ -401,13 +399,14 @@ function AppContent() {
                 onLoginClick={handleLoginClick} 
                 onNavigate={handleNavigate} 
                 onMemberClick={() => setShowMemberCard(true)} 
+                onOpenLegal={(type) => setLegalModal(type)}
             />
         </div>
       )}
 
       {!isLandingPage && <MobileHeader />}
       
-      <main className={`flex-grow max-w-7xl mx-auto w-full overflow-x-hidden ${isLandingPage ? '' : 'pt-[4.5rem] md:pt-[5rem] px-4 md:px-8'}`}>
+      <main className={`flex-grow max-w-7xl mx-auto w-full overflow-x-hidden ${isLandingPage ? '' : 'pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-[5rem] px-4 md:px-8'}`}>
         <Routes>
           <Route path="/" element={
              user ? <Navigate to="/scout" replace /> : (
@@ -447,7 +446,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      <GlobalFooter onOpenLegal={(type) => setLegalModal(type)} />
+      {isLandingPage && <GlobalFooter onOpenLegal={(type) => setLegalModal(type)} />}
       
       {!isLandingPage && (
         <MobileTabBar
@@ -462,6 +461,7 @@ function AppContent() {
         currentPage={window.location.pathname.substring(1)} 
         onNavigate={handleNavigate} 
         onOpenMemberCard={() => setShowMemberCard(true)}
+        onOpenLegal={(type) => setLegalModal(type)}
       />
       
       {showAuthModal && (

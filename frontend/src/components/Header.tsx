@@ -11,9 +11,10 @@ interface HeaderProps {
   onNavigate?: (page: string) => void;
   onMemberClick?: () => void;
   currentPage?: string;
+  onOpenLegal?: (type: string) => void;
 }
 
-export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 'home' }: HeaderProps) {
+export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 'home', onOpenLegal }: HeaderProps) {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation();
@@ -79,6 +80,7 @@ export function Header({ onLoginClick, onNavigate, onMemberClick, currentPage = 
         onClose={() => setIsMenuOpen(false)}
         currentPage={currentPage}
         onNavigate={handleNavClick}
+        onOpenLegal={onOpenLegal}
       />
     </>
   );

@@ -542,3 +542,100 @@ body {
   );
   pointer-events: none;
 }
+
+/* --- APPLE HIG NATIVE LAYOUT UPDATES --- */
+
+.ios-nav-bar {
+  position: relative;
+  width: 100%;
+  height: 52px;
+  background: rgba(15, 17, 21, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ios-tab-bar {
+  position: relative;
+  width: 100%;
+  background: rgba(15, 17, 21, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+.ios-tab-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 50px;
+  padding: 0 4px;
+}
+
+.ios-tab-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
+.ios-tab-item:active {
+  transform: scale(0.95);
+}
+
+.ios-tab-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.ios-tab-active {
+  color: #84cc16; /* tennis-lime */
+  filter: drop-shadow(0 0 4px rgba(132, 204, 22, 0.2));
+}
+
+.ios-tab-inactive {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ios-tab-inactive:hover {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ios-tab-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.ios-tab-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.ios-tab-avatar-active {
+  background: rgba(132, 204, 22, 0.1);
+  border-color: rgba(132, 204, 22, 0.4);
+  color: #84cc16;
+}
