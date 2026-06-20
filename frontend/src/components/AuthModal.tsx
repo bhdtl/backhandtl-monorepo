@@ -208,8 +208,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onboardingDa
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#1a1d26] w-full max-w-md rounded-3xl border border-white/10 shadow-2xl p-8 relative overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="bg-[#13151b]/80 backdrop-blur-2xl w-full max-w-md rounded-3xl border border-white/10 shadow-2xl p-8 relative overflow-hidden">
         
         <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/5">
           <X size={20} />
