@@ -228,6 +228,14 @@
   },
   "valueScanner": {
     "loading": "Scanning Global Markets...",
+    "viewMode": {
+      "beginner": "Simple View",
+      "advanced": "Expert View"
+    },
+    "banner": {
+      "title": "What is a Value Pick?",
+      "desc": "Our AI calculates the 'Fair Probability' for each match. If NEO.bet's odds are higher than our fair odds, it represents a 'Value Pick'—giving you a mathematical advantage."
+    },
     "header": {
       "badge": "Market Intelligence",
       "title": "Value Scanner",

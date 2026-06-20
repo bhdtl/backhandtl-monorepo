@@ -228,6 +228,14 @@
   },
   "valueScanner": {
     "loading": "Scanne globale Märkte...",
+    "viewMode": {
+      "beginner": "Einfache Ansicht",
+      "advanced": "Experten-Ansicht"
+    },
+    "banner": {
+      "title": "Was ist ein Value Pick?",
+      "desc": "Unsere KI berechnet die faire Wahrscheinlichkeit für jedes Spiel. Liegt die Quote von NEO.bet über dieser fairen Quote, ist dies ein 'Value Pick' – ein mathematischer Vorteil für dich."
+    },
     "header": {
       "badge": "Markt-Intelligenz",
       "title": "Value Scanner",

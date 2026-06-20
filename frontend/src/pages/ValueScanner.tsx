@@ -354,6 +354,34 @@ export function ValueScanner() {
 
   const [availableBookies, setAvailableBookies] = useState<string[]>([]);
   const [preferredBookie, setPreferredBookie] = useState<string>('neobet');
+  const [viewLevel, setViewLevel] = useState<'beginner' | 'advanced'>(() => {
+    return (safeLocalStorage.getItem('scanner_view_level') as any) || 'beginner';
+  });
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    return safeLocalStorage.getItem('scanner_banner_dismissed') === 'true';
+  });
+  const [expandedMatchIds, setExpandedMatchIds] = useState<Record<string, boolean>>({});
+
+  const handleViewLevelChange = (level: 'beginner' | 'advanced') => {
+    setViewLevel(level);
+    safeLocalStorage.setItem('scanner_view_level', level);
+  };
+
+  const handleDismissBanner = () => {
+    setBannerDismissed(true);
+    safeLocalStorage.setItem('scanner_banner_dismissed', 'true');
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedMatchIds(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const getStarRating = (stake: number) => {
+    if (stake <= 0.4) return '⭐⭐';
+    if (stake <= 1.4) return '⭐⭐⭐';
+    if (stake <= 2.4) return '⭐⭐⭐⭐';
+    return '⭐⭐⭐⭐⭐';
+  };
 
   useEffect(() => {
     const hasSeen = safeLocalStorage.getItem('hasSeenValueTutorial');
@@ -730,6 +758,59 @@ export function ValueScanner() {
         description="The Value Scanner identifies mathematical pre-match edges. Upgrade to Elite to access this professional trading tool."
         blurAmount="blur-lg"
       >
+          {/* VIEW MODE TOGGLE (Einfach / Fortgeschritten) */}
+          <div className="flex p-0.5 bg-white/[0.03] border border-white/[0.08] rounded-xl relative overflow-hidden select-none w-full max-w-[320px] mx-auto mb-6">
+              <div 
+                  className="absolute top-0.5 bottom-0.5 left-0.5 bg-zinc-800 rounded-lg shadow-md transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+                  style={{ 
+                      width: 'calc(50% - 4px)',
+                      transform: viewLevel === 'beginner' ? 'translateX(0)' : 'translateX(calc(100% + 4px))'
+                  }}
+              >
+                  <div className="absolute inset-0 bg-white/5 rounded-lg"></div>
+              </div>
+              
+              <button 
+                  onClick={() => handleViewLevelChange('beginner')}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
+                  ${viewLevel === 'beginner' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
+              >
+                  {t('valueScanner.viewMode.beginner', 'Beginner')}
+              </button>
+              
+              <button 
+                  onClick={() => handleViewLevelChange('advanced')}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
+                  ${viewLevel === 'advanced' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
+              >
+                  {t('valueScanner.viewMode.advanced', 'Expert')}
+              </button>
+          </div>
+
+          {/* BEGINNER EXPLANATION BANNER */}
+          {viewLevel === 'beginner' && !bannerDismissed && (
+              <div className="relative overflow-hidden bg-white/[0.02] border border-white/[0.06] backdrop-blur-xl rounded-2xl p-4 mb-6 shadow-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="p-2 bg-tennis-lime/10 border border-tennis-lime/20 text-tennis-lime rounded-xl shrink-0">
+                      <HelpCircle size={16} />
+                  </div>
+                  <div className="flex-1 pr-6">
+                      <h4 className="text-xs font-black text-white uppercase tracking-wider mb-0.5">
+                          {t('valueScanner.banner.title', 'Was ist ein Value Pick?')}
+                      </h4>
+                      <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                          {t('valueScanner.banner.desc', "Unsere KI berechnet die faire Wahrscheinlichkeit für jedes Spiel. Wenn NEO.bet eine höhere Quote anbietet als unsere Berechnung, entsteht ein mathematischer Vorteil ('Value Pick').")}
+                      </p>
+                  </div>
+                  <button 
+                      onClick={handleDismissBanner}
+                      className="absolute top-3 right-3 p-1 text-gray-500 hover:text-white transition-colors"
+                      aria-label="Dismiss banner"
+                  >
+                      <X size={14} />
+                  </button>
+              </div>
+          )}
+
           {/* TIME STRIP */}
           <div className="relative -mx-4 px-4 md:mx-0 md:px-0 mb-6 select-none">
               <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 snap-x snap-mandatory">
@@ -980,187 +1061,332 @@ export function ValueScanner() {
 
                     {/* --- CONTENT --- */}
                     <div className={`transition-opacity duration-500 ${isFinished ? 'opacity-40 blur-[1px] grayscale' : ''}`}>
-                        <div className="flex items-center justify-between mb-5 cursor-pointer" onClick={() => handleMatchClick(match)}>
-                              <div className="flex flex-col w-[32%]">
-                                  <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                      {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
-                                  </div>
-                                  <div className="text-[10px] font-mono font-medium text-gray-500">Best: <span className="text-white">{(match.marketOddsA || 0).toFixed(2)}</span></div>
-                              </div>
-
-                              <div className="flex flex-col items-center justify-center w-[36%]">
-                                  <div className="bg-white/[0.02] px-3 py-1.5 rounded-lg border border-white/[0.04] flex flex-col items-center shadow-sm w-full">
-                                      <span className="text-[6px] md:text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
-                                      <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-[10px] md:text-[11px] font-bold leading-tight">
-                                          <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
-                                          <span className="text-gray-700 hidden md:inline">/</span>
-                                          <span className={fairB < fairA ? 'text-white' : 'text-gray-500'}>{fairB > 0 ? fairB.toFixed(2) : '-'}</span>
-                                      </div>
-                                  </div>
-                              </div>
-
-                              <div className="flex flex-col items-end text-right w-[32%]">
-                                  <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                      {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
-                                  </div>
-                                  <div className="text-[10px] font-mono font-medium text-gray-500">Best: <span className="text-white">{(match.marketOddsB || 0).toFixed(2)}</span></div>
-                              </div>
-                        </div>
-
-                        {match.derivativeAlert && !isFinished && (
-                            <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
-                                <AlertTriangle className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
-                                <div>
-                                    <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Derivative Edge Detected</div>
-                                    <div className="text-xs text-orange-100 font-medium leading-snug">{localizeBackendText(match.derivativeAlert, t)}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {match.games_prediction?.pattern_warning && !isFinished && (
-                            <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
-                                <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
-                                <div>
-                                    <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
-                                    <div className="text-xs text-red-100 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_warning, t)}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {match.games_prediction?.pattern_boost && !isFinished && (
-                            <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
-                                <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
-                                <div>
-                                    <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
-                                    <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_boost, t)}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {match.games_prediction && !isFinished && !match.derivativeAlert && (
-                            <div className="mb-4">
-                                <QuantumGamesBadge prediction={match.games_prediction} />
-                            </div>
-                        )}
-
-                        {!isFinished && (
-                            <div className="space-y-2">
-                                {/* H2H STRIP */}
-                                <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar pb-1">
-                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
-                                        <Crosshair size={10} className="text-purple-400" />
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">H2H: <span className="text-white">{h2hRecord}</span></span>
+                        
+                        {viewLevel === 'beginner' ? (
+                            // --- BEGINNER FRIENDLY VIEW ---
+                            <div className="flex flex-col gap-4">
+                                {/* Matchup Names & Odds */}
+                                <div className="flex items-center justify-between cursor-pointer" onClick={() => handleMatchClick(match)}>
+                                    <div className="flex flex-col w-[45%]">
+                                        <div className={`text-sm font-black uppercase leading-none truncate mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
+                                        </div>
+                                        <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5">
+                                            <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
+                                            <span className="text-white font-mono font-bold">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="text-gray-600 font-bold text-xs uppercase tracking-widest text-center w-[10%]">VS</div>
+                                    
+                                    <div className="flex flex-col items-end text-right w-[45%]">
+                                        <div className={`text-sm font-black uppercase leading-none truncate mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
+                                        </div>
+                                        <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
+                                            <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
+                                            <span className="text-white font-mono font-bold">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                 {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
-                                <div className="bg-white/[0.02] rounded-xl px-3.5 py-3 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:items-center border border-white/[0.06] border-l-2 border-l-tennis-lime shadow-sm">
-                                     <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                                         <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">
-                                             Pick: <span className="text-white font-black">
-                                                 {(() => {
-                                                     const formattedName = formatLastName(safePickName);
-                                                     const lowerPick = safePickName.toLowerCase();
-                                                     const isMoneyline = !lowerPick.includes('games') && 
-                                                                         !lowerPick.includes('over') && 
-                                                                         !lowerPick.includes('under');
-                                                     if (isMoneyline && safePickName) {
-                                                         const lang = i18n.language || 'en';
-                                                         let suffix = 'ML';
-                                                         if (lang.startsWith('de')) suffix = 'Sieg';
-                                                         else if (lang.startsWith('fr')) suffix = 'Victoire';
-                                                         else if (lang.startsWith('es')) suffix = 'Ganador';
-                                                         else if (lang.startsWith('it')) suffix = 'Vincitore';
-                                                         return `${formattedName} ${suffix}`;
-                                                     }
-                                                     return formattedName;
-                                                 })()}
-                                             </span>
-                                         </span>
-                                         {renderTypeBadge(analysis.type)}
-                                         {match.games_prediction?.is_grand_slam && (
-                                             <div className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.2)] flex items-center gap-1 shrink-0">
-                                                 <span>🎾</span> Slam (Bo5)
-                                             </div>
-                                         )}
-                                     </div>
-
-                                     <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
-                                         {hasMovement && (
-                                             <div className={`flex items-center gap-0.5 text-[8px] font-mono font-black ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} bg-black/40 px-1.5 py-0.5 rounded border border-white/5`} title={`Opening Line: ${activePickOpenOdds.toFixed(2)}`}>
-                                                {isSharpDumping ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
-                                                <span>{activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}</span>
-                                             </div>
-                                         )}
-                                         
-                                         {analysis.stake > 0 && (
-                                            <div className="flex items-center gap-1 bg-tennis-lime/10 border border-tennis-lime/25 px-1.5 py-0.5 rounded">
-                                                <Wallet size={10} className="text-tennis-lime" />
-                                                <span className="text-[9px] font-mono font-black text-tennis-lime">{analysis.stake.toFixed(1)}u</span>
+                                {!isFinished && (
+                                    <>
+                                        {/* Simple Recommendation Box */}
+                                        <div className="bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3.5 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm">
+                                            <span className="text-[8px] font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
+                                            <span className="text-sm font-black text-white uppercase tracking-tight">
+                                                {(() => {
+                                                    const formattedName = formatLastName(safePickName);
+                                                    const lowerPick = safePickName.toLowerCase();
+                                                    const isMoneyline = !lowerPick.includes('games') && 
+                                                                        !lowerPick.includes('over') && 
+                                                                        !lowerPick.includes('under');
+                                                    if (isMoneyline && safePickName) {
+                                                        const lang = i18n.language || 'en';
+                                                        let suffix = 'ML';
+                                                        if (lang.startsWith('de')) suffix = 'Sieg';
+                                                        else if (lang.startsWith('fr')) suffix = 'Victoire';
+                                                        else if (lang.startsWith('es')) suffix = 'Ganador';
+                                                        else if (lang.startsWith('it')) suffix = 'Vincitore';
+                                                        return `${formattedName} ${suffix}`;
+                                                    }
+                                                    return formattedName;
+                                                })()}
+                                            </span>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <span className="text-xs text-tennis-lime font-bold">{getStarRating(analysis.stake)}</span>
+                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">({analysis.stake.toFixed(1)} Units)</span>
                                             </div>
-                                         )}
-
-                                         <div className="text-[9px] font-mono text-gray-500">
-                                             FAIR: <span className="text-white font-bold">{safeFairOdds.toFixed(2)}</span>
-                                         </div>
-                                         <div className={`flex items-center gap-1 text-[10px] font-black ${edgeColorClass}`}>
-                                              <Zap size={12} />
-                                             {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
-                                         </div>
-                                     </div>
-                                </div>
-
-                                {/* ALT PLAYS */}
-                                {altPlays.map((play, i) => (
-                                    <div key={i} className="bg-white/[0.02] rounded-xl px-3.5 py-2.5 flex justify-between items-center border border-white/[0.04] shadow-sm">
-                                        <div className="flex items-center gap-1.5 w-[32%]">
-                                            <play.icon size={10} className={play.color} />
-                                            <span className={`text-[8px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
                                         </div>
-                                        <span className="text-[9px] font-bold text-white uppercase text-center w-[36%]">{play.label}</span>
-                                        <div className="flex flex-col items-end w-[32%]">
-                                            {play.isTarget ? (
-                                                <>
-                                                    <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.targetValue}</span>
-                                                    <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">{play.subText}</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="flex items-center gap-1">
-                                                        <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
-                                                        {play.marketOdds && play.marketOdds !== "Market" && (
-                                                            <>
-                                                                <span className="text-[9px] text-gray-500">/</span>
-                                                                <span className="text-[9px] font-mono text-white font-bold">@{play.marketOdds}</span>
-                                                            </>
-                                                        )}
+
+                                        {/* NEO.bet 1-Click Wettschein CTA */}
+                                        <div className="flex flex-col gap-1.5 pt-1">
+                                            <a 
+                                                href={match.games_prediction?.neo_betslip?.url 
+                                                    ? `${match.games_prediction.neo_betslip.url}&affiliateId=backhandtl-scanner-cta` 
+                                                    : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${match.neo_contest_id || match.id}!Set_MATCH_HC2W(0.0)!${p1IsPick ? '1' : '2'}&affiliateId=backhandtl-scanner-cta`
+                                                }
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                            >
+                                                <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
+                                                <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
+                                                <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
+                                            </a>
+                                            <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
+                                            </div>
+                                        </div>
+
+                                        {/* Collapsible details for curious users */}
+                                        <div className="mt-2 text-center border-t border-white/[0.04] pt-2">
+                                            <button
+                                                onClick={() => toggleExpand(match.id)}
+                                                className="text-[9px] font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-1 mx-auto"
+                                            >
+                                                <span>{expandedMatchIds[match.id] ? 'Details ausblenden' : 'Details & alternative Wetten'}</span>
+                                                <ChevronRight size={10} className={`transform transition-transform ${expandedMatchIds[match.id] ? 'rotate-90' : ''}`} />
+                                            </button>
+                                        </div>
+
+                                        {expandedMatchIds[match.id] && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                className="mt-3 space-y-3 border-t border-white/[0.04] pt-3 overflow-hidden"
+                                            >
+                                                {/* Advanced Metrics Summary */}
+                                                <div className="grid grid-cols-3 gap-2 text-center bg-white/[0.01] p-2.5 rounded-lg border border-white/[0.03]">
+                                                    <div>
+                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
+                                                        <div className="text-[10px] font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</div>
                                                     </div>
-                                                    <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">Fair Odds: {play.fairOdds}</span>
-                                                </>
-                                            )}
+                                                    <div>
+                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
+                                                        <div className="text-[10px] font-mono font-bold text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
+                                                        <div className="text-[10px] font-mono font-bold text-white">{h2hRecord}</div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Alternative plays */}
+                                                {altPlays.length > 0 && (
+                                                    <div className="space-y-1.5">
+                                                        <div className="text-[7px] font-black text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
+                                                        {altPlays.map((play, i) => (
+                                                            <div key={i} className="bg-white/[0.02] rounded-xl px-3.5 py-2 flex justify-between items-center border border-white/[0.04]">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <play.icon size={10} className={play.color} />
+                                                                    <span className={`text-[7px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
+                                                                </div>
+                                                                <span className="text-[9px] font-bold text-white uppercase">{play.label}</span>
+                                                                <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.prob}%</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ) : (
+                            // --- ADVANCED EXPERT VIEW ---
+                            <>
+                                <div className="flex items-center justify-between mb-5 cursor-pointer" onClick={() => handleMatchClick(match)}>
+                                      <div className="flex flex-col w-[32%]">
+                                          <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
+                                          </div>
+                                          <div className="text-[10px] font-mono font-medium text-gray-500 flex items-center gap-1">
+                                              <span>Best:</span>
+                                              <span className="text-white">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                          </div>
+                                      </div>
+
+                                      <div className="flex flex-col items-center justify-center w-[36%]">
+                                          <div className="bg-white/[0.02] px-3 py-1.5 rounded-lg border border-white/[0.04] flex flex-col items-center shadow-sm w-full">
+                                              <span className="text-[6px] md:text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
+                                              <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-[10px] md:text-[11px] font-bold leading-tight">
+                                                  <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
+                                                  <span className="text-gray-700 hidden md:inline">/</span>
+                                                  <span className={fairB < fairA ? 'text-white' : 'text-gray-500'}>{fairB > 0 ? fairB.toFixed(2) : '-'}</span>
+                                              </div>
+                                          </div>
+                                      </div>
+
+                                      <div className="flex flex-col items-end text-right w-[32%]">
+                                          <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
+                                          </div>
+                                          <div className="text-[10px] font-mono font-medium text-gray-500 flex items-center gap-1 justify-end">
+                                              <span>Best:</span>
+                                              <span className="text-white">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                          </div>
+                                      </div>
+                                </div>
+
+                                {match.derivativeAlert && !isFinished && (
+                                    <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                        <AlertTriangle className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
+                                        <div>
+                                            <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Derivative Edge Detected</div>
+                                            <div className="text-xs text-orange-100 font-medium leading-snug">{localizeBackendText(match.derivativeAlert, t)}</div>
                                         </div>
                                     </div>
-                                ))}
+                                )}
 
-                                {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
-                                <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
-                                    <a 
-                                        href={match.games_prediction?.neo_betslip?.url 
-                                            ? `${match.games_prediction.neo_betslip.url}&affiliateId=backhandtl-scanner-cta` 
-                                             : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${match.neo_contest_id || match.id}!Set_MATCH_HC2W(0.0)!${p1IsPick ? '1' : '2'}&affiliateId=backhandtl-scanner-cta`
-                                        }
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
-                                    >
-                                        <Zap size={10} className="fill-current shrink-0" />
-                                        {t('picks.neobetCta', 'In den Wettschein')}
-                                    </a>
-                                    <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
-                                        {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
+                                {match.games_prediction?.pattern_warning && !isFinished && (
+                                    <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                        <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
+                                        <div>
+                                            <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
+                                            <div className="text-xs text-red-100 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_warning, t)}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                )}
+
+                                {match.games_prediction?.pattern_boost && !isFinished && (
+                                    <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                        <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
+                                        <div>
+                                            <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
+                                            <div className="text-xs text-tennis-lime/90 font-medium leading-snug">{localizeBackendText(match.games_prediction.pattern_boost, t)}</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {match.games_prediction && !isFinished && !match.derivativeAlert && (
+                                    <div className="mb-4">
+                                        <QuantumGamesBadge prediction={match.games_prediction} />
+                                    </div>
+                                )}
+
+                                {!isFinished && (
+                                    <div className="space-y-2">
+                                        {/* H2H STRIP */}
+                                        <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar pb-1">
+                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
+                                                <Crosshair size={10} className="text-purple-400" />
+                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">H2H: <span className="text-white">{h2hRecord}</span></span>
+                                            </div>
+                                        </div>
+
+                                         {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
+                                        <div className="bg-white/[0.02] rounded-xl px-3.5 py-3 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:items-center border border-white/[0.06] border-l-2 border-l-tennis-lime shadow-sm">
+                                             <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                                 <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">
+                                                     Pick: <span className="text-white font-black">
+                                                         {(() => {
+                                                             const formattedName = formatLastName(safePickName);
+                                                             const lowerPick = safePickName.toLowerCase();
+                                                             const isMoneyline = !lowerPick.includes('games') && 
+                                                                                 !lowerPick.includes('over') && 
+                                                                                 !lowerPick.includes('under');
+                                                             if (isMoneyline && safePickName) {
+                                                                 const lang = i18n.language || 'en';
+                                                                 let suffix = 'ML';
+                                                                 if (lang.startsWith('de')) suffix = 'Sieg';
+                                                                 else if (lang.startsWith('fr')) suffix = 'Victoire';
+                                                                 else if (lang.startsWith('es')) suffix = 'Ganador';
+                                                                 else if (lang.startsWith('it')) suffix = 'Vincitore';
+                                                                 return `${formattedName} ${suffix}`;
+                                                             }
+                                                             return formattedName;
+                                                         })()}
+                                                     </span>
+                                                 </span>
+                                                 {renderTypeBadge(analysis.type)}
+                                                 {match.games_prediction?.is_grand_slam && (
+                                                     <div className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.2)] flex items-center gap-1 shrink-0">
+                                                         <span>🎾</span> Slam (Bo5)
+                                                     </div>
+                                                 )}
+                                             </div>
+
+                                             <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
+                                                 {hasMovement && (
+                                                     <div className={`flex items-center gap-0.5 text-[8px] font-mono font-black ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} bg-black/40 px-1.5 py-0.5 rounded border border-white/5`} title={`Opening Line: ${activePickOpenOdds.toFixed(2)}`}>
+                                                        {isSharpDumping ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
+                                                        <span>{activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}</span>
+                                                     </div>
+                                                 )}
+                                                 
+                                                 {analysis.stake > 0 && (
+                                                    <div className="flex items-center gap-1.5 bg-tennis-lime/10 border border-tennis-lime/25 px-2 py-0.5 rounded">
+                                                        <span className="text-[10px] text-tennis-lime font-bold">{getStarRating(analysis.stake)}</span>
+                                                        <span className="text-[9px] font-mono font-black text-tennis-lime">({analysis.stake.toFixed(1)}u)</span>
+                                                    </div>
+                                                 )}
+
+                                                 <div className="text-[9px] font-mono text-gray-500">
+                                                     FAIR: <span className="text-white font-bold">{safeFairOdds.toFixed(2)}</span>
+                                                 </div>
+                                                 <div className={`flex items-center gap-1 text-[10px] font-black ${edgeColorClass}`}>
+                                                      <Zap size={12} />
+                                                     {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
+                                                 </div>
+                                             </div>
+                                        </div>
+
+                                        {/* ALT PLAYS */}
+                                        {altPlays.map((play, i) => (
+                                            <div key={i} className="bg-white/[0.02] rounded-xl px-3.5 py-2.5 flex justify-between items-center border border-white/[0.04] shadow-sm">
+                                                <div className="flex items-center gap-1.5 w-[32%]">
+                                                    <play.icon size={10} className={play.color} />
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
+                                                </div>
+                                                <span className="text-[9px] font-bold text-white uppercase text-center w-[36%]">{play.label}</span>
+                                                <div className="flex flex-col items-end w-[32%]">
+                                                    {play.isTarget ? (
+                                                        <>
+                                                            <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.targetValue}</span>
+                                                            <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">{play.subText}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
+                                                                {play.marketOdds && play.marketOdds !== "Market" && (
+                                                                    <>
+                                                                        <span className="text-[9px] text-gray-500">/</span>
+                                                                        <span className="text-[9px] font-mono text-white font-bold">@{play.marketOdds}</span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">Fair Odds: {play.fairOdds}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
+                                        <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                                            <a 
+                                                href={match.games_prediction?.neo_betslip?.url 
+                                                    ? `${match.games_prediction.neo_betslip.url}&affiliateId=backhandtl-scanner-cta` 
+                                                     : `https://neo.bet/de/Sportwetten/Tennis?betslip=compact&se=${match.neo_contest_id || match.id}!Set_MATCH_HC2W(0.0)!${p1IsPick ? '1' : '2'}&affiliateId=backhandtl-scanner-cta`
+                                                }
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                            >
+                                                <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
+                                                <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
+                                                <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
+                                            </a>
+                                            <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                   </div>
