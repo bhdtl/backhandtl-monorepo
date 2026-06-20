@@ -160,80 +160,74 @@ export interface AnalysisResult { prediction: string; confidence_score: number; 
 
 // --- UI COMPONENTS ---
 
-// 1. PROCESSING INDICATOR
+// 1. PROCESSING INDICATOR (APPLE STYLE)
 function ProcessingIndicator({ isVisible, progress, statusText }: { isVisible: boolean, progress: number, statusText: string }) {
     if (!isVisible) return null;
 
     return (
-        <div className="w-full max-w-md mx-auto mb-20 md:mb-24 animate-in fade-in duration-300 px-6">
-            <div className="flex justify-between items-end mb-3">
-                <span className="text-xs md:text-[10px] font-mono text-tennis-lime font-bold uppercase tracking-widest animate-pulse">
+        <div className="w-full max-w-sm mx-auto mb-20 md:mb-24 animate-in fade-in duration-300 px-4">
+            <div className="flex justify-between items-center mb-2.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-tennis-lime animate-pulse">
                     {statusText}
                 </span>
-                <span className="text-sm md:text-xs font-mono text-white font-bold">{Math.round(progress)}%</span>
+                <span className="text-xs font-mono text-gray-400 font-bold">{Math.round(progress)}%</span>
             </div>
-            <div className="h-3 md:h-2.5 w-full bg-[#15171e] rounded-full relative border border-white/10 overflow-visible">
-                {/* Smooth Progress Track */}
+            <div className="h-1.5 w-full bg-white/5 rounded-full relative overflow-hidden border border-white/5">
                 <motion.div
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime rounded-full shadow-[0_0_15px_rgba(132,204,22,0.6)] transform-gpu"
+                    className="absolute top-0 left-0 h-full bg-tennis-lime rounded-full shadow-[0_0_10px_rgba(132,204,22,0.4)]"
                     initial={{ width: "0%" }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ type: "spring", stiffness: 45, damping: 12, mass: 0.8 }}
+                    transition={{ type: "spring", stiffness: 60, damping: 15 }}
                 />
-                {/* Smooth Floating Tennis Ball */}
-                <motion.div
-                    className="absolute top-1/2 z-20 transform-gpu"
-                    initial={{ left: "0%" }}
-                    animate={{ left: `${progress}%` }}
-                    style={{ x: "-50%", y: "-50%" }}
-                    transition={{ type: "spring", stiffness: 45, damping: 12, mass: 0.8 }}
-                >
-                    <div className="animate-roll w-6 h-6 md:w-5 md:h-5 rounded-full bg-[#dfff4f] border border-black/30 shadow-lg flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute w-[140%] h-[140%] rounded-full border-[1.5px] border-black/20 left-1/2 -top-[20%]"></div>
-                        <div className="absolute w-[140%] h-[140%] rounded-full border-[1.5px] border-black/20 right-1/2 -bottom-[20%]"></div>
-                    </div>
-                </motion.div>
             </div>
         </div>
     );
 }
 
-// 2. ACCESS DENIED MODAL
+// 2. ACCESS DENIED MODAL (APPLE SHEET STYLE)
 function AccessDeniedModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
-            <div className="relative bg-[#15171e] border border-white/10 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-black/40 rounded-full flex items-center justify-center mb-4 border border-white/5">
-                        <Lock size={28} className="text-red-500" />
-                    </div>
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Access Locked</h3>
-                    <p className="text-gray-400 text-sm md:text-xs leading-relaxed mb-6 px-4">
-                        You have used all <span className="text-white font-bold">3 free evaluation credits</span>.
-                        Upgrade your clearance to <span className="text-tennis-lime font-bold">Elite</span> for unlimited neural intelligence and real-time market edges.
-                    </p>
-                    <div className="w-full space-y-3">
-                        <button onClick={() => navigate('/pricing')} className="w-full py-3.5 md:py-3 bg-tennis-lime text-black font-black text-xs uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform transform-gpu will-change-transform flex items-center justify-center gap-2 shadow-lg shadow-tennis-lime/20">
-                            <Crown size={14} /> Unlock Unlimited
-                        </button>
-                    </div>
-                    <button onClick={onClose} className="mt-4 text-[10px] text-gray-600 font-bold uppercase tracking-widest hover:text-gray-400 transition-colors">
-                        Close
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0" onClick={onClose}></div>
+            <div className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-sm rounded-t-[2.5rem] md:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center">
+                {/* Grabber Bar for Mobile Sheet */}
+                <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-5 md:hidden" />
+
+                <div className="w-14 h-14 bg-black/35 rounded-full flex items-center justify-center mb-4.5 border border-white/5 shadow-inner">
+                    <Lock size={24} className="text-red-500" />
+                </div>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Access Locked</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-6 px-4 font-medium">
+                    You have used all <span className="text-white font-bold">3 free evaluation credits</span>.
+                    Upgrade your clearance to <span className="text-tennis-lime font-bold">Elite</span> for unlimited neural intelligence and real-time market edges.
+                </p>
+                <div className="w-full space-y-3">
+                    <button 
+                        onClick={() => navigate('/pricing')} 
+                        className="w-full py-4 bg-tennis-lime text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-tennis-lime/20"
+                    >
+                        <Crown size={14} /> Upgrade Clearance
+                    </button>
+                    <button 
+                        onClick={onClose} 
+                        className="w-full py-3.5 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-widest rounded-2xl transition-all border border-white/5"
+                    >
+                        {t('common.cancel', 'Cancel')}
                     </button>
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-// 3. TACTICAL BRIEFING MODAL
+// 3. TACTICAL BRIEFING MODAL (APPLE SHEET STYLE)
 function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [step, setStep] = useState(0);
+    const { t } = useTranslation();
     
     useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
 
@@ -243,17 +237,17 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
         {
             title: "Select Players",
             desc: "Choose two players from the ATP/WTA database. The system loads their latest performance data and biometrics.",
-            icon: <MousePointerClick size={32} className="text-tennis-lime" />
+            icon: <MousePointerClick size={28} className="text-tennis-lime" />
         },
         {
             title: "Configure Court",
             desc: "Select a tournament to load official court speed (BSI). Or use 'Override' to manually set surface & speed.",
-            icon: <Settings2 size={32} className="text-blue-400" />
+            icon: <Settings2 size={28} className="text-blue-400" />
         },
         {
             title: "Analyze & Dominate",
             desc: "Our neural network runs 10,000 simulations to predict the winner, key tactical edges, and dominance metrics.",
-            icon: <Zap size={32} className="text-yellow-400" />
+            icon: <Zap size={28} className="text-yellow-400" />
         }
     ];
 
@@ -263,26 +257,31 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose}></div>
-            <div className="relative bg-[#1a1d26] border border-white/10 w-full max-w-md rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col items-center text-center">
-                
-                <div className="flex gap-2 mb-8">
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0" onClick={onClose}></div>
+            <div className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center">
+                {/* Grabber Bar for Mobile Sheet */}
+                <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-4 md:hidden" />
+
+                <div className="flex gap-2.5 mb-8">
                     {steps.map((_, i) => (
-                        <div key={i} className={`h-1.5 w-12 rounded-full transition-all duration-300 ${i <= step ? 'bg-tennis-lime' : 'bg-white/10'}`} />
+                        <div key={i} className={`h-1.5 w-10 rounded-full transition-all duration-300 ${i <= step ? 'bg-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)]' : 'bg-white/10'}`} />
                     ))}
                 </div>
 
-                <div className="h-20 w-20 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center mb-6 shadow-lg shadow-black/50 animate-in zoom-in duration-300" key={step}>
+                <div className="h-16 w-16 rounded-2xl bg-black/35 border border-white/5 flex items-center justify-center mb-6 shadow-inner animate-in zoom-in duration-300" key={step}>
                     {steps[step].icon}
                 </div>
 
-                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300" key={`t-${step}`}>{steps[step].title}</h3>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 animate-in fade-in slide-in-from-bottom-2 duration-300" key={`t-${step}`}>{steps[step].title}</h3>
                 <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 h-16 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75" key={`d-${step}`}>
                     {steps[step].desc}
                 </p>
 
-                <button onClick={nextStep} className="w-full py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform transform-gpu will-change-transform shadow-lg">
+                <button 
+                    onClick={nextStep} 
+                    className="w-full py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
+                >
                     {step < steps.length - 1 ? "Next Step" : "Get Started"}
                 </button>
             </div>
@@ -329,47 +328,52 @@ function StatBattleBar({ label, valA, valB }: { label: string, valA: number, val
   ); 
 }
 
-// --- PLAYER SLOT (REVERTED TO CLEAN DESIGN) ---
+// --- PLAYER SLOT (APPLE HIG DESIGN) ---
 function PlayerSlot({ label, player, onClick, onClear, isError }: any) { 
   const { t } = useTranslation();
   
   const emptyStateClasses = isError 
     ? 'border-red-500/50 bg-red-500/5 animate-shake' 
-    : 'border-white/5 hover:border-white/20 animate-border-breathe'; 
+    : 'border-white/5 hover:border-white/10 bg-[#16171d]'; 
 
   const activeClasses = 'border-white/10 hover:border-tennis-lime shadow-xl';
 
   return ( 
       <div 
         onClick={onClick} 
-        className={`group relative w-full aspect-[4/5] md:aspect-[3/4] rounded-2xl md:rounded-[2.5rem] overflow-hidden cursor-pointer border-2 transition-[border-color,box-shadow] duration-500 bg-[#15171e] transform-gpu will-change-transform
+        className={`group relative w-full aspect-[4/5] md:aspect-[3/4] rounded-3xl overflow-hidden cursor-pointer border transition-all duration-300 transform-gpu will-change-transform active:scale-[0.98]
         ${player ? activeClasses : emptyStateClasses}`}
       > 
           {player ? ( 
               <> 
-                  <img src={player.profile_image_url} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 transform-gpu will-change-transform" alt={player.last_name}/> 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" /> 
-                  <button onClick={(e) => { e.stopPropagation(); onClear(); }} className="absolute top-2 md:top-4 right-2 md:right-4 p-2 md:p-2 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors z-20 backdrop-blur-md border border-white/10"><X size={14}/></button> 
-                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8"> 
-                      <div className="text-tennis-lime text-[10px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-0.5 md:mb-1">{label}</div> 
-                      <div className="text-white font-black text-xl md:text-3xl uppercase leading-none truncate tracking-tighter">{player.last_name}</div> 
-                      <div className="text-gray-400 text-[10px] md:text-[10px] font-bold mt-1.5 md:mt-2 uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+                  <img src={player.profile_image_url} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-102 transform-gpu will-change-transform" alt={player.last_name}/> 
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" /> 
+                  <button 
+                      onClick={(e) => { e.stopPropagation(); onClear(); }} 
+                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/50 hover:bg-red-500/80 text-white transition-all z-20 backdrop-blur-md border border-white/10 active:scale-90"
+                  >
+                      <X size={12}/>
+                  </button> 
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6"> 
+                      <div className="text-tennis-lime text-[9px] font-black uppercase tracking-[0.3em] mb-1">{label}</div> 
+                      <div className="text-white font-black text-xl md:text-2xl uppercase leading-none truncate tracking-tight">{player.last_name}</div> 
+                      <div className="text-gray-400 text-[10px] font-bold mt-2 uppercase tracking-wider flex items-center gap-1.5">
                           <img src={`https://flagcdn.com/w20/${getCountryISO(player.country)}.png`} className="w-3.5 h-auto rounded-[1px] grayscale-[0.2]" alt="" />
                           {player.country}
                       </div> 
                   </div> 
               </> 
           ) : ( 
-              <div className="flex flex-col items-center justify-center h-full gap-3 md:gap-4 opacity-40 group-hover:opacity-100 transition-all px-2 relative">
-                  <div className={`h-10 w-10 md:h-12 w-12 rounded-2xl border-2 border-dashed flex items-center justify-center transition-all relative z-10 ${isError ? 'border-red-500 text-red-500' : 'border-gray-700 group-hover:border-tennis-lime text-gray-500 group-hover:text-tennis-lime'}`}><Plus size={24} /></div> 
-                  <span className={`text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] text-center leading-tight transition-colors ${isError ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
+              <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40 group-hover:opacity-100 transition-all px-4 relative">
+                  <div className={`h-11 w-11 rounded-2xl border border-dashed flex items-center justify-center transition-all relative z-10 ${isError ? 'border-red-500 text-red-500' : 'border-white/20 group-hover:border-tennis-lime text-gray-400 group-hover:text-tennis-lime'}`}><Plus size={20} /></div> 
+                  <span className={`text-[9px] font-black uppercase tracking-[0.2em] text-center leading-normal transition-colors ${isError ? 'text-red-500' : 'text-gray-400 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
               </div> 
           )} 
       </div> 
   ); 
 }
 
-// --- NEU: APPLE-LIKE PLAYER INTEL BADGES ---
+// --- PLAYER INTEL BADGES ---
 function PlayerIntelBadges({ player, surface }: { player: any, surface: string }) {
     const { t } = useTranslation();
     if (!player) return null;
@@ -402,20 +406,19 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
         }
     }
 
-    // 🚀 SOTA FIX: flex-row mit wrap anstelle von flex-col um Platz auf Mobile zu sparen
     return (
         <div className="flex w-full animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="flex flex-row flex-wrap justify-center items-start gap-1.5 md:gap-2 w-full">
+            <div className="flex flex-row flex-wrap justify-center items-start gap-1.5 w-full">
                 {player.play_style && (
-                    <div className="flex items-center gap-1.5 bg-[#15171e] border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-lg">
+                    <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <Target size={10} className="text-gray-400" />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-200 max-w-[100px] md:max-w-[140px] truncate">
+                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-300 max-w-[100px] truncate">
                             {translatePlayStyle(player.play_style, t)}
                         </span>
                     </div>
                 )}
                 {formScore && (
-                    <div className="flex items-center gap-1.5 bg-[#15171e] border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-lg">
+                    <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <Activity size={10} style={{ color: formObj?.color_hex || '#fff' }} />
                         <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white">
                             Form: {formScore}
@@ -423,7 +426,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
                     </div>
                 )}
                 {surfRating && (
-                    <div className="flex items-center gap-1.5 bg-[#15171e] border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-lg">
+                    <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <MapPin size={10} style={{ color: surfColor }} />
                         <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white">
                             {surfLabel}: {surfRating}
@@ -435,6 +438,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
     );
 }
 
+// --- PLAYER SELECT MODAL (APPLE SHEET STYLE) ---
 function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) { 
   const { t } = useTranslation();
   const [search, setSearch] = useState(''); 
@@ -443,28 +447,60 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
   const filtered = safePlayers.filter((p: Player) => `${p.first_name} ${p.last_name}`.toLowerCase().includes(search.toLowerCase())); 
   
   return ( 
-      <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"> 
-          <div className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden"> 
-              <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
-                  <h3 className="text-white font-black uppercase tracking-widest text-xs md:text-sm">{t('matchup.modal.title')}</h3>
-                  <button onClick={onClose} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all"><X size={20} /></button>
+      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"> 
+          <div className="bg-[#1c1c1e] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[2.5rem] md:rounded-[2rem] flex flex-col border border-white/5 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300"> 
+              {/* Grabber Bar for Mobile Sheet */}
+              <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mt-3 mb-1 md:hidden" />
+
+              <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-black/10">
+                  <button onClick={onClose} className="text-tennis-lime font-bold text-sm hover:text-white transition-colors py-2 px-1">
+                      {t('common.cancel', 'Cancel')}
+                  </button>
+                  <h3 className="text-white font-black uppercase tracking-wider text-xs md:text-sm text-center flex-1">
+                      {t('matchup.modal.title')}
+                  </h3>
+                  {/* Spacer for alignment balance */}
+                  <div className="w-12 pointer-events-none" />
               </div> 
-              <div className="p-4 md:p-8">
+              <div className="p-4 md:p-6">
                   <div className="relative group">
-                      <Search className="absolute left-4 md:left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={20} />
-                      <input autoFocus type="text" placeholder={t('matchup.modal.search')} className="w-full bg-black/40 text-white pl-12 pr-4 py-4 md:py-4 rounded-xl md:rounded-2xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-base md:text-lg" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={18} />
+                      <input 
+                        autoFocus 
+                        type="text" 
+                        placeholder={t('matchup.modal.search')} 
+                        className="w-full bg-black/30 text-white pl-11 pr-11 py-3.5 rounded-xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-base" 
+                        value={search} 
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+                      {search && (
+                          <button 
+                            onClick={() => setSearch('')} 
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
+                          >
+                              <X size={14} />
+                          </button>
+                      )}
                   </div>
               </div> 
-              <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-2 md:space-y-3 custom-scrollbar"> 
+              <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-1.5 custom-scrollbar"> 
                   {filtered.map((p: Player) => {
                       const pStyle = p.play_style ? translatePlayStyle(p.play_style.split(',')[0], t) : null; 
                       return ( 
-                          <button key={p.id} onClick={() => { onSelect(p); onClose(); setSearch(''); }} className="w-full flex items-center gap-4 md:gap-5 p-3 md:p-4 hover:bg-white/5 rounded-xl md:rounded-[1.5rem] transition-all text-left group border border-transparent hover:border-white/5"> 
-                              {p.profile_image_url ? <img src={p.profile_image_url} className="h-16 w-12 md:h-18 md:w-14 rounded-lg md:rounded-2xl object-cover bg-gray-800 border border-white/10 group-hover:scale-105 transition-transform" /> : <div className="h-16 w-12 md:h-18 md:w-14 rounded-lg md:rounded-2xl bg-gray-800 border border-white/10 flex items-center justify-center text-[10px] font-black tracking-widest uppercase">{t('matchup.modal.noImg')}</div>} 
-                              <div className="flex-1">
-                                  <div className="text-white font-black uppercase text-base md:text-lg leading-none mb-1 tracking-tighter group-hover:text-tennis-lime transition-colors">{p.last_name}</div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                      <div className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                          <button 
+                            key={p.id} 
+                            onClick={() => { onSelect(p); onClose(); setSearch(''); }} 
+                            className="w-full flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all text-left group border border-transparent active:scale-[0.98] transform-gpu will-change-transform"
+                          > 
+                              {p.profile_image_url ? (
+                                  <img src={p.profile_image_url} className="h-16 w-12 rounded-xl object-cover bg-gray-800 border border-white/5 group-hover:scale-102 transition-transform transform-gpu" />
+                              ) : (
+                                  <div className="h-16 w-12 rounded-xl bg-gray-800 border border-white/5 flex items-center justify-center text-[8px] font-black tracking-wider uppercase text-gray-500">{t('matchup.modal.noImg')}</div>
+                              )} 
+                              <div className="flex-1 min-w-0">
+                                  <div className="text-white font-black uppercase text-base leading-none mb-1.5 truncate group-hover:text-tennis-lime transition-colors">{p.last_name}</div>
+                                  <div className="flex items-center gap-2">
+                                      <div className="text-gray-500 text-[10px] font-bold uppercase tracking-wider truncate">
                                           {p.first_name} • <span className="text-white/40">{p.country}</span>
                                       </div>
                                       {pStyle && (
@@ -474,7 +510,7 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
                                       )}
                                   </div>
                               </div>
-                              <ChevronRight className="text-gray-700 group-hover:text-tennis-lime group-hover:translate-x-1 transition-[color,transform] transform-gpu will-change-transform" size={20} /> 
+                              <ChevronRight className="text-gray-700 group-hover:text-tennis-lime group-hover:translate-x-0.5 transition-all transform-gpu" size={18} /> 
                           </button> 
                       )
                   })} 
@@ -1366,11 +1402,18 @@ export function MatchupAnalyzer() {
 
       {/* 🚀 NEU: THE VAULT / SCANNER TAB SWITCHER */}
       <div className="flex justify-center mb-8 pt-6">
-          <div className="bg-black/40 backdrop-blur-md p-1.5 rounded-full border border-white/10 flex gap-2 shadow-2xl">
+          <div className="bg-[#1c1c1e]/90 backdrop-blur-md p-1 rounded-full border border-white/5 flex gap-1 shadow-2xl relative">
               <button 
                   onClick={() => setActiveTab('scanner')} 
-                  className={`px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-[background-color,color,box-shadow] flex items-center gap-2 transform-gpu will-change-transform ${activeTab === 'scanner' ? 'bg-tennis-lime text-black shadow-[0_0_20px_rgba(132,204,22,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                  className={`relative px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'scanner' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
               >
+                  {activeTab === 'scanner' && (
+                      <motion.div 
+                          layoutId="activeTabCapsule"
+                          className="absolute inset-0 bg-[#2c2c2e] rounded-full border border-white/5 shadow-md -z-10"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                  )}
                   <Activity size={14}/> Neural Scanner
               </button>
               <button 
@@ -1378,8 +1421,15 @@ export function MatchupAnalyzer() {
                       if (!user) { alert("Please sign in to access The Vault."); return; }
                       setActiveTab('vault');
                   }} 
-                  className={`px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-[background-color,color,box-shadow] flex items-center gap-2 transform-gpu will-change-transform ${activeTab === 'vault' ? 'bg-tennis-lime text-black shadow-[0_0_20px_rgba(132,204,22,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                  className={`relative px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'vault' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
               >
+                  {activeTab === 'vault' && (
+                      <motion.div 
+                          layoutId="activeTabCapsule"
+                          className="absolute inset-0 bg-[#2c2c2e] rounded-full border border-white/5 shadow-md -z-10"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                  )}
                   <Archive size={14}/> Intel Vault
               </button>
           </div>
@@ -1399,8 +1449,22 @@ export function MatchupAnalyzer() {
                  </div>
                  <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 w-full md:w-auto flex-1 md:justify-end">
                     <div className="relative w-full md:max-w-[320px] group">
-                        <Search className="absolute left-4 md:left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-tennis-lime transition-colors" size={16} />
-                        <input type="text" placeholder={t('matchup.controls.searchCourt')} value={courtSearchTerm} onChange={(e) => { setCourtSearchTerm(e.target.value); setSelectedTournamentId(''); setAnalysisResult(null); }} className="w-full bg-black/40 text-white pl-12 pr-4 py-3 md:py-4 rounded-xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-sm" />
+                        <Search className="absolute left-4 md:left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={16} />
+                        <input 
+                            type="text" 
+                            placeholder={t('matchup.controls.searchCourt')} 
+                            value={courtSearchTerm} 
+                            onChange={(e) => { setCourtSearchTerm(e.target.value); setSelectedTournamentId(''); setAnalysisResult(null); }} 
+                            className="w-full bg-black/30 text-white pl-11 pr-11 py-3.5 rounded-xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-sm" 
+                        />
+                        {courtSearchTerm && (
+                            <button 
+                                onClick={() => { setCourtSearchTerm(''); setSelectedTournamentId(''); setAnalysisResult(null); }} 
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                         {courtSearchTerm.length > 0 && (
                           <div className="absolute top-full left-0 right-0 mt-1 md:mt-2 bg-[#1a1d26] border border-white/10 rounded-xl md:rounded-2xl z-[60] shadow-2xl max-h-40 md:max-h-60 overflow-y-auto custom-scrollbar">
                             {filteredCourtTournaments.map(t => (
@@ -1456,22 +1520,24 @@ export function MatchupAnalyzer() {
                       <div className="mb-20 md:mb-24 max-sm:max-w-md mx-auto space-y-6">
                         <button 
                           onClick={analyzeMatchup} 
-                          disabled={analyzing} 
+                          disabled={!canAnalyze} 
                           className={`
-                            relative group overflow-hidden rounded-xl bg-[#15171e] border border-white/10 px-8 py-5 md:py-4
-                            transition-[border-color,box-shadow,transform] duration-300 hover:border-tennis-lime/50 hover:shadow-[0_0_20px_rgba(132,204,22,0.15)]
-                            active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mx-auto block w-full max-w-sm transform-gpu will-change-transform
-                            ${canAnalyze ? '' : 'opacity-50 cursor-not-allowed'}
+                            relative group overflow-hidden rounded-2xl px-8 py-4
+                            transition-all duration-300
+                            active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mx-auto block w-full max-w-sm transform-gpu will-change-transform
+                            ${canAnalyze 
+                              ? 'bg-tennis-lime text-black font-black shadow-lg shadow-tennis-lime/25 hover:shadow-xl hover:shadow-tennis-lime/30 hover:scale-[1.02]' 
+                              : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'}
                           `}
                         >
                             {canAnalyze && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:animate-[shine-subtle_1s_infinite]" />}
                             <span className="relative flex flex-col items-center justify-center gap-1">
-                                <span className="flex items-center gap-2 text-sm md:text-xs font-black uppercase tracking-[0.2em] text-gray-300 group-hover:text-white">
-                                    <Swords size={18} className="text-tennis-lime" />
+                                <span className="flex items-center gap-2 text-sm md:text-xs font-black uppercase tracking-[0.2em]">
+                                    <Swords size={18} />
                                     {btnState.main}
                                 </span>
                                 {/* SMART SUBTEXT */}
-                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${btnState.color}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${canAnalyze ? 'text-black/60' : 'text-gray-500'}`}>
                                     {btnState.icon}
                                     {btnState.sub}
                                 </span>
