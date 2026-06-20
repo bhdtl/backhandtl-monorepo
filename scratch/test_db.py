@@ -8,13 +8,13 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 try:
-    res = supabase.table("players").select("*").limit(1).execute()
+    res = supabase.table("market_odds").select("*").limit(1).execute()
     if res.data:
-        player = res.data[0]
-        print("Columns in players table:")
-        for k in sorted(player.keys()):
+        match_row = res.data[0]
+        print("Columns in market_odds table:")
+        for k in sorted(match_row.keys()):
             print(f"  {k}")
     else:
-        print("Success, but players table is empty!")
+        print("Success, but market_odds table is empty!")
 except Exception as e:
-    print("Error querying players:", e)
+    print("Error querying market_odds:", e)
