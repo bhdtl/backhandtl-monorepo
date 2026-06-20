@@ -255,8 +255,8 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
           icon: <Activity size={28} className="text-tennis-lime" />
       },
       {
-          title: t('valueScanner.tutorial.step2Title', 'Line Shopping'),
-          desc: t('valueScanner.tutorial.step2Desc', "We scan all major books (bet365, Pinnacle, Hardrock) to guarantee you get the best possible price for the mathematical edge."),
+          title: t('valueScanner.tutorial.step2Title', 'NEO.bet Value'),
+          desc: t('valueScanner.tutorial.step2Desc', "We calculate mathematical value edges on NEO.bet odds and provide direct links to place your bets instantly."),
           icon: <BookOpen size={28} className="text-purple-400" />
       },
       {
@@ -353,7 +353,7 @@ export function ValueScanner() {
   const [isGeoSafe, setIsGeoSafe] = useState<boolean>(false);
 
   const [availableBookies, setAvailableBookies] = useState<string[]>([]);
-  const [preferredBookie, setPreferredBookie] = useState<string>('ALL');
+  const [preferredBookie, setPreferredBookie] = useState<string>('neobet');
 
   useEffect(() => {
     const hasSeen = safeLocalStorage.getItem('hasSeenValueTutorial');
@@ -458,16 +458,10 @@ export function ValueScanner() {
 
           let betInfo = parseBetFromText(row.ai_analysis_text);
 
-          let baseOddsA = row.odds1 || row.opening_odds1 || 0;
-          let baseOddsB = row.odds2 || row.opening_odds2 || 0;
-          
           const bookieOdds = row.bookmaker_odds || {};
-          Object.keys(bookieOdds).forEach(b => tempBookies.add(b));
-
-          Object.values(bookieOdds).forEach((odds: any) => {
-              if (odds.odds1 > baseOddsA) baseOddsA = odds.odds1;
-              if (odds.odds2 > baseOddsB) baseOddsB = odds.odds2;
-          });
+          const neobetOdds = bookieOdds.neobet || {};
+          let baseOddsA = neobetOdds.odds1 || row.odds1 || row.opening_odds1 || 0;
+          let baseOddsB = neobetOdds.odds2 || row.odds2 || row.opening_odds2 || 0;
 
           let mDate = new Date().toLocaleDateString('en-CA'); 
           let commencingTime = 'TBD';
@@ -779,22 +773,7 @@ export function ValueScanner() {
                     )}
                 </div>
                 
-                {availableBookies.length > 0 && (
-                    <div className="relative min-w-[150px]">
-                        <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                        <select 
-                            value={preferredBookie} 
-                            onChange={(e) => setPreferredBookie(e.target.value)}
-                            className="w-full bg-[#1c1c1e]/60 text-white pl-9 pr-8 py-2.5 rounded-xl border border-white/[0.06] focus:border-white/20 transition-all outline-none font-medium text-xs appearance-none cursor-pointer"
-                        >
-                            <option value="ALL">Best Market Odds</option>
-                            {availableBookies.map(b => (
-                                <option key={b} value={b}>{b.toUpperCase()}</option>
-                            ))}
-                        </select>
-                        <ChevronRight size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none rotate-90" />
-                    </div>
-                )}
+
             </div>
             
             <div className="flex w-full lg:w-auto gap-1.5 overflow-x-auto no-scrollbar pb-0.5 lg:pb-0 select-none">
@@ -881,7 +860,7 @@ export function ValueScanner() {
                             label: `2:0 ${formatLastName(safePlayerAName)}`, 
                             prob: setProbs["2:0"], 
                             fairOdds: (1 / (setProbs["2:0"]/100)).toFixed(2), 
-                            marketOdds: match.bookmakerOdds?.bet365?.odds1 || "Market", 
+                            marketOdds: match.bookmakerOdds?.neobet?.odds1 || match.baseOddsA || "Market", 
                             icon: Layers, color: "text-blue-400", border: "border-blue-500/20", bg: "bg-blue-500/10" 
                         });
                     } else if (!p1IsPick && setProbs["0:2"] >= 55) {
@@ -890,7 +869,7 @@ export function ValueScanner() {
                             label: `2:0 ${formatLastName(safePlayerBName)}`, 
                             prob: setProbs["0:2"], 
                             fairOdds: (1 / (setProbs["0:2"]/100)).toFixed(2), 
-                            marketOdds: match.bookmakerOdds?.bet365?.odds2 || "Market", 
+                            marketOdds: match.bookmakerOdds?.neobet?.odds2 || match.baseOddsB || "Market", 
                             icon: Layers, color: "text-blue-400", border: "border-blue-500/20", bg: "bg-blue-500/10" 
                         });
                     }
@@ -1162,32 +1141,6 @@ export function ValueScanner() {
                                         </div>
                                     </div>
                                 ))}
-
-                                {/* LINE SHOPPING STRIP */}
-                                {match.bookmakerOdds && Object.keys(match.bookmakerOdds).length > 0 && (
-                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1 pb-1">
-                                        <div className="text-[7px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap pl-1">Best Lines:</div>
-                                        {Object.entries(match.bookmakerOdds).sort(([_bookieA, oddsA]: any, [_bookieB, oddsB]: any) => {
-                                            const valA = p1IsPick ? oddsA.odds1 : oddsA.odds2;
-                                            const valB = p1IsPick ? oddsB.odds1 : oddsB.odds2;
-                                            return valB - valA; 
-                                        }).map(([bookie, odds]: any) => {
-                                            const bookieOddsVal = p1IsPick ? odds.odds1 : odds.odds2;
-                                            if (!bookieOddsVal || bookieOddsVal <= 1.01) return null;
-                                            
-                                            const isBest = bookieOddsVal === activePickCurrentOdds;
-                                            const bookieStyle = getBookieColors(bookie);
-
-                                            return (
-                                                <div key={bookie} className={`flex items-center flex-shrink-0 gap-1.5 px-2 py-1 rounded-md border ${isBest ? 'opacity-100 ring-1 ring-white/30 shadow-[0_0_10px_rgba(255,255,255,0.1)]' : 'opacity-50 grayscale-[60%]'} ${bookieStyle}`}>
-                                                    <span className="text-[8px] font-black uppercase tracking-wider">{bookie}</span>
-                                                    <div className="w-px h-2.5 bg-white/20"></div>
-                                                    <span className="text-[9px] font-mono font-bold">{bookieOddsVal.toFixed(2)}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
 
                                 {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
                                 <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
