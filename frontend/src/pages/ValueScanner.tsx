@@ -240,6 +240,13 @@ const formatLastName = (fullName: string) => {
   return parts.length > 1 ? parts[parts.length - 1] : clean;
 };
 
+const toTitleCase = (str: string) => {
+  if (!str) return "";
+  const isAllUppercase = str === str.toUpperCase();
+  const base = isAllUppercase ? str.toLowerCase() : str;
+  return base.replace(/\b[a-z]/gi, char => char.toUpperCase());
+};
+
 // --- TACTICAL BRIEFING MODAL ---
 function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [step, setStep] = useState(0);
@@ -1015,48 +1022,57 @@ export function ValueScanner() {
                     >
                     
                     {/* --- HEADER --- */}
-                    <div className="flex justify-between items-center mb-4 opacity-100 z-10 relative cursor-pointer" onClick={() => handleMatchClick(match)}>
-                        <div className={`flex items-center gap-2 ${isFinished ? 'opacity-70' : 'opacity-100'}`}>
-                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-semibold text-gray-300 bg-white/[0.04] border border-white/[0.04] uppercase tracking-wide truncate max-w-[140px]">
+                    <div className="flex justify-between items-start mb-4 opacity-100 z-10 relative cursor-pointer" onClick={() => handleMatchClick(match)}>
+                        <div className={`flex flex-col ${isFinished ? 'opacity-70' : 'opacity-100'}`}>
+                            {/* Row 1: Tournament name */}
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                                 {match.tournament}
                             </span>
-                            <div className="h-3 w-px bg-white/10"></div>
-                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
-                                <Clock size={11} /> {match.commencing}
-                            </span>
-
-                            {!isFinished && timeAgoInfo.text && (
-                                <div className={`ml-1.5 px-2 py-0.5 rounded-full flex items-center gap-1 text-[8.5px] font-semibold uppercase tracking-wider
-                                    ${timeAgoInfo.isHot ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 animate-pulse' : 
-                                      timeAgoInfo.isWarm ? 'bg-yellow-500/10 text-yellow-500/80 border border-yellow-500/10' : 
-                                      'bg-white/[0.04] text-gray-500 border border-white/[0.04]'}`}
-                                >
-                                    {timeAgoInfo.isHot && <Flame size={8.5} />}
-                                    {timeAgoInfo.text}
-                                </div>
-                            )}
+                            {/* Row 2: Timing / Time ago */}
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mt-1 flex-wrap">
+                                <span className="flex items-center gap-1">
+                                    <Clock size={12} />
+                                    {match.commencing}
+                                </span>
+                                {!isFinished && timeAgoInfo.text && (
+                                    <>
+                                        <span className="text-gray-600">•</span>
+                                        <div className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider
+                                            ${timeAgoInfo.isHot ? 'text-orange-400 animate-pulse' : 
+                                              timeAgoInfo.isWarm ? 'text-yellow-500/80' : 
+                                              'text-gray-500'}`}
+                                        >
+                                            {timeAgoInfo.isHot && <Flame size={10} />}
+                                            {timeAgoInfo.text}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
 
-                        {!isFinished ? (
-                              <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border shadow-sm backdrop-blur-sm bg-black/15 border-white/[0.06]`}>
-                                 <Activity size={10} className={edgeColorClass} />
-                                 <span className={`text-[9px] font-bold tracking-wide ${edgeColorClass}`}>
-                                     {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}% EDGE
-                                 </span>
-                              </div>
-                        ) : (
-                            predictionStatus === 'WON' ? (
-                                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-tennis-lime/25 bg-tennis-lime/10 text-tennis-lime shadow-sm">
-                                    <CheckCircle2 size={11} />
-                                    <span className="text-[9px] font-bold tracking-wide">{t('valueScanner.card.won')}</span>
-                                </div>
-                            ) : predictionStatus === 'LOST' ? (
-                                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-red-500/20 bg-red-500/10 text-red-500 shadow-sm">
-                                    <XCircle size={11} />
-                                    <span className="text-[9px] font-bold tracking-wide">{t('valueScanner.card.miss')}</span>
-                                </div>
-                            ) : null
-                        )}
+                        {/* Right side: Edge or Status badge */}
+                        <div className="shrink-0 ml-4">
+                            {!isFinished ? (
+                                  <div className="flex items-center gap-1 px-3 py-1 bg-tennis-lime/10 text-tennis-lime border border-tennis-lime/20 text-xs font-bold rounded-full shadow-sm">
+                                     <Activity size={12} className={edgeColorClass} />
+                                     <span className={`tracking-wide ${edgeColorClass}`}>
+                                         {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}% EDGE
+                                     </span>
+                                  </div>
+                            ) : (
+                                predictionStatus === 'WON' ? (
+                                    <div className="flex items-center gap-1 px-3 py-1 border border-tennis-lime/20 bg-tennis-lime/10 text-tennis-lime text-xs font-bold rounded-full shadow-sm">
+                                        <CheckCircle2 size={12} />
+                                        <span className="tracking-wide">{t('valueScanner.card.won')}</span>
+                                    </div>
+                                ) : predictionStatus === 'LOST' ? (
+                                    <div className="flex items-center gap-1 px-3 py-1 border border-red-500/20 bg-red-500/10 text-red-500 text-xs font-bold rounded-full shadow-sm">
+                                        <XCircle size={12} />
+                                        <span className="tracking-wide">{t('valueScanner.card.miss')}</span>
+                                    </div>
+                                ) : null
+                            )}
+                        </div>
                     </div>
 
                     {/* --- CONTENT --- */}
@@ -1068,24 +1084,24 @@ export function ValueScanner() {
                                 {/* Matchup Names & Odds */}
                                 <div className="flex items-center justify-between cursor-pointer" onClick={() => handleMatchClick(match)}>
                                     <div className="flex flex-col w-[45%]">
-                                        <div className={`text-sm font-black uppercase leading-none truncate mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                            {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
+                                        <div className={`text-base font-bold tracking-tight mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
                                         </div>
                                         <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5">
-                                            <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
-                                            <span className="text-white font-mono font-bold">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                            <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
+                                            <span className="text-white font-mono font-bold text-xs">{(match.marketOddsA || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
                                     
-                                    <div className="text-gray-600 font-bold text-xs uppercase tracking-widest text-center w-[10%]">VS</div>
+                                    <div className="text-gray-600 font-bold text-xs uppercase tracking-widest text-center w-[10%] select-none">VS</div>
                                     
                                     <div className="flex flex-col items-end text-right w-[45%]">
-                                        <div className={`text-sm font-black uppercase leading-none truncate mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                            {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
+                                        <div className={`text-base font-bold tracking-tight mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
                                         </div>
                                         <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
-                                            <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
-                                            <span className="text-white font-mono font-bold">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                            <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
+                                            <span className="text-white font-mono font-bold text-xs">{(match.marketOddsB || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1093,11 +1109,11 @@ export function ValueScanner() {
                                 {!isFinished && (
                                     <>
                                         {/* Simple Recommendation Box */}
-                                        <div className="bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3.5 flex flex-col items-center justify-center text-center gap-1.5 shadow-sm">
-                                            <span className="text-[8px] font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
-                                            <span className="text-sm font-black text-white uppercase tracking-tight">
+                                        <div className="p-4 bg-tennis-lime/[0.06] border border-tennis-lime/15 rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 shadow-sm animate-in fade-in duration-300">
+                                            <span className="text-[9px] font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
+                                            <span className="text-base font-bold text-white tracking-tight">
                                                 {(() => {
-                                                    const formattedName = formatLastName(safePickName);
+                                                    const formattedName = toTitleCase(formatLastName(safePickName));
                                                     const lowerPick = safePickName.toLowerCase();
                                                     const isMoneyline = !lowerPick.includes('games') && 
                                                                         !lowerPick.includes('over') && 
@@ -1114,9 +1130,9 @@ export function ValueScanner() {
                                                     return formattedName;
                                                 })()}
                                             </span>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                <span className="text-xs text-tennis-lime font-bold">{getStarRating(analysis.stake)}</span>
-                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">({analysis.stake.toFixed(1)} Units)</span>
+                                            <div className="flex items-center gap-2 mt-1 text-sm font-semibold text-gray-300">
+                                                <span className="text-tennis-lime">{getStarRating(analysis.stake)}</span>
+                                                <span className="tracking-wide">({analysis.stake.toFixed(1)} Units)</span>
                                             </div>
                                         </div>
 
@@ -1155,38 +1171,64 @@ export function ValueScanner() {
                                             <motion.div 
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: 'auto' }}
-                                                className="mt-3 space-y-3 border-t border-white/[0.04] pt-3 overflow-hidden"
+                                                className="mt-3 space-y-4 border-t border-white/[0.04] pt-3 overflow-hidden"
                                             >
                                                 {/* Advanced Metrics Summary */}
-                                                <div className="grid grid-cols-3 gap-2 text-center bg-white/[0.01] p-2.5 rounded-lg border border-white/[0.03]">
+                                                <div className="grid grid-cols-3 gap-4 text-center bg-white/[0.02] p-3 rounded-2xl border border-white/[0.04]">
                                                     <div>
-                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
-                                                        <div className="text-[10px] font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</div>
+                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
+                                                        <div className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
-                                                        <div className="text-[10px] font-mono font-bold text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
+                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
+                                                        <div className="text-xs font-mono font-bold text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[7px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
-                                                        <div className="text-[10px] font-mono font-bold text-white">{h2hRecord}</div>
+                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
+                                                        <div className="text-xs font-mono font-bold text-white">{h2hRecord}</div>
                                                     </div>
                                                 </div>
 
                                                 {/* Alternative plays */}
                                                 {altPlays.length > 0 && (
-                                                    <div className="space-y-1.5">
-                                                        <div className="text-[7px] font-black text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
-                                                        {altPlays.map((play, i) => (
-                                                            <div key={i} className="bg-white/[0.02] rounded-xl px-3.5 py-2 flex justify-between items-center border border-white/[0.04]">
-                                                                <div className="flex items-center gap-1.5">
-                                                                    <play.icon size={10} className={play.color} />
-                                                                    <span className={`text-[7px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
-                                                                </div>
-                                                                <span className="text-[9px] font-bold text-white uppercase">{play.label}</span>
-                                                                <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.prob}%</span>
-                                                            </div>
-                                                        ))}
+                                                    <div className="space-y-2">
+                                                        <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
+                                                        <div className="rounded-2xl border border-white/[0.04] bg-[#1c1c1e]/30 overflow-hidden divide-y divide-white/[0.04] shadow-sm">
+                                                             {altPlays.map((play, i) => (
+                                                                 <div key={i} className="px-4 py-3 flex justify-between items-center hover:bg-white/[0.01] transition-colors">
+                                                                     <div className="flex items-center gap-2.5">
+                                                                         <div className={`p-1.5 rounded-lg ${play.bg} ${play.border} border`}>
+                                                                             <play.icon size={14} className={play.color} />
+                                                                         </div>
+                                                                         <div className="flex flex-col">
+                                                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
+                                                                             <span className="text-xs font-bold text-white mt-0.5">{toTitleCase(play.label)}</span>
+                                                                         </div>
+                                                                     </div>
+                                                                     <div className="text-right">
+                                                                         {play.isTarget ? (
+                                                                             <>
+                                                                                 <span className={`text-xs font-mono font-bold ${play.color}`}>{play.targetValue}</span>
+                                                                                 <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
+                                                                             </>
+                                                                         ) : (
+                                                                             <>
+                                                                                 <div className="flex items-center gap-1.5 justify-end">
+                                                                                     <span className={`text-xs font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
+                                                                                     {play.marketOdds && play.marketOdds !== "Market" && (
+                                                                                         <>
+                                                                                             <span className="text-xs text-gray-600">|</span>
+                                                                                             <span className="text-xs font-mono text-white font-bold">@{play.marketOdds}</span>
+                                                                                         </>
+                                                                                     )}
+                                                                                 </div>
+                                                                                 <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
+                                                                             </>
+                                                                         )}
+                                                                     </div>
+                                                                 </div>
+                                                             ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </motion.div>
@@ -1199,18 +1241,18 @@ export function ValueScanner() {
                             <>
                                 <div className="flex items-center justify-between mb-5 cursor-pointer" onClick={() => handleMatchClick(match)}>
                                       <div className="flex flex-col w-[32%]">
-                                          <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                              {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown')}
+                                          <div className={`text-base font-bold tracking-tight mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
                                           </div>
-                                          <div className="text-[10px] font-mono font-medium text-gray-500 flex items-center gap-1">
-                                              <span>Best:</span>
-                                              <span className="text-white">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                          <div className="text-[10px] font-mono font-semibold text-gray-500 flex items-center gap-1.5">
+                                              <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
+                                              <span className="text-white font-bold">{(match.marketOddsA || 0).toFixed(2)}</span>
                                           </div>
                                       </div>
 
                                       <div className="flex flex-col items-center justify-center w-[36%]">
                                           <div className="bg-white/[0.02] px-3 py-1.5 rounded-lg border border-white/[0.04] flex flex-col items-center shadow-sm w-full">
-                                              <span className="text-[6px] md:text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
+                                              <span className="text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
                                               <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-[10px] md:text-[11px] font-bold leading-tight">
                                                   <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
                                                   <span className="text-gray-700 hidden md:inline">/</span>
@@ -1220,18 +1262,18 @@ export function ValueScanner() {
                                       </div>
 
                                       <div className="flex flex-col items-end text-right w-[32%]">
-                                          <div className={`text-sm font-black uppercase leading-none truncate max-w-[95px] xs:max-w-[135px] md:max-w-none mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                              {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown')}
+                                          <div className={`text-base font-bold tracking-tight mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
                                           </div>
-                                          <div className="text-[10px] font-mono font-medium text-gray-500 flex items-center gap-1 justify-end">
-                                              <span>Best:</span>
-                                              <span className="text-white">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                          <div className="text-[10px] font-mono font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
+                                              <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
+                                              <span className="text-white font-bold">{(match.marketOddsB || 0).toFixed(2)}</span>
                                           </div>
                                       </div>
                                 </div>
 
                                 {match.derivativeAlert && !isFinished && (
-                                    <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                    <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner animate-in fade-in">
                                         <AlertTriangle className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
                                         <div>
                                             <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Derivative Edge Detected</div>
@@ -1241,7 +1283,7 @@ export function ValueScanner() {
                                 )}
 
                                 {match.games_prediction?.pattern_warning && !isFinished && (
-                                    <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                    <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3 shadow-inner animate-in fade-in">
                                         <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
                                         <div>
                                             <div className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
@@ -1251,7 +1293,7 @@ export function ValueScanner() {
                                 )}
 
                                 {match.games_prediction?.pattern_boost && !isFinished && (
-                                    <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/20 rounded-lg p-3 flex items-start gap-3 shadow-inner">
+                                    <div className="mb-4 bg-tennis-lime/10 border border-tennis-lime/20 rounded-lg p-3 flex items-start gap-3 shadow-inner animate-in fade-in">
                                         <Zap className="text-tennis-lime flex-shrink-0 mt-0.5" size={16} />
                                         <div>
                                             <div className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-1">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
@@ -1267,22 +1309,23 @@ export function ValueScanner() {
                                 )}
 
                                 {!isFinished && (
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {/* H2H STRIP */}
                                         <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar pb-1">
-                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
-                                                <Crosshair size={10} className="text-purple-400" />
-                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">H2H: <span className="text-white">{h2hRecord}</span></span>
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
+                                                <Crosshair size={12} className="text-purple-400" />
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">H2H: <span className="text-white">{h2hRecord}</span></span>
                                             </div>
                                         </div>
 
-                                         {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
-                                        <div className="bg-white/[0.02] rounded-xl px-3.5 py-3 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:items-center border border-white/[0.06] border-l-2 border-l-tennis-lime shadow-sm">
-                                             <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                                                 <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">
-                                                     Pick: <span className="text-white font-black">
+                                        {/* 🚀 MAIN VALUE BAR WITH SOTA SYNDICATE BADGE */}
+                                        <div className="bg-[#1c1c1e]/60 rounded-2xl p-4 border border-white/[0.06] border-l-4 border-l-tennis-lime shadow-md space-y-3">
+                                             <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-white/[0.04]">
+                                                 <div className="flex items-center gap-2 flex-wrap">
+                                                     <span className="text-xs font-semibold text-gray-400">Pick:</span>
+                                                     <span className="text-sm font-bold text-white tracking-tight">
                                                          {(() => {
-                                                             const formattedName = formatLastName(safePickName);
+                                                             const formattedName = toTitleCase(formatLastName(safePickName));
                                                              const lowerPick = safePickName.toLowerCase();
                                                              const isMoneyline = !lowerPick.includes('games') && 
                                                                                  !lowerPick.includes('over') && 
@@ -1299,71 +1342,90 @@ export function ValueScanner() {
                                                              return formattedName;
                                                          })()}
                                                      </span>
-                                                 </span>
-                                                 {renderTypeBadge(analysis.type)}
-                                                 {match.games_prediction?.is_grand_slam && (
-                                                     <div className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.2)] flex items-center gap-1 shrink-0">
-                                                         <span>🎾</span> Slam (Bo5)
-                                                     </div>
+                                                     {renderTypeBadge(analysis.type)}
+                                                     {match.games_prediction?.is_grand_slam && (
+                                                         <div className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_8px_rgba(234,179,8,0.15)] flex items-center gap-1 shrink-0">
+                                                             <span>🎾</span> Slam (Bo5)
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                                 
+                                                 {analysis.stake > 0 && (
+                                                    <div className="flex items-center gap-2 bg-tennis-lime/10 border border-tennis-lime/20 px-2.5 py-1 rounded-full text-xs font-bold">
+                                                        <span className="text-tennis-lime">{getStarRating(analysis.stake)}</span>
+                                                        <span className="text-tennis-lime/90 font-mono">({analysis.stake.toFixed(1)} Units)</span>
+                                                    </div>
                                                  )}
                                              </div>
 
-                                             <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
-                                                 {hasMovement && (
-                                                     <div className={`flex items-center gap-0.5 text-[8px] font-mono font-black ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} bg-black/40 px-1.5 py-0.5 rounded border border-white/5`} title={`Opening Line: ${activePickOpenOdds.toFixed(2)}`}>
-                                                        {isSharpDumping ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
-                                                        <span>{activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}</span>
+                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-center sm:text-left">
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</span>
+                                                     <span className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</span>
+                                                 </div>
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</span>
+                                                     <span className={`text-xs font-bold ${edgeColorClass} flex items-center justify-center sm:justify-start gap-1`}>
+                                                         <Zap size={12} />
+                                                         {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
+                                                     </span>
+                                                 </div>
+                                                 {hasMovement ? (
+                                                     <div className="flex flex-col col-span-2 sm:col-span-1">
+                                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Line Movement</span>
+                                                         <span className={`text-xs font-mono font-bold ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} flex items-center justify-center sm:justify-start gap-1`}>
+                                                             {isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                                                             {activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}
+                                                         </span>
+                                                     </div>
+                                                 ) : (
+                                                     <div className="flex flex-col col-span-2 sm:col-span-1">
+                                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</span>
+                                                         <span className="text-xs font-mono font-bold text-white">{h2hRecord}</span>
                                                      </div>
                                                  )}
-                                                 
-                                                 {analysis.stake > 0 && (
-                                                    <div className="flex items-center gap-1.5 bg-tennis-lime/10 border border-tennis-lime/25 px-2 py-0.5 rounded">
-                                                        <span className="text-[10px] text-tennis-lime font-bold">{getStarRating(analysis.stake)}</span>
-                                                        <span className="text-[9px] font-mono font-black text-tennis-lime">({analysis.stake.toFixed(1)}u)</span>
-                                                    </div>
-                                                 )}
-
-                                                 <div className="text-[9px] font-mono text-gray-500">
-                                                     FAIR: <span className="text-white font-bold">{safeFairOdds.toFixed(2)}</span>
-                                                 </div>
-                                                 <div className={`flex items-center gap-1 text-[10px] font-black ${edgeColorClass}`}>
-                                                      <Zap size={12} />
-                                                     {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
-                                                 </div>
                                              </div>
                                         </div>
 
                                         {/* ALT PLAYS */}
-                                        {altPlays.map((play, i) => (
-                                            <div key={i} className="bg-white/[0.02] rounded-xl px-3.5 py-2.5 flex justify-between items-center border border-white/[0.04] shadow-sm">
-                                                <div className="flex items-center gap-1.5 w-[32%]">
-                                                    <play.icon size={10} className={play.color} />
-                                                    <span className={`text-[8px] font-black uppercase tracking-widest ${play.color}`}>{play.type}</span>
-                                                </div>
-                                                <span className="text-[9px] font-bold text-white uppercase text-center w-[36%]">{play.label}</span>
-                                                <div className="flex flex-col items-end w-[32%]">
-                                                    {play.isTarget ? (
-                                                        <>
-                                                            <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.targetValue}</span>
-                                                            <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">{play.subText}</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="flex items-center gap-1">
-                                                                <span className={`text-[9px] font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
-                                                                {play.marketOdds && play.marketOdds !== "Market" && (
-                                                                    <>
-                                                                        <span className="text-[9px] text-gray-500">/</span>
-                                                                        <span className="text-[9px] font-mono text-white font-bold">@{play.marketOdds}</span>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                            <span className="text-[7px] text-gray-500 font-black uppercase tracking-wider mt-0.5">Fair Odds: {play.fairOdds}</span>
-                                                        </>
-                                                    )}
-                                                </div>
+                                        {altPlays.length > 0 && (
+                                            <div className="rounded-2xl border border-white/[0.04] bg-[#1c1c1e]/30 overflow-hidden divide-y divide-white/[0.04] shadow-sm mt-3 animate-in fade-in">
+                                                 {altPlays.map((play, i) => (
+                                                     <div key={i} className="px-4 py-3 flex justify-between items-center hover:bg-white/[0.01] transition-colors">
+                                                         <div className="flex items-center gap-2.5">
+                                                             <div className={`p-1.5 rounded-lg ${play.bg} ${play.border} border`}>
+                                                                 <play.icon size={14} className={play.color} />
+                                                             </div>
+                                                             <div className="flex flex-col">
+                                                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
+                                                                 <span className="text-xs font-bold text-white mt-0.5">{toTitleCase(play.label)}</span>
+                                                             </div>
+                                                         </div>
+                                                         <div className="text-right">
+                                                             {play.isTarget ? (
+                                                                 <>
+                                                                     <span className={`text-xs font-mono font-bold ${play.color}`}>{play.targetValue}</span>
+                                                                     <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
+                                                                 </>
+                                                             ) : (
+                                                                 <>
+                                                                     <div className="flex items-center gap-1.5 justify-end">
+                                                                         <span className={`text-xs font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
+                                                                         {play.marketOdds && play.marketOdds !== "Market" && (
+                                                                             <>
+                                                                                 <span className="text-xs text-gray-600">|</span>
+                                                                                 <span className="text-xs font-mono text-white font-bold">@{play.marketOdds}</span>
+                                                                             </>
+                                                                         )}
+                                                                     </div>
+                                                                     <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
+                                                                 </>
+                                                             )}
+                                                         </div>
+                                                     </div>
+                                                 ))}
                                             </div>
-                                        ))}
+                                        )}
 
                                         {/* 🚀 SOTA: NEO.bet 1-Click Wettschein CTA */}
                                         <div className="mt-4 flex flex-col gap-1.5 border-t border-white/5 pt-3">
@@ -1396,28 +1458,48 @@ export function ValueScanner() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       onClick={() => setIsPromoOpen(true)}
-                      className="relative overflow-hidden rounded-[1.5rem] border border-tennis-lime/10 hover:border-tennis-lime/30 bg-gradient-to-r from-[#121620] via-[#0d1017] to-[#07090d] cursor-pointer shadow-xl hover:shadow-[0_0_30px_rgba(132,204,22,0.15)] transition-all duration-300 p-5 group flex flex-col md:flex-row gap-5 items-center justify-between animate-in fade-in"
+                      className="relative overflow-hidden rounded-2xl border border-tennis-lime/10 hover:border-tennis-lime/20 bg-gradient-to-r from-[#121620]/60 via-[#0d1017]/60 to-[#07090d]/60 cursor-pointer shadow-xl hover:shadow-[0_8px_30px_rgba(132,204,22,0.1)] transition-all duration-300 p-5 group flex flex-col gap-4 animate-in fade-in"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/10 transition-all duration-500" />
-                        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                            <div className="p-3 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime shrink-0">
-                                <Gift size={22} className="animate-pulse" />
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
-                                    <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span></span>
-                                    <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
-                                    <div className="h-3 w-px bg-white/10 hidden sm:block" />
-                                    <span className="text-[8px] font-mono font-bold text-gray-500 tracking-wider hidden sm:inline">BACKHAND.DTL × NEO.bet</span>
-                                </div>
-                                <h3 className="text-sm font-black text-white uppercase tracking-tight">{t('picks.promoTitleScanner', 'Sichere dir 25€ Gratiswette ohne Einzahlung')}</h3>
-                                <p className="text-[11px] text-gray-500 font-semibold mt-0.5">{t('picks.promoSubtitleScanner', 'Exklusive Freebet ohne Einzahlung für unsere Value-Signale.')}</p>
-                            </div>
-                        </div>
+                        <div className="absolute top-0 right-0 w-36 h-36 bg-tennis-lime/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:bg-tennis-lime/8 transition-all duration-500" />
                         
-                        <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
-                            <span className="px-3.5 py-2 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.25)]">{t('picks.unlockBonus', 'Bonus freischalten')}</span>
-                            <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
+                        {/* Partner Promo Header */}
+                        <div className="flex justify-between items-center pb-2 border-b border-white/[0.04]">
+                            <div className="flex items-center gap-2">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-tennis-lime">
+                                    {t('picks.partnerPromo', 'Anzeige | Partner Promotion')}
+                                </span>
+                            </div>
+                            <span className="text-[10px] font-mono font-bold text-gray-500 tracking-wider">
+                                BACKHAND.DTL × NEO.bet
+                            </span>
+                        </div>
+
+                        {/* Partner Promo Body */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between">
+                            <div className="flex items-center gap-4 flex-col sm:flex-row">
+                                <div className="p-3.5 bg-tennis-lime/10 rounded-2xl border border-tennis-lime/20 text-tennis-lime shrink-0">
+                                    <Gift size={24} className="animate-pulse" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h3 className="text-base font-bold text-white tracking-tight">
+                                        {t('picks.promoTitleScanner', 'Sichere dir 25€ Gratiswette ohne Einzahlung')}
+                                    </h3>
+                                    <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                                        {t('picks.promoSubtitleScanner', 'Exklusive Freebet ohne Einzahlung für unsere Value-Signale.')}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between max-sm:mt-2">
+                                <span className="px-4 py-2 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.2)]">
+                                    {t('picks.unlockBonus', 'Bonus freischalten')}
+                                </span>
+                                <img src="/neobet_logo_white.svg" alt="neobet" className="h-4.5 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
+                            </div>
                         </div>
                     </motion.div>
                   )}
