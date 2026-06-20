@@ -22,7 +22,7 @@ export function MobileTabBar({ onMenuAction, isLoggedIn }: MobileTabBarProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       
       {/* 🚀 SCHWEBENDER ADMIN COMMAND BUTTON (NUR FÜR DICH AUF MOBILE) */}
       <AdminNotificationWidget isMobile={true} />
