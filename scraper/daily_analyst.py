@@ -855,14 +855,16 @@ async def run_daily_analysis():
             # Confidence based on ROI
             confidence = round(min(0.95, max(0.10, abs(roi) / 100.0)), 2)
             
+            initial_status = "approved" if autopilot_enabled else "pending"
             supabase.table("scout_rules").insert({
                 "rule_type": r_type,
                 "description": desc,
                 "conditions": conds,
                 "confidence": confidence,
-                "status": "pending"
+                "status": initial_status
             }).execute()
-            log(f"✨ Proposed pending rule inserted: {desc}")
+            status_label = "auto-approved" if autopilot_enabled else "pending"
+            log(f"✨ Proposed rule inserted ({status_label}): {desc}")
         except Exception as e:
             log(f"⚠️ Error saving proposed rule: {e}")
 

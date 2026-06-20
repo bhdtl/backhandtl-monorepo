@@ -279,6 +279,16 @@ async def run_analysis():
         for category, val in keys:
             subgroups[f"{category}:{val}"].append(p)
             
+    # Check if autopilot is active
+    autopilot_enabled = False
+    try:
+        res_auto = supabase.table("scout_rules").select("status").eq("description", "SYSTEM_AUTOPILOT").execute()
+        if res_auto.data:
+            autopilot_enabled = (res_auto.data[0].get("status") == "approved")
+            log(f"🧠 Board Agent: Loaded SYSTEM_AUTOPILOT. Enabled={autopilot_enabled}")
+    except Exception as e:
+        log(f"⚠️ Error checking autopilot settings: {e}")
+
     # 4. Filter failure subgroups
     failures = []
     for sub_name, picks in subgroups.items():
@@ -360,16 +370,18 @@ async def run_analysis():
                 
             confidence = round(float(-f["yield_pct"] * min(1.0, f["total_bets"] / 20.0)), 2)
             
+            initial_status = "approved" if autopilot_enabled else "pending"
             # Insert rule
             supabase.table("scout_rules").insert({
                 "rule_type": rule_type,
                 "description": desc,
                 "conditions": conds,
                 "confidence": confidence,
-                "status": "pending"
+                "status": initial_status
             }).execute()
             
-            log(f"Successfully created pending rule: {desc}")
+            status_label = "auto-approved" if autopilot_enabled else "pending"
+            log(f"Successfully created {status_label} rule: {desc}")
             
         except Exception as err:
             log(f"⚠️ Error parsing or inserting rule: {err}")
