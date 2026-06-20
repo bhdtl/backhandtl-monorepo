@@ -40,7 +40,7 @@ export function MobileTabBar({ onMenuAction, isLoggedIn }: MobileTabBarProps) {
               >
                 <div className={`ios-tab-content ${isActive ? 'ios-tab-active' : 'ios-tab-inactive'}`}>
                   <Icon
-                    size={20}
+                    size={22}
                     strokeWidth={isActive ? 2.5 : 1.8}
                   />
                   <span className="ios-tab-label">
@@ -57,7 +57,7 @@ export function MobileTabBar({ onMenuAction, isLoggedIn }: MobileTabBarProps) {
           >
             <div className="ios-tab-content ios-tab-inactive">
               <div className={`ios-tab-avatar ${isLoggedIn ? 'ios-tab-avatar-active' : ''}`}>
-                <UserIcon size={13} />
+                <UserIcon size={14} />
               </div>
               <span className="ios-tab-label">
                 {t(isLoggedIn ? 'mobileTabBar.menu' : 'mobileTabBar.login', isLoggedIn ? 'Menu' : 'Login')}
