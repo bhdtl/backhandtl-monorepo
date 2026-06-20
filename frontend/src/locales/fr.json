@@ -9,7 +9,6 @@
     "valueScanner": "Scanner de Valeur",
     "courtIndex": "Indice Court BSI",
     "admin": "Admin Système",
-    "intelligenceTools": "OUTILS D'INTELLIGENCE",
     "activeAccount": "Compte Actif",
     "accessGranted": "Accès Autorisé",
     "logout": "Déconnexion",
@@ -488,30 +487,6 @@
       "button": "Passer Pro"
     }
   },
-  "newsPage": {
-    "loading": "Chargement de l'Intelligence...",
-    "header": {
-      "badge": "Hub d'Intelligence",
-      "title": "Briefings",
-      "titleHighlight": "Tactiques.",
-      "subtitle": "Analyse approfondie des matchs alimentée par des réseaux neuronaux. Pas de remplissage, juste des données tactiques brutes et des anomalies de physique de surface."
-    },
-    "empty": {
-      "title": "Aucun article publié pour le moment",
-      "subtitle": "Revenez bientôt pour des briefings tactiques."
-    },
-    "readMore": "Lire l'Analyse"
-  },
-  "articlePage": {
-    "loading": "Chargement de l'Article...",
-    "notFound": "404 - INTELLIGENCE NON TROUVÉE",
-    "backButton": "RETOUR À L'INTELLIGENCE",
-    "cta": {
-      "title": "Vous voulez des données en temps réel ?",
-      "subtitle": "Cette analyse a été générée en utilisant Neural Scout Pro.",
-      "button": "Lancer le Value Scanner"
-    }
-  },
   "premium": {
     "locked": "Fonction Verrouillée",
     "unlockButton": "Déverrouiller {{tier}}",
@@ -689,11 +664,6 @@
     "comebackDesc": "Mesure la capacité du joueur à arracher une victoire après avoir perdu le premier set, calculée à partir de ses récents résultats de match."
   },
   "intelligence": {
-    "briefings": "Briefings d'Intelligence IA",
-    "viewHub": "Voir le Centre",
-    "noAlerts": "Aucune alerte d'intelligence récente trouvée. Le joueur semble physiquement et mentalement stable.",
-    "keyTakeaways": "Points clés à retenir :",
-    "readOriginal": "Lire la source originale",
     "scoutingDossier": "Dossier de Scouting & Calme",
     "updated": "Mis à jour",
     "coreStrengths": "Forces Clés",

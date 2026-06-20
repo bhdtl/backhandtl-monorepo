@@ -9,7 +9,6 @@
     "valueScanner": "Value Scanner",
     "courtIndex": "BSI Court Index",
     "admin": "System Admin",
-    "intelligenceTools": "INTELLIGENCE TOOLS",
     "activeAccount": "Active Account",
     "accessGranted": "Access Granted",
     "logout": "Sign Out Session",
@@ -488,30 +487,6 @@
       "button": "Go Pro"
     }
   },
-  "newsPage": {
-    "loading": "Loading Intelligence...",
-    "header": {
-      "badge": "Intelligence Hub",
-      "title": "Tactical",
-      "titleHighlight": "Briefings.",
-      "subtitle": "Deep-dive match analysis powered by neural networks. No fluff, just raw tactical data and surface physics anomalies."
-    },
-    "empty": {
-      "title": "No articles published yet",
-      "subtitle": "Check back soon for tactical briefings."
-    },
-    "readMore": "Read Analysis"
-  },
-  "articlePage": {
-    "loading": "Loading Article...",
-    "notFound": "404 - INTELLIGENCE NOT FOUND",
-    "backButton": "BACK TO INTELLIGENCE",
-    "cta": {
-      "title": "Want real-time data?",
-      "subtitle": "This analysis was generated using Neural Scout Pro.",
-      "button": "Launch Value Scanner"
-    }
-  },
   "premium": {
     "locked": "Locked Feature",
     "unlockButton": "Unlock {{tier}}",
@@ -568,7 +543,6 @@
       "playerDatabase": "Player Database",
       "watchlist": "Watchlist",
       "membershipPlans": "Membership Plans",
-      "intelligenceHub": "Intelligence Hub",
       "matchupAnalyzer": "Matchup Analyzer",
       "valueScanner": "Value Scanner",
       "aiPicks": "AI Picks",
@@ -721,11 +695,6 @@
     "comebackDesc": "Measures the player's capacity to salvage a victory after losing the opening set, calculated from their recent match history logs."
   },
   "intelligence": {
-    "briefings": "AI Intelligence Briefings",
-    "viewHub": "View Hub",
-    "noAlerts": "No recent intelligence alerts found. The player appears physically and mentally stable.",
-    "keyTakeaways": "Key Takeaways:",
-    "readOriginal": "Read Original Source",
     "scoutingDossier": "Scouting & Composure Dossier",
     "updated": "Updated",
     "coreStrengths": "Core Strengths",

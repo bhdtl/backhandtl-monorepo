@@ -79,7 +79,6 @@ export const PlayerProfile: React.FC = () => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [report, setReport] = useState<ScoutingReport | null>(null);
   const [skills, setSkills] = useState<PlayerSkills | null>(null);
-  const [insights, setInsights] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   
   const [activeTab, setActiveTab] = useState<string>('Overview');
@@ -90,7 +89,7 @@ export const PlayerProfile: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>('');
 
   const touchStartX = useRef<number>(0);
-  const tabs = ['Overview', 'Stats', 'Scouting', 'News', 'Load', 'Form'];
+  const tabs = ['Overview', 'Stats', 'Scouting', 'Load', 'Form'];
 
   useEffect(() => {
     if (id) {
@@ -106,16 +105,11 @@ export const PlayerProfile: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load player, skills, report, and insights in parallel
-      const [playerRes, skillsRes, reportRes, insightsRes] = await Promise.all([
+      // Load player, skills, and report in parallel
+      const [playerRes, skillsRes, reportRes] = await Promise.all([
         supabase.from('players').select('*').eq('id', id).maybeSingle(),
         supabase.from('player_skills').select('*').eq('player_id', id).maybeSingle(),
-        supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle(),
-        supabase.from('tennis_insights')
-          .select('*')
-          .eq('player_id', id)
-          .order('published_at', { ascending: false })
-          .limit(5)
+        supabase.from('scouting_reports').select('*').eq('player_id', id).maybeSingle()
       ]);
 
       if (playerRes.error) throw playerRes.error;
@@ -128,7 +122,6 @@ export const PlayerProfile: React.FC = () => {
       setPlayer(playerData);
       setSkills(skillsRes.data || null);
       setReport(reportRes.data || null);
-      setInsights(insightsRes.data || []);
 
       // Load matches for the player based on their last name
       const lastName = (playerData.last_name || '').toLowerCase();
@@ -600,13 +593,7 @@ export const PlayerProfile: React.FC = () => {
               />
             )}
 
-            {/* News Tab */}
-            {activeTab === 'News' && (
-              <PlayerIntelligenceWidget
-                insights={insights}
-                onlyNews={true}
-              />
-            )}
+
 
             {/* Load Tab */}
             {activeTab === 'Load' && (

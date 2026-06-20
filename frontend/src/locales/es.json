@@ -9,7 +9,6 @@
     "valueScanner": "Escáner de Valor",
     "courtIndex": "Índice de Pista BSI",
     "admin": "Admin del Sistema",
-    "intelligenceTools": "HERRAMIENTAS DE INTELIGENCIA",
     "activeAccount": "Cuenta Activa",
     "accessGranted": "Acceso Concedido",
     "logout": "Cerrar Sesión",
@@ -488,30 +487,6 @@
       "button": "Hacerse Pro"
     }
   },
-  "newsPage": {
-    "loading": "Cargando Intelligence...",
-    "header": {
-      "badge": "Centro de Intelligence",
-      "title": "Informes",
-      "titleHighlight": "Tácticos.",
-      "subtitle": "Análisis profundos de partidos impulsados por redes neuronales. Sin relleno, solo datos tácticos puros y anomalías de física de superficie."
-    },
-    "empty": {
-      "title": "Aún no hay artículos publicados",
-      "subtitle": "Vuelve pronto para informes tácticos."
-    },
-    "readMore": "Leer Análisis"
-  },
-  "articlePage": {
-    "loading": "Cargando Artículo...",
-    "notFound": "404 - INTELLIGENCE NO ENCONTRADA",
-    "backButton": "VOLVER A INTELLIGENCE",
-    "cta": {
-      "title": "¿Quieres datos en tiempo real?",
-      "subtitle": "Este análisis fue generado usando Neural Scout Pro.",
-      "button": "Lanzar Value Scanner"
-    }
-  },
   "premium": {
     "locked": "Función Bloqueada",
     "unlockButton": "Desbloquear {{tier}}",
@@ -689,11 +664,6 @@
     "comebackDesc": "Mide la capacidad del jugador para salvar una victoria después de perder el primer set, calculado a partir de su historial de partidos recientes."
   },
   "intelligence": {
-    "briefings": "Informes de Inteligencia IA",
-    "viewHub": "Ver Centro",
-    "noAlerts": "No se encontraron alertas de inteligencia recientes. El jugador parece física y mentalmente estable.",
-    "keyTakeaways": "Conclusiones clave:",
-    "readOriginal": "Leer fuente original",
     "scoutingDossier": "Dossier de Scouting y Templanza",
     "updated": "Actualizado",
     "coreStrengths": "Fortalezas Clave",

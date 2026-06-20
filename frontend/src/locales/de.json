@@ -9,7 +9,6 @@
     "valueScanner": "Value Scanner",
     "courtIndex": "BSI Court Index",
     "admin": "System Admin",
-    "intelligenceTools": "INTELLIGENCE TOOLS",
     "activeAccount": "Aktives Konto",
     "accessGranted": "Zugriff Erteilt",
     "logout": "Sitzung beenden",
@@ -488,30 +487,6 @@
       "button": "Upgrade auf Pro"
     }
   },
-  "newsPage": {
-    "loading": "Lade Intelligence...",
-    "header": {
-      "badge": "Intelligence Hub",
-      "title": "Taktische",
-      "titleHighlight": "Briefings.",
-      "subtitle": "Tiefgehende Match-Analysen durch neuronale Netze. Keine Füllstoffe, nur pure taktische Daten und Oberflächen-Physik-Anomalien."
-    },
-    "empty": {
-      "title": "Noch keine Artikel veröffentlicht",
-      "subtitle": "Schau bald wieder vorbei für taktische Briefings."
-    },
-    "readMore": "Analyse lesen"
-  },
-  "articlePage": {
-    "loading": "Lade Artikel...",
-    "notFound": "404 - INTELLIGENCE NICHT GEFUNDEN",
-    "backButton": "ZURÜCK ZU INTELLIGENCE",
-    "cta": {
-      "title": "Echtzeit-Daten gewünscht?",
-      "subtitle": "Diese Analyse wurde mit Neural Scout Pro erstellt.",
-      "button": "Value Scanner starten"
-    }
-  },
   "premium": {
     "locked": "Gesperrte Funktion",
     "unlockButton": "{{tier}} freischalten",
@@ -689,11 +664,6 @@
     "comebackDesc": "Misst die Fähigkeit des Spielers, nach dem Verlust des ersten Satzes das Match noch zu drehen, basierend auf den jüngsten Spielergebnissen."
   },
   "intelligence": {
-    "briefings": "KI-Analysen & Berichte",
-    "viewHub": "Hub ansehen",
-    "noAlerts": "Keine aktuellen Warnungen gefunden. Der Spieler scheint physisch und mental stabil zu sein.",
-    "keyTakeaways": "Wichtigste Erkenntnisse:",
-    "readOriginal": "Originalquelle lesen",
     "scoutingDossier": "Scouting & Composure Dossier",
     "updated": "Aktualisiert",
     "coreStrengths": "Kernstärken",
