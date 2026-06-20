@@ -33,7 +33,7 @@ import { MemberCardModal } from './components/MemberCardModal';
 import { AuthSuccessOverlay } from './components/AuthSuccessOverlay';
 
 import {
-  Lock, Crown, X, FileText, Scale, Cpu, Cookie, Info
+  Lock, Crown, X, FileText, Scale, Cpu, Cookie, Info, ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -257,11 +257,44 @@ function UserProtectedRoute({ children, onLoginRequired }: { children: React.Rea
 }
 
 function MobileHeader() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle'];
+    const isMainTab = mainTabs.includes(location.pathname);
+
+    const getPageTitle = (path: string) => {
+        if (path.startsWith('/court/')) return 'Court Profile';
+        if (path === '/courts') return 'Court Index';
+        if (path === '/pricing') return 'Membership';
+        if (path === '/support') return 'Support';
+        if (path === '/watchlist') return 'Watchlist';
+        if (path === '/admin') return 'Admin';
+        if (path === '/performance') return 'Performance';
+        return 'Details';
+    };
+
     return (
-        <header className="md:hidden fixed top-0 left-0 right-0 z-40 ios-nav-bar pt-[env(safe-area-inset-top,0px)]">
-            <Link to="/scout" className="relative z-10">
-                <BrandLogo className="h-6 text-white" />
-            </Link>
+        <header className="md:hidden fixed top-0 left-0 right-0 z-40 ios-nav-bar pt-[env(safe-area-inset-top,0px)] px-4 flex items-center justify-between">
+            {!isMainTab ? (
+                <>
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="flex items-center gap-1 text-tennis-lime font-bold text-sm focus:outline-none h-full active:opacity-70 transition-opacity"
+                    >
+                        <ChevronLeft size={20} />
+                        <span>Back</span>
+                    </button>
+                    <span className="text-sm font-black uppercase tracking-widest text-white absolute left-1/2 -translate-x-1/2">
+                        {getPageTitle(location.pathname)}
+                    </span>
+                    <div className="w-12" />
+                </>
+            ) : (
+                <Link to="/scout" className="flex items-center">
+                    <BrandLogo className="h-6 text-white" />
+                </Link>
+            )}
         </header>
     );
 }
@@ -389,6 +422,7 @@ function AppContent() {
   };
 
   const isLandingPage = location.pathname === '/';
+  const isPlayerProfile = location.pathname.startsWith('/player/');
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0f1115] text-white">
@@ -404,9 +438,9 @@ function AppContent() {
         </div>
       )}
 
-      {!isLandingPage && <MobileHeader />}
+      {!isLandingPage && !isPlayerProfile && <MobileHeader />}
       
-      <main className={`flex-grow max-w-7xl mx-auto w-full overflow-x-hidden ${isLandingPage ? '' : 'pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-[5rem] px-4 md:px-8'}`}>
+      <main className={`flex-grow max-w-7xl mx-auto w-full overflow-x-hidden ${isLandingPage ? '' : isPlayerProfile ? 'pt-0 md:pt-[5rem] px-4 md:px-8' : 'pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-[5rem] px-4 md:px-8'}`}>
         <Routes>
           <Route path="/" element={
              user ? <Navigate to="/scout" replace /> : (

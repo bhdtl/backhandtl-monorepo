@@ -20,7 +20,7 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
 
   return (
     <motion.div
-      className="sticky top-0 z-30 flex items-center justify-between bg-[#0f1115]/90 backdrop-blur-xl border-b border-white/5 px-4 py-3"
+      className="sticky top-0 z-30 flex items-center justify-between bg-[#0f1115]/90 backdrop-blur-xl border-b border-white/5 px-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
