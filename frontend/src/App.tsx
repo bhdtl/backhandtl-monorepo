@@ -29,7 +29,6 @@ import { MobileTabBar } from './components/MobileTabBar';
 import { BrandLogo } from './components/BrandLogo';
 import { SplashScreen } from './components/SplashScreen';
 import { MemberCardModal } from './components/MemberCardModal';
-import { PushOnboardingBanner } from './components/PushOnboardingBanner';
 // 🚀 SOTA UPGRADE: Das neue Auth Success Overlay importieren
 import { AuthSuccessOverlay } from './components/AuthSuccessOverlay';
 
@@ -484,8 +483,6 @@ function AppContent() {
       </AnimatePresence>
 
       <MemberCardModal isOpen={showMemberCard} onClose={() => setShowMemberCard(false)} />
-      
-      <PushOnboardingBanner />
       
       {/* 🚀 SOTA UPGRADE: Das magische Overlay für die E-Mail-Bestätigung */}
       <AuthSuccessOverlay />
