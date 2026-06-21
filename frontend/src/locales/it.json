@@ -5,6 +5,10 @@
     "ogTitle": "BackhandTL - Intelligenza del Tennis",
     "ogDescription": "Analisi del tennis guidata dall'IA e scansione del valore."
   },
+  "common": {
+    "nextStep": "Passo successivo",
+    "getStarted": "Inizia"
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "playerDatabase": "Database Giocatori",
@@ -161,6 +165,11 @@
     }
   },
   "matchup": {
+    "header": {
+      "badge": "SIMULATORE IA",
+      "title": "Matchup Analyzer",
+      "subtitle": "Simula scontri con oltre 10.000 iterazioni neurali e scopri vantaggi tattici."
+    },
     "analyzeButton": "Analizza Match",
     "loading": "Consulto IA...",
     "proFeature": "Funzione Pro",
@@ -260,6 +269,16 @@
     "noMatches": {
       "title": "Nessuna partita trovata",
       "subtitle": "Prova a selezionare un'altra data."
+    },
+    "tutorial": {
+      "step1Title": "Cos'è il Value?",
+      "step1Desc": "Immagina il lancio di una moneta. Testa ha il 50% di probabilità (quota equa 2.00). Se ti viene offerta una quota di 2.20, quel guadagno extra è il 'Value'. Troviamo queste quote errate.",
+      "step2Title": "True Fair & Edge",
+      "step2Desc": "La nostra IA calcola la probabilità reale (la quota 'True Fair'). Quando la quota del bookmaker è superiore alla nostra quota True Fair, hai un vantaggio matematico ('Edge').",
+      "step3Title": "Puntate & Unità",
+      "step3Desc": "Non rischiare tutto il tuo budget! Consigliamo una puntata precisa in 'Unità' (es. 1.5u o 3u) in base al vantaggio. 1 Unità equivale solitamente all'1% del tuo budget totale.",
+      "step4Title": "Mercati Alternativi",
+      "step4Desc": "Il valore è spesso nascosto oltre il semplice vincitore. Scansioniamo Handicap Set, Totale Game e altro. Clicca su qualsiasi scheda per vedere i dettagli o scommettere."
     }
   },
   "performance": {

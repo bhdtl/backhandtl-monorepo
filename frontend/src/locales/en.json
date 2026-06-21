@@ -5,6 +5,10 @@
     "ogTitle": "BackhandTL - Tennis Intelligence",
     "ogDescription": "AI-driven tennis analysis and value scanning."
   },
+  "common": {
+    "nextStep": "Next Step",
+    "getStarted": "Get Started"
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "playerDatabase": "Player Database",
@@ -165,6 +169,11 @@
     }
   },
   "matchup": {
+    "header": {
+      "badge": "AI SIMULATOR",
+      "title": "Matchup Analyzer",
+      "subtitle": "Simulate matchups with 10,000+ neural iterations and discover structural matchups."
+    },
     "analyzeButton": "Analyze Matchup",
     "loading": "Consulting AI...",
     "proFeature": "Pro Feature",
@@ -272,6 +281,16 @@
     "noMatches": {
       "title": "No Matches Found",
       "subtitle": "Try selecting another date."
+    },
+    "tutorial": {
+      "step1Title": "What is Value?",
+      "step1Desc": "Imagine a coin toss. Heads has a 50% chance, meaning a fair reward is 2.00. If someone offers you 2.20, that extra reward is 'Value'. We find these mispriced bets for you.",
+      "step2Title": "True Fair & Edge",
+      "step2Desc": "Our AI analyzes millions of data points to calculate the real win probability (the 'True Fair' odds). When bookmaker odds are higher than our True Fair odds, you have a mathematical 'Edge'.",
+      "step3Title": "Staking & Units",
+      "step3Desc": "Never risk your whole bankroll! We recommend a precise stake in 'Units' (e.g. 1.5u or 3u) based on the edge size. 1 Unit is typically 1% of your total betting bankroll.",
+      "step4Title": "Alternative Markets",
+      "step4Desc": "Value is often hidden beyond simple match wins. We scan Set Handicaps, Game Totals, and Set Scores. Click any card to see details or link directly to place it on NEO.bet."
     }
   },
   "performance": {

@@ -243,19 +243,24 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
 
   const steps = [
       {
-          title: t('valueScanner.tutorial.step1Title', 'Value Stream'),
-          desc: t('valueScanner.tutorial.step1Desc', "This feed finds mathematical value and edges. We compare 'Market Odds' against our AI's 'Fair Odds'."),
-          icon: <Activity size={28} className="text-tennis-lime" />
+          title: t('valueScanner.tutorial.step1Title', 'What is Value?'),
+          desc: t('valueScanner.tutorial.step1Desc', "Imagine a coin toss. Heads has a 50% chance, meaning a fair reward is 2.00. If someone offers you 2.20, that extra reward is 'Value'. We find these mispriced bets for you."),
+          icon: <TrendingUp size={28} className="text-tennis-lime" />
       },
       {
-          title: t('valueScanner.tutorial.step2Title', 'NEO.bet Value'),
-          desc: t('valueScanner.tutorial.step2Desc', "We calculate mathematical value edges on NEO.bet odds and provide direct links to place your bets instantly."),
-          icon: <BookOpen size={28} className="text-purple-400" />
+          title: t('valueScanner.tutorial.step2Title', 'True Fair & Edge'),
+          desc: t('valueScanner.tutorial.step2Desc', "Our AI analyzes millions of data points to calculate the real win probability (the 'True Fair' odds). When bookmaker odds are higher than our True Fair odds, you have a mathematical 'Edge'."),
+          icon: <Target size={28} className="text-blue-400" />
       },
       {
-          title: t('valueScanner.tutorial.step3Title', 'Deep Play Analytics'),
-          desc: t('valueScanner.tutorial.step3Desc', "We don't just predict the winner. We analyze Set Betting (2:0), Handicaps, and Game Totals to find hidden edges."),
-          icon: <Layers size={28} className="text-blue-400" />
+          title: t('valueScanner.tutorial.step3Title', 'Staking & Units'),
+          desc: t('valueScanner.tutorial.step3Desc', "Never risk your whole bankroll! We recommend a precise stake in 'Units' (e.g. 1.5u or 3u) based on the edge size. 1 Unit is typically 1% of your total betting bankroll."),
+          icon: <Wallet size={28} className="text-purple-400" />
+      },
+      {
+          title: t('valueScanner.tutorial.step4Title', 'Alternative Markets'),
+          desc: t('valueScanner.tutorial.step4Desc', "Value is often hidden beyond simple match wins. We scan Set Handicaps, Game Totals, and Set Scores. Click any card to see details or link directly to place it on NEO.bet."),
+          icon: <Layers size={28} className="text-yellow-400" />
       }
   ];
 
@@ -265,12 +270,12 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
   };
 
   return (
-      <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer" 
+            className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
             onClick={onClose}
           />
           <motion.div 
@@ -288,38 +293,38 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
             animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
             exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="relative bg-[#1c1c1e] border-t sm:border border-white/[0.08] w-full max-w-md rounded-t-[20px] sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl flex flex-col items-center text-center overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transform-gpu z-10"
+            className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl flex flex-col items-center text-center overflow-hidden z-10"
           >
               {/* iOS Sheet Drag Indicator */}
               <div 
                 onPointerDown={(e) => dragControls.start(e)}
-                className="w-full flex justify-center py-2 -mt-2 mb-4 cursor-grab active:cursor-grabbing select-none touch-none"
+                className="w-full flex justify-center py-2 -mt-4 mb-2 cursor-grab active:cursor-grabbing select-none touch-none"
               >
-                  <div className="w-12 h-1.5 bg-white/20 rounded-full hover:bg-white/30 transition-colors" />
+                  <div className="w-10 h-1 bg-white/10 rounded-full" />
               </div>
 
-              <div className="flex gap-1.5 mb-6 justify-center">
+              <div className="flex gap-2.5 mb-8">
                   {steps.map((_, i) => (
-                      <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'bg-tennis-lime w-6' : 'bg-white/20 w-1.5'}`} />
+                      <div key={i} className={`h-1.5 w-10 rounded-full transition-all duration-300 ${i <= step ? 'bg-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)]' : 'bg-white/10'}`} />
                   ))}
               </div>
-              <div className="h-16 w-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-5 shadow-sm">
+              <div className="h-16 w-16 rounded-2xl bg-black/35 border border-white/5 flex items-center justify-center mb-6 shadow-inner animate-in zoom-in duration-300" key={step}>
                   {steps[step].icon}
               </div>
 
-              <h3 className="text-xl font-bold text-white mb-2" key={`t-${step}`}>
+              <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 animate-in fade-in slide-in-from-bottom-2 duration-300" key={`t-${step}`}>
                   {steps[step].title}
               </h3>
 
-              <p className="text-gray-400 text-[13px] font-normal leading-relaxed mb-8 h-14 px-2" key={`d-${step}`}>
+              <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 h-24 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75" key={`d-${step}`}>
                   {steps[step].desc}
               </p>
 
               <button 
                   onClick={nextStep} 
-                  className="w-full py-3 bg-tennis-lime text-black font-semibold text-[13px] rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-md focus:outline-none"
+                  className="w-full py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
               >
-                  {step < steps.length - 1 ? t('common.next', 'Next') : t('valueScanner.tutorial.start', 'Start Scanning')}
+                  {step < steps.length - 1 ? t('common.nextStep', 'Next Step') : t('common.getStarted', 'Get Started')}
               </button>
           </motion.div>
       </div>
@@ -754,7 +759,7 @@ export function ValueScanner() {
             
             <div className="flex items-center gap-2">
               <button
-                  onClick={() => setIsBriefingOpen(true)}
+                  onClick={() => setShowTutorial(true)}
                   className="flex items-center justify-center w-11 h-11 bg-white/[0.04] rounded-full border border-white/[0.06] hover:bg-white/[0.08] transition-colors text-gray-400 hover:text-white shadow-sm"
                   title="How it works"
               >

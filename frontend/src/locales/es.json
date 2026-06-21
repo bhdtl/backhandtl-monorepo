@@ -5,6 +5,10 @@
     "ogTitle": "BackhandTL - Inteligencia de Tenis",
     "ogDescription": "Análisis de tenis impulsado por IA y escaneo de valor."
   },
+  "common": {
+    "nextStep": "Siguiente paso",
+    "getStarted": "Empezar"
+  },
   "sidebar": {
     "dashboard": "Tablero",
     "playerDatabase": "Base de Datos",
@@ -164,6 +168,11 @@
     }
   },
   "matchup": {
+    "header": {
+      "badge": "SIMULADOR IA",
+      "title": "Matchup Analyzer",
+      "subtitle": "Simula enfrentamientos con más de 10,000 iteraciones neuronales y descubre ventajas tácticas."
+    },
     "analyzeButton": "Analizar Partido",
     "loading": "Consultando IA...",
     "proFeature": "Función Pro",
@@ -263,6 +272,16 @@
     "noMatches": {
       "title": "No se encontraron partidos",
       "subtitle": "Intenta seleccionar otra fecha."
+    },
+    "tutorial": {
+      "step1Title": "¿Qué es el Valor?",
+      "step1Desc": "Imagina lanzar una moneda. Cara tiene un 50% de probabilidad (cuota justa 2.00). Si alguien te ofrece 2.20, esa recompensa extra es 'Valor'. Encontramos estas cuotas incorrectas.",
+      "step2Title": "True Fair & Edge",
+      "step2Desc": "Nuestra IA analiza millones de datos para calcular la probabilidad real (la cuota 'True Fair'). Si la cuota de la casa de apuestas es mayor que nuestra cuota justa, tienes una ventaja ('Edge').",
+      "step3Title": "Unidades de Apuesta",
+      "step3Desc": "¡No arriesgues todo tu dinero! Recomendamos una apuesta precisa en 'Unidades' (ej. 1.5u o 3u) según la ventaja. 1 Unidad suele ser el 1% de tu presupuesto total.",
+      "step4Title": "Mercados Alternativos",
+      "step4Desc": "El valor suele estar oculto más allá de quién gana. Escaneamos Hándicaps de Sets, Totales de Juegos y más. Haz clic en cualquier tarjeta para ver detalles o apostar directamente."
     }
   },
   "performance": {

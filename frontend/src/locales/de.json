@@ -5,6 +5,10 @@
     "ogTitle": "BackhandTL - Tennis-Intelligenz",
     "ogDescription": "KI-gestützte Tennis-Analysen und Value Scanning."
   },
+  "common": {
+    "nextStep": "Nächster Schritt",
+    "getStarted": "Loslegen"
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "playerDatabase": "Spielerdatenbank",
@@ -165,6 +169,11 @@
     }
   },
   "matchup": {
+    "header": {
+      "badge": "KI-SIMULATOR",
+      "title": "Matchup Analyzer",
+      "subtitle": "Simuliere Matches mit 10.000+ neuronalen Iterationen und entdecke taktische Vorteile."
+    },
     "analyzeButton": "Match analysieren",
     "loading": "Frage KI...",
     "proFeature": "Pro-Funktion",
@@ -272,6 +281,16 @@
     "noMatches": {
       "title": "Keine Matches gefunden",
       "subtitle": "Versuche ein anderes Datum auszuwählen."
+    },
+    "tutorial": {
+      "step1Title": "Was ist Value?",
+      "step1Desc": "Stell dir einen Münzwurf vor. Kopf hat eine 50%-Chance, die faire Quote wäre 2,00. Bietet dir jemand eine 2,20, ist dieser Zusatzgewinn 'Value'. Wir finden solche fehlerhaften Quoten.",
+      "step2Title": "True Fair & Edge",
+      "step2Desc": "Unsere KI berechnet die echte Gewinnwahrscheinlichkeit (die 'True Fair'-Quote). Liegt die Quote des Buchmachers über unserer True Fair Quote, hast du einen mathematischen Vorteil ('Edge').",
+      "step3Title": "Einsatz & Units",
+      "step3Desc": "Riskiere nie dein ganzes Geld! Wir empfehlen je nach Vorteil eine genaue Einheit ('Units', z.B. 1,5u oder 3u). 1 Unit entspricht üblicherweise 1% deines gesamten Budgets.",
+      "step4Title": "Alternative Märkte",
+      "step4Desc": "Mathematischer Vorteil liegt oft nicht beim Gesamtsieger. Wir scannen Satz-Handicaps, Satz-Genaue Ergebnisse und Über/Unter-Spiele. Klicke auf die Karte für direkte Details."
     }
   },
   "performance": {

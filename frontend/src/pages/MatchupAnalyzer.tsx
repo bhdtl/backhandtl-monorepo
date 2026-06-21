@@ -1462,15 +1462,32 @@ export function MatchupAnalyzer() {
           <TacticalBriefingModal isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
         )}
       </AnimatePresence>
-
-      {/* HELP BUTTON */}
-      <div className="fixed top-24 right-4 lg:right-8 z-50">
-          <button 
-            onClick={() => setShowTutorial(true)} 
-            className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] backdrop-blur-md rounded-full border border-white/10 hover:border-tennis-lime transition-all text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-white shadow-xl hover:shadow-[0_0_15px_rgba(132,204,22,0.15)] group"
-          >
-              <HelpCircle size={14} className="group-hover:text-tennis-lime transition-colors"/> Guide
-          </button>
+      <div className="mt-8 md:mt-12 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5 text-tennis-lime font-black text-xs uppercase tracking-widest mb-2.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+              </span>
+              <span>{t('matchup.header.badge', 'AI SIMULATOR')}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                  onClick={() => setShowTutorial(true)}
+                  className="flex items-center justify-center w-11 h-11 bg-white/[0.04] rounded-full border border-white/[0.06] hover:bg-white/[0.08] transition-colors text-gray-400 hover:text-white shadow-sm"
+                  title="How it works"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+              <div className="flex-1">
+                <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">{t('matchup.header.title', 'Matchup Analyzer')}</h1>
+                <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl pl-1">{t('matchup.header.subtitle', 'Simulate matchups with 10,000+ neural iterations and discover structural matchups.')}</p>
+              </div>
+          </div>
       </div>
 
       {/* 🚀 NEU: THE VAULT / SCANNER TAB SWITCHER */}

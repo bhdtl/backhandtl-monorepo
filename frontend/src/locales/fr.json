@@ -5,6 +5,10 @@
     "ogTitle": "BackhandTL - Intelligence du Tennis",
     "ogDescription": "Analyse de tennis propulsée par l'IA et scan de valeur."
   },
+  "common": {
+    "nextStep": "Étape suivante",
+    "getStarted": "Démarrer"
+  },
   "sidebar": {
     "dashboard": "Tableau de bord",
     "playerDatabase": "Base Joueurs",
@@ -164,6 +168,11 @@
     }
   },
   "matchup": {
+    "header": {
+      "badge": "SIMULATEUR IA",
+      "title": "Matchup Analyzer",
+      "subtitle": "Simulez des confrontations avec plus de 10 000 itérations neuronales et découvrez des avantages tactiques."
+    },
     "analyzeButton": "Analyser le Match",
     "loading": "Consultation IA...",
     "proFeature": "Fonctionnalité Pro",
@@ -263,6 +272,16 @@
     "noMatches": {
       "title": "Aucun match trouvé",
       "subtitle": "Essayez de sélectionner une autre date."
+    },
+    "tutorial": {
+      "step1Title": "Qu'est-ce que la Value?",
+      "step1Desc": "Imaginez un lancer de pièce. Face a 50% de chance (cote équitable de 2,00). Si quelqu'un vous propose 2,20, ce gain supplémentaire est de la 'Value'. Nous trouvons ces cotes mal ajustées.",
+      "step2Title": "True Fair & Edge",
+      "step2Desc": "Notre IA calcule la probabilité réelle (la cote 'True Fair'). Lorsque la cote du bookmaker est supérieure à notre cote True Fair, vous bénéficiez d'un avantage mathématique ('Edge').",
+      "step3Title": "Mises & Unités",
+      "step3Desc": "Ne risquez pas tout votre capital! Nous recommandons une mise précise en 'Unités' (ex. 1,5u ou 3u) selon l'avantage. 1 Unité représente généralement 1% de votre budget total.",
+      "step4Title": "Marchés Alternatifs",
+      "step4Desc": "La valeur est souvent cachée au-delà du simple vainqueur. Nous scannons les Handicaps de Sets, les Totaux de Jeux, etc. Cliquez sur une carte pour voir les détails ou parier."
     }
   },
   "performance": {
