@@ -380,6 +380,17 @@
     }
   },
   "courtDatabase": {
+    "header": {
+      "badge": "Índice de Pistas"
+    },
+    "tutorial": {
+      "step1Title": "Clasificación BSI (Velocidad)",
+      "step1Desc": "La clasificación BSI mide qué tan rápida es una pista de tenis, desde 1.0 (tierra batida muy lenta) hasta 10.0 (césped extremadamente rápido). Las pistas lentas favorecen los peloteos largos.",
+      "step2Title": "Nivel de Bote",
+      "step2Desc": "Diferentes pistas hacen que la pelota bote más alto o más bajo. La tierra batida produce botes altos y lentos. El césped produce botes bajos y rápidos que son más difíciles de golpear.",
+      "step3Title": "Ventaja Táctica",
+      "step3Desc": "Un jugador con un ELO alto en tierra batida puede perder en césped contra un jugador de menor rango que destaca en pistas rápidas. Simulamos estas variables específicas de superficie."
+    },
     "loading": "Cargando Base de Datos de Pistas...",
     "title": "Base de Datos BSI",
     "subtitle": "Índice oficial de velocidad de pista y condiciones.",

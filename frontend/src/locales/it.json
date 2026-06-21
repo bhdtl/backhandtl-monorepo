@@ -377,6 +377,17 @@
     }
   },
   "courtDatabase": {
+    "header": {
+      "badge": "Indice dei Campi"
+    },
+    "tutorial": {
+      "step1Title": "Valutazione BSI (Velocità)",
+      "step1Desc": "L'indice BSI misura la velocità di un campo da tennis, da 1.0 (terra battuta molto lenta) a 10.0 (erba estremamente rapida). I campi lenti favoriscono gli scambi lunghi.",
+      "step2Title": "Livello di Rimbalzo",
+      "step2Desc": "I diversi campi fanno rimbalzare la palla più o meno alta. La terra battuta produce rimbalzi alti e lenti. L'erba produce rimbalzi bassi e veloci, difficili da colpire.",
+      "step3Title": "Vantaggio Tattico",
+      "step3Desc": "Un giocatore con un ELO alto sulla terra battuta può perdere sull'erba contro un giocatore con classifica inferiore che eccelle sui campi veloci. Simuliamo queste variabili."
+    },
     "loading": "Caricamento Database Campi...",
     "title": "Database Campi BSI",
     "subtitle": "Indice ufficiale velocità campi e condizioni.",

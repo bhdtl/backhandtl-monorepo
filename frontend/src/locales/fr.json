@@ -380,6 +380,17 @@
     }
   },
   "courtDatabase": {
+    "header": {
+      "badge": "Index des Courts"
+    },
+    "tutorial": {
+      "step1Title": "BSI Rating (Vitesse)",
+      "step1Desc": "L'indice BSI mesure la vitesse d'un court de tennis, de 1.0 (terre battue très lente) à 10.0 (gazon très rapide). Les courts lents favorisent les longs échanges.",
+      "step2Title": "Niveau de Rebond",
+      "step2Desc": "Les différents courts font rebondir la balle plus ou moins haut. La terre battue produit des rebonds hauts et lents. Le gazon produit des rebonds bas et rapides, difficiles à frapper.",
+      "step3Title": "Avantage Tactique",
+      "step3Desc": "Un joueur avec un ELO élevé sur terre battue peut perdre sur gazon contre un joueur moins bien classé qui excelle sur courts rapides. Nous simulerons ces variables spécifiques."
+    },
     "loading": "Chargement de la base de données...",
     "title": "Base de Données BSI",
     "subtitle": "Indice officiel de vitesse de court et conditions.",

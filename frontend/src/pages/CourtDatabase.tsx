@@ -1,13 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Gauge, MapPin, Search, ArrowUpDown, Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { 
+  Gauge, MapPin, Search, ArrowUpDown, Filter, ChevronDown, ChevronRight,
+  X, HelpCircle, TrendingUp, BarChart3
+} from 'lucide-react';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { trackEvent } from '../lib/analytics';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { useAccess } from '../hooks/useAccess';
 import { PremiumLock } from '../components/PremiumLock';
+import { motion, useDragControls, AnimatePresence } from 'framer-motion';
 
 interface Tournament {
   id: string;
@@ -17,6 +21,95 @@ interface Tournament {
   bsi_rating: number;
   bounce: 'Low' | 'Medium' | 'High';
   notes?: string;
+}
+
+function CourtDatabaseBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const [step, setStep] = useState(0);
+  const dragControls = useDragControls();
+  const { t } = useTranslation();
+  
+  useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
+
+  const steps = [
+      {
+          title: t('courtDatabase.tutorial.step1Title', 'BSI Rating (Speed)'),
+          desc: t('courtDatabase.tutorial.step1Desc', "BSI rating measures how fast a tennis court plays, from 1.0 (slow clay) to 10.0 (fast grass). Slow courts favor long rallies, fast courts favor servers."),
+          icon: <Gauge size={28} className="text-tennis-lime" />
+      },
+      {
+          title: t('courtDatabase.tutorial.step2Title', 'Bounce Level'),
+          desc: t('courtDatabase.tutorial.step2Desc', "Different surfaces bounce balls higher or lower. Clay produces high, slow bounces, whereas grass produces low, fast, skidding bounces."),
+          icon: <TrendingUp size={28} className="text-blue-400" />
+      },
+      {
+          title: t('courtDatabase.tutorial.step3Title', 'Tactical Advantage'),
+          desc: t('courtDatabase.tutorial.step3Desc', "A top player on Clay can lose on Grass against a lower-ranked player who loves fast courts. We simulate these surface-specific ELO variables."),
+          icon: <BarChart3 size={28} className="text-purple-400" />
+      }
+  ];
+
+  const nextStep = () => {
+      if (step < steps.length - 1) setStep(step + 1);
+      else onClose();
+  };
+
+  return (
+      <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6">
+          <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
+              onClick={onClose}
+          />
+          <motion.div 
+              drag={window.innerWidth < 768 ? "y" : false}
+              dragControls={dragControls}
+              dragListener={false}
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0.1, bottom: 0.8 }}
+              onDragEnd={(_e, info) => {
+                  if (info.offset.y > 150) {
+                      onClose();
+                  }
+              }}
+              initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+              animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+              exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl overflow-hidden flex flex-col items-center text-center z-10"
+          >
+              <div 
+                  onPointerDown={(e) => dragControls.start(e)}
+                  className="w-full flex justify-center py-2 -mt-4 mb-2 cursor-grab active:cursor-grabbing select-none touch-none"
+              >
+                  <div className="w-10 h-1 bg-white/10 rounded-full" />
+              </div>
+
+              <div className="flex gap-2.5 mb-8">
+                  {steps.map((_, i) => (
+                      <div key={i} className={`h-1.5 w-10 rounded-full transition-all duration-300 ${i <= step ? 'bg-tennis-lime shadow-[0_0_8px_rgba(132,204,22,0.3)]' : 'bg-white/10'}`} />
+                  ))}
+              </div>
+
+              <div className="h-16 w-16 rounded-2xl bg-black/35 border border-white/5 flex items-center justify-center mb-6 shadow-inner animate-in zoom-in duration-300" key={step}>
+                  {steps[step].icon}
+              </div>
+
+              <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 animate-in fade-in slide-in-from-bottom-2 duration-300" key={`t-${step}`}>{steps[step].title}</h3>
+              <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 h-24 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75" key={`d-${step}`}>
+                  {steps[step].desc}
+              </p>
+
+              <button 
+                  onClick={nextStep} 
+                  className="w-full py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
+              >
+                  {step < steps.length - 1 ? t('common.nextStep', 'Next Step') : t('common.getStarted', 'Get Started')}
+              </button>
+          </motion.div>
+      </div>
+  );
 }
 
 export function CourtDatabase() {
@@ -29,6 +122,7 @@ export function CourtDatabase() {
   const [searchTerm, setSearchTerm] = useState('');
   const [surfaceFilter, setSurfaceFilter] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // SOTA TELEMETRY: Track Intent & Paywall hits on mount
   useEffect(() => {
@@ -148,17 +242,40 @@ export function CourtDatabase() {
     <div className="min-h-screen py-8 px-4 bg-[#0f1115]">
       <div className="max-w-7xl mx-auto">
         <ScrollToTop />
+        <AnimatePresence>
+          {showTutorial && (
+            <CourtDatabaseBriefing isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+          )}
+        </AnimatePresence>
 
         {/* HEADER SECTION */}
-        <div className="mb-8 md:mb-12">
-          <h1 className="text-3xl md:text-4xl font-black text-white flex items-center gap-3 mb-2 uppercase tracking-tight">
-            <Gauge className="text-tennis-lime" size={32} />
-            {t('courtDatabase.title')}
-          </h1>
-          <p className="text-gray-400 font-medium max-w-2xl text-sm md:text-base leading-relaxed">
-            {t('courtDatabase.subtitle')}
-          </p>
-        </div>
+        <div className="mt-8 md:mt-12 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-tennis-lime font-black text-xs uppercase tracking-widest mb-2.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+                </span>
+                <span>{t('courtDatabase.header.badge', 'COURT INDEX')}</span>
+               </div>
+               
+               <div className="flex items-center gap-2">
+                 <button
+                     onClick={() => setShowTutorial(true)}
+                     className="flex items-center justify-center w-11 h-11 bg-white/[0.04] rounded-full border border-white/[0.06] hover:bg-white/[0.08] transition-colors text-gray-400 hover:text-white shadow-sm"
+                     title="How it works"
+                 >
+                   <HelpCircle size={18} />
+                 </button>
+               </div>
+             </div>
+             <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+                 <div className="flex-1">
+                   <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">{t('courtDatabase.title')}</h1>
+                   <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl pl-1">{t('courtDatabase.subtitle')}</p>
+                 </div>
+             </div>
+         </div>
 
         <PremiumLock
           isLocked={!isElite}
@@ -168,7 +285,7 @@ export function CourtDatabase() {
           blurAmount="blur-lg"
         >
         {/* CONTROLS SECTION - Responsive Layout */}
-        <div className="bg-[#1a1d26] p-4 rounded-2xl border border-white/5 mb-6 flex flex-col lg:flex-row gap-4 shadow-2xl backdrop-blur-sm">
+        <div className="bg-[#1a1d26]/80 backdrop-blur-md p-4 rounded-2xl md:rounded-[2rem] border border-white/5 mb-6 flex flex-col lg:flex-row gap-4 shadow-2xl">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={20} />
             <input
@@ -176,38 +293,47 @@ export function CourtDatabase() {
               placeholder={t('courtDatabase.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#0f1115] text-white pl-12 pr-4 py-3.5 rounded-xl border border-white/5 focus:border-tennis-lime/50 focus:outline-none transition-all placeholder:text-gray-600 font-medium"
+              className="w-full bg-[#0f1115] text-white pl-12 pr-12 py-3.5 rounded-xl border border-white/5 focus:border-tennis-lime/50 focus:outline-none transition-all placeholder:text-gray-600 font-medium"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
             
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative w-full sm:w-auto">
-              <select
-                value={surfaceFilter}
-                onChange={(e) => handleSurfaceFilterChange(e.target.value)}
-                className="w-full sm:w-auto appearance-none bg-[#0f1115] text-white pl-10 pr-12 py-3.5 rounded-xl border border-white/5 focus:border-tennis-lime/50 focus:outline-none transition-all font-bold text-sm min-w-[160px] cursor-pointer hover:bg-white/5"
-              >
-                <option value="All">{t('courtDatabase.filters.allSurfaces')}</option>
-                <option value="Hard">{t('courtDatabase.filters.hard')}</option>
-                <option value="Clay">{t('courtDatabase.filters.clay')}</option>
-                <option value="Grass">{t('courtDatabase.filters.grass')}</option>
-              </select>
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+            <div className="flex bg-black/40 p-1 rounded-xl md:rounded-2xl border border-white/5 w-full sm:w-auto">
+              {['All', 'Hard', 'Clay', 'Grass'].map((surf) => (
+                <button
+                  key={surf}
+                  onClick={() => handleSurfaceFilterChange(surf)}
+                  className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg md:rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                    surfaceFilter === surf
+                      ? 'bg-tennis-lime text-black shadow-lg'
+                      : 'text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {surf === 'All' ? t('courtDatabase.filters.allSurfaces', 'All') : t(`courtDatabase.filters.${surf.toLowerCase()}`, surf)}
+                </button>
+              ))}
             </div>
 
             <button
               onClick={handleSortChange}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0f1115] text-white px-6 py-3.5 rounded-xl border border-white/5 hover:border-tennis-lime/50 hover:bg-white/5 transition-all font-bold text-sm shadow-lg active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-black/40 text-white px-6 py-3.5 rounded-xl md:rounded-2xl border border-white/5 hover:border-tennis-lime/30 transition-all font-black text-xs uppercase tracking-widest active:scale-95 shadow-lg shadow-black/25"
             >
-              <ArrowUpDown size={16} className={`text-tennis-lime transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
+              <ArrowUpDown size={14} className={`text-tennis-lime transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
               {sortOrder === 'desc' ? t('courtDatabase.filters.fastestFirst') : t('courtDatabase.filters.slowestFirst')}
             </button>
           </div>
         </div>
 
         {/* CONTENT SECTION - HYBRID APPROACH */}
-        <div className="bg-[#1a1d26] rounded-2xl border border-white/5 overflow-hidden shadow-2xl relative min-h-[400px]">
+        <div className="bg-[#1a1d26]/80 backdrop-blur-md rounded-2xl md:rounded-[2rem] border border-white/5 overflow-hidden shadow-2xl relative min-h-[400px]">
             
           {/* 1. DESKTOP VIEW (Table) - Hidden on Mobile */}
           <div className="hidden md:block overflow-x-auto">

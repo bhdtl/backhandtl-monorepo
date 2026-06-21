@@ -389,6 +389,17 @@
     }
   },
   "courtDatabase": {
+    "header": {
+      "badge": "Court Index"
+    },
+    "tutorial": {
+      "step1Title": "BSI Rating (Speed)",
+      "step1Desc": "BSI rating measures how fast a tennis court plays, from 1.0 (extremely slow clay) to 10.0 (extremely fast grass). Slow courts favor long rallies, while fast courts favor powerful servers.",
+      "step2Title": "Bounce Level",
+      "step2Desc": "Different courts bounce balls higher or lower. Clay produces high, slow bounces. Grass produces low, fast, skidding bounces that are harder to hit and require quick reactions.",
+      "step3Title": "Tactical Advantage",
+      "step3Desc": "A player with a high ELO rating on Clay might lose on Grass against a lower-ranked player who excels on fast courts. We simulate these surface-specific match variables."
+    },
     "loading": "Loading Court Database...",
     "title": "BSI Court Database",
     "subtitle": "Official court speed index and tournament conditions.",

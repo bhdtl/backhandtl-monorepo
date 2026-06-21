@@ -389,6 +389,17 @@
     }
   },
   "courtDatabase": {
+    "header": {
+      "badge": "Court Index"
+    },
+    "tutorial": {
+      "step1Title": "BSI Rating (Tempo)",
+      "step1Desc": "Das BSI Rating misst das Spieltempo eines Platzes von 1,0 (sehr langsamer Sandplatz) bis 10,0 (extrem schneller Rasen). Langsame Plätze begünstigen Ausdauerspieler, schnelle Plätze starke Aufschläger.",
+      "step2Title": "Absprunghöhe",
+      "step2Desc": "Der Ball springt je nach Platzbeschaffenheit unterschiedlich hoch ab. Sand erzeugt einen hohen, langsamen Absprung. Rasen sorgt für flache, rutschende Bälle, die schwer zu retournieren sind.",
+      "step3Title": "Taktischer Vorteil",
+      "step3Desc": "Ein Top-Spieler auf Sand kann auf Rasen gegen einen schwächeren Spieler verlieren, der schnelle Plätze bevorzugt. Unsere KI simuliert diese belagspezifischen Vorteile bei jedem Matchup."
+    },
     "loading": "Lade Court-Datenbank...",
     "title": "BSI Court Datenbank",
     "subtitle": "Offizieller Court-Speed-Index und Turnierbedingungen.",
