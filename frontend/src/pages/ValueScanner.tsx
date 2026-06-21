@@ -12,7 +12,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { localizeBackendText } from '../utils/localizer';
 import { useAccess } from '../hooks/useAccess';
-import { motion, useDragControls } from 'framer-motion';
+import { motion, useDragControls, AnimatePresence } from 'framer-motion';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
 import { OddsMovementModal } from '../components/OddsMovementModal'; 
 import { LiveValueMatch, Player, ParsedBet } from '../types/tennis'; 
@@ -240,7 +240,6 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
   const dragControls = useDragControls();
 
   useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
-  if (!isOpen) return null;
 
   const steps = [
       {
@@ -267,7 +266,13 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
 
   return (
       <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer" 
+            onClick={onClose}
+          />
           <motion.div 
             drag={window.innerWidth < 768 ? "y" : false}
             dragControls={dragControls}
@@ -279,6 +284,10 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
                     onClose();
                 }
             }}
+            initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+            animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+            exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
             className="relative bg-[#1c1c1e] border-t sm:border border-white/[0.08] w-full max-w-md rounded-t-[20px] sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl flex flex-col items-center text-center overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transform-gpu z-10"
           >
               {/* iOS Sheet Drag Indicator */}
@@ -719,7 +728,11 @@ export function ValueScanner() {
   return (
     <div className="pb-32 w-full max-w-5xl mx-auto px-4 md:px-6 relative">
       <ScrollToTop />
-      <ValueScannerBriefing isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+      <AnimatePresence>
+        {showTutorial && (
+          <ValueScannerBriefing isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+        )}
+      </AnimatePresence>
 
       {selectedMatch && (
         <OddsMovementModal

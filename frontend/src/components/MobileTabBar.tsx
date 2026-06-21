@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'react-router-dom';
 import { Users, Zap, Swords, User as UserIcon, Radar, Target } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { AdminNotificationWidget } from './AdminNotificationWidget'; // 🚀 Import
 
 interface MobileTabBarProps {
@@ -35,9 +36,16 @@ export function MobileTabBar({ onMenuAction, isLoggedIn }: MobileTabBarProps) {
               <Link
                 key={tab.path}
                 to={tab.path}
-                className="ios-tab-item group"
+                className="ios-tab-item group relative"
               >
-                <div className={`ios-tab-content ${isActive ? 'ios-tab-active' : 'ios-tab-inactive'}`}>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-x-1.5 inset-y-1 bg-white/[0.06] border border-white/[0.04] rounded-xl z-0"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <div className={`ios-tab-content relative z-10 ${isActive ? 'ios-tab-active' : 'ios-tab-inactive'}`}>
                   <Icon
                     size={22}
                     strokeWidth={isActive ? 2.5 : 1.8}

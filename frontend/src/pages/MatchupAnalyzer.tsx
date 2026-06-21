@@ -44,7 +44,7 @@ import { useAccess } from '../hooks/useAccess';
 import { StyleAnalysis } from '../components/StyleAnalysis'; 
 import { BsiSpeedPerformance } from '../components/BsiSpeedPerformance'; 
 import { MarketOddsPerformance } from '../components/MarketOddsPerformance'; 
-import { motion, useDragControls } from 'framer-motion'; 
+import { motion, useDragControls, AnimatePresence } from 'framer-motion'; 
 
 // Trigger fresh Vercel deployment
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
@@ -165,19 +165,19 @@ function ProcessingIndicator({ isVisible, progress, statusText }: { isVisible: b
     if (!isVisible) return null;
 
     return (
-        <div className="w-full max-w-sm mx-auto mb-20 md:mb-24 animate-in fade-in duration-300 px-4">
-            <div className="flex justify-between items-center mb-2.5">
-                <span className="text-[11px] font-black uppercase tracking-widest text-tennis-lime animate-pulse">
+        <div className="w-full max-w-md mx-auto mb-20 md:mb-24 animate-in fade-in duration-300 px-6">
+            <div className="flex justify-between items-end mb-3">
+                <span className="text-xs md:text-[11px] font-black uppercase tracking-widest text-tennis-lime animate-pulse">
                     {statusText}
                 </span>
-                <span className="text-xs font-mono text-gray-400 font-bold">{Math.round(progress)}%</span>
+                <span className="text-sm font-mono text-white font-bold">{Math.round(progress)}%</span>
             </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full relative overflow-hidden border border-white/5">
+            <div className="h-3 w-full bg-[#15171e] rounded-full relative border border-white/10 overflow-hidden">
                 <motion.div
-                    className="absolute top-0 left-0 h-full bg-tennis-lime rounded-full shadow-[0_0_10px_rgba(132,204,22,0.4)]"
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-tennis-lime/80 to-tennis-lime rounded-full shadow-[0_0_15px_rgba(132,204,22,0.6)] transform-gpu"
                     initial={{ width: "0%" }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ type: "spring", stiffness: 60, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 45, damping: 12, mass: 0.8 }}
                 />
             </div>
         </div>
@@ -185,16 +185,26 @@ function ProcessingIndicator({ isVisible, progress, statusText }: { isVisible: b
 }
 
 // 2. ACCESS DENIED MODAL (APPLE SHEET STYLE)
-function AccessDeniedModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+function AccessDeniedModal({ onClose }: { onClose: () => void }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300">
-            <div className="absolute inset-0" onClick={onClose}></div>
-            <div className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-sm rounded-t-[2.5rem] md:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center">
-                {/* Grabber Bar for Mobile Sheet */}
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
+                onClick={onClose}
+            />
+            <motion.div 
+                initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+                animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+                exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-sm rounded-t-[2.5rem] md:rounded-[2rem] p-6 shadow-2xl overflow-hidden flex flex-col items-center text-center z-10"
+            >
                 <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-5 md:hidden" />
 
                 <div className="w-14 h-14 bg-black/35 rounded-full flex items-center justify-center mb-4.5 border border-white/5 shadow-inner">
@@ -219,7 +229,7 @@ function AccessDeniedModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                         {t('common.cancel', 'Cancel')}
                     </button>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
@@ -230,8 +240,6 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
     const dragControls = useDragControls();
     
     useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
-
-    if (!isOpen) return null;
 
     const steps = [
         {
@@ -257,8 +265,14 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
     };
 
     return (
-        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300">
-            <div className="absolute inset-0" onClick={onClose}></div>
+        <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
+                onClick={onClose}
+            />
             <motion.div 
                 drag={window.innerWidth < 768 ? "y" : false}
                 dragControls={dragControls}
@@ -270,9 +284,12 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                         onClose();
                     }
                 }}
-                className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center z-10"
+                initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+                animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+                exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl overflow-hidden flex flex-col items-center text-center z-10"
             >
-                {/* Grabber Bar for Mobile Sheet */}
                 <div 
                     onPointerDown={(e) => dragControls.start(e)}
                     className="w-full flex justify-center py-2 -mt-4 mb-2 cursor-grab active:cursor-grabbing select-none touch-none"
@@ -455,17 +472,23 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
 }
 
 // --- PLAYER SELECT MODAL (APPLE SHEET STYLE) ---
-function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) { 
+function PlayerSelectModal({ isOpen: _isOpen, onClose, onSelect, players }: any) { 
   const { t } = useTranslation();
   const [search, setSearch] = useState(''); 
   const dragControls = useDragControls();
 
-  if (!isOpen) return null; 
   const safePlayers = Array.isArray(players) ? players : []; 
   const filtered = safePlayers.filter((p: Player) => `${p.first_name} ${p.last_name}`.toLowerCase().includes(search.toLowerCase())); 
   
   return ( 
-      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"> 
+      <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6"> 
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
+            onClick={onClose}
+          />
           <motion.div 
             drag={window.innerWidth < 768 ? "y" : false}
             dragControls={dragControls}
@@ -477,7 +500,11 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
                 onClose();
               }
             }}
-            className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 z-10"
+            initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+            animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+            exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden z-10 relative"
           > 
               {/* Grabber Bar for Mobile Sheet */}
               <div 
@@ -1425,8 +1452,16 @@ export function MatchupAnalyzer() {
   return (
     <div className="pb-24 w-full max-w-6xl mx-auto px-4 relative">
       <ScrollToTop />
-      <AccessDeniedModal isOpen={showAccessDeniedModal} onClose={() => setShowAccessDeniedModal(false)} />
-      <TacticalBriefingModal isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+      <AnimatePresence>
+        {showAccessDeniedModal && (
+          <AccessDeniedModal isOpen={showAccessDeniedModal} onClose={() => setShowAccessDeniedModal(false)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showTutorial && (
+          <TacticalBriefingModal isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+        )}
+      </AnimatePresence>
 
       {/* HELP BUTTON */}
       <div className="fixed top-24 right-4 lg:right-8 z-50">
@@ -1975,9 +2010,11 @@ export function MatchupAnalyzer() {
           </div>
       )}
 
-      {activeSlot && (
-        <PlayerSelectModal isOpen={!!activeSlot} onClose={() => setActiveSlot(null)} onSelect={(p: any) => { if(activeSlot==='A') setPlayerA(p); else setPlayerB(p); setAnalysisResult(null); }} players={filteredPlayers} />
-      )}
+      <AnimatePresence>
+        {activeSlot && (
+          <PlayerSelectModal isOpen={!!activeSlot} onClose={() => setActiveSlot(null)} onSelect={(p: any) => { if(activeSlot==='A') setPlayerA(p); else setPlayerB(p); setAnalysisResult(null); }} players={filteredPlayers} />
+        )}
+      </AnimatePresence>
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
