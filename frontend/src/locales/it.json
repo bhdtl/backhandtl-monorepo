@@ -412,7 +412,19 @@
     "clearFilters": "Cancella filtri",
     "premiumTitle": "Intelligence di Campi d'Élite",
     "premiumDesc": "Accedi al nostro database completo delle superfici dei campi professionistici e delle loro caratteristiche uniche. Passa a Elite per analisi dei campi basate sui dati.",
-    "verifiedBy": "Verificato dal Motore di IA del Tennis"
+    "verifiedBy": "Verificato dal Motore di IA del Tennis",
+    "surfaces": {
+      "grass": "Erba",
+      "redClay": "Terra Rossa",
+      "greenClay": "Terra Verde",
+      "hardCourtIndoor": "Cemento (Indoor)",
+      "hardCourtOutdoor": "Cemento (Outdoor)"
+    },
+    "bounces": {
+      "high": "Rimbalzo Alto",
+      "medium": "Rimbalzo Medio",
+      "low": "Rimbalzo Basso"
+    }
   },
   "courtProfile": {
     "analyzing": "Analisi Fisica Campo...",
@@ -420,6 +432,7 @@
     "officialData": "Dati Ufficiali",
     "bsiRating": "Valutazione BSI",
     "bounce": "Rimbalzo",
+    "bounceType": "Tipo di Rimbalzo",
     "conditionsHeader": "Condizioni & Insight Tattico",
     "noData": "Nessun dato di scouting dettagliato disponibile per questo torneo.",
     "cards": {

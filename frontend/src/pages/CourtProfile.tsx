@@ -20,6 +20,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { useAccess } from '../hooks/useAccess';
 import { PremiumLock } from '../components/PremiumLock'; 
+import { translateSurface, translateBounce } from './CourtDatabase';
 
 // 🚀 SOTA: Neues Interface für die Multi-Quotes
 interface PlayerQuote {
@@ -31,9 +32,9 @@ interface Tournament {
   id: string;
   name: string;
   location: string;
-  surface: 'Hard' | 'Clay' | 'Grass';
+  surface: string;
   bsi_rating: number;
-  bounce: 'Low' | 'Medium' | 'High';
+  bounce: string;
   notes?: string;
   player_quotes?: PlayerQuote[]; // 🚀 SOTA: Ersetzt die alten Einzel-Felder durch ein Array
   translations?: {
@@ -98,8 +99,10 @@ function CourtProfile() {
 
   // Helper für Farben (SOTA Clean Code Pattern)
   const getBounceColor = (bounce: string) => {
-     if (bounce === 'High') return 'text-green-400 bg-green-400/10 border-green-400/20';
-     if (bounce === 'Low') return 'text-red-400 bg-red-400/10 border-red-400/20';
+     if (!bounce) return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+     const b = bounce.toLowerCase();
+     if (b === 'high') return 'text-green-400 bg-green-400/10 border-green-400/20';
+     if (b === 'low') return 'text-red-400 bg-red-400/10 border-red-400/20';
      return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
   };
 
@@ -171,11 +174,11 @@ function CourtProfile() {
               {/* Desktop Only Badges (Hidden on Mobile to reduce clutter) */}
               <span className="hidden md:block w-1 h-1 bg-gray-700 rounded-full" />
               <div className={`hidden md:block text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border ${
-                tournament.surface === 'Clay' ? 'text-orange-400 border-orange-400/30 bg-orange-400/5' :
-                tournament.surface === 'Grass' ? 'text-green-400 border-green-400/30 bg-green-400/5' :
+                tournament.surface.toLowerCase().includes('clay') ? 'text-orange-400 border-orange-400/30 bg-orange-400/5' :
+                tournament.surface.toLowerCase().includes('grass') ? 'text-green-400 border-green-400/30 bg-green-400/5' :
                 'text-blue-400 border-blue-400/30 bg-blue-400/5'
               }`}>
-                {tournament.surface} Court
+                {translateSurface(tournament.surface, t)}
               </div>
             </div>
           </div>
@@ -195,10 +198,10 @@ function CourtProfile() {
             <div className="text-center relative z-10">
               <div className="text-[9px] font-black text-gray-500 uppercase mb-1 tracking-widest">{t('courtProfile.bounce')}</div>
               <div className={`text-xl md:text-2xl font-black uppercase tracking-tight ${
-                 tournament.bounce === 'High' ? 'text-green-400' : 
-                 tournament.bounce === 'Low' ? 'text-red-400' : 'text-yellow-400'
+                 tournament.bounce.toLowerCase() === 'high' ? 'text-green-400' : 
+                 tournament.bounce.toLowerCase() === 'low' ? 'text-red-400' : 'text-yellow-400'
               }`}>
-                {tournament.bounce}
+                {translateBounce(tournament.bounce, t)}
               </div>
             </div>
           </div>
@@ -245,13 +248,13 @@ function CourtProfile() {
             <div className="col-span-1 bg-[#1a1d26] p-4 rounded-2xl border border-white/5 flex flex-col justify-between">
                 <div className="flex items-center gap-2 mb-2 text-gray-400">
                     <Layers size={16} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Surface</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{t('courtDatabase.table.surface')}</span>
                 </div>
                 <div className={`text-lg font-black uppercase ${
-                    tournament.surface === 'Clay' ? 'text-orange-400' :
-                    tournament.surface === 'Grass' ? 'text-green-400' : 'text-blue-400'
+                    tournament.surface.toLowerCase().includes('clay') ? 'text-orange-400' :
+                    tournament.surface.toLowerCase().includes('grass') ? 'text-green-400' : 'text-blue-400'
                 }`}>
-                    {tournament.surface}
+                    {translateSurface(tournament.surface, t)}
                 </div>
             </div>
 
@@ -275,14 +278,14 @@ function CourtProfile() {
                         <Activity size={18} />
                     </div>
                     <div>
-                        <div className="text-[10px] font-black uppercase opacity-70 tracking-widest">Bounce Type</div>
-                        <div className="text-lg font-black uppercase leading-none mt-0.5">{tournament.bounce}</div>
+                        <div className="text-[10px] font-black uppercase opacity-70 tracking-widest">{t('courtProfile.bounceType')}</div>
+                        <div className="text-lg font-black uppercase leading-none mt-0.5">{translateBounce(tournament.bounce, t)}</div>
                     </div>
                  </div>
                  <div className="h-full flex items-center">
                     <div className={`w-2 h-2 rounded-full ${
-                        tournament.bounce === 'High' ? 'bg-green-400 animate-pulse' : 
-                        tournament.bounce === 'Low' ? 'bg-red-400 animate-pulse' : 'bg-yellow-400 animate-pulse'
+                        tournament.bounce.toLowerCase() === 'high' ? 'bg-green-400 animate-pulse' : 
+                        tournament.bounce.toLowerCase() === 'low' ? 'bg-red-400 animate-pulse' : 'bg-yellow-400 animate-pulse'
                     }`} />
                  </div>
             </div>

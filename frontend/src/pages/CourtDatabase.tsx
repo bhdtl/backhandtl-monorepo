@@ -17,11 +17,28 @@ interface Tournament {
   id: string;
   name: string;
   location: string;
-  surface: 'Hard' | 'Clay' | 'Grass';
+  surface: string;
   bsi_rating: number;
-  bounce: 'Low' | 'Medium' | 'High';
+  bounce: string;
   notes?: string;
 }
+
+export const translateSurface = (surface: string, t: any) => {
+  if (!surface) return '';
+  const normalized = surface.toLowerCase().replace(/\s+/g, '');
+  let key = normalized;
+  if (normalized === 'redclay') key = 'redClay';
+  else if (normalized === 'greenclay') key = 'greenClay';
+  else if (normalized === 'hardcourtindoor') key = 'hardCourtIndoor';
+  else if (normalized === 'hardcourtoutdoor') key = 'hardCourtOutdoor';
+  return t(`courtDatabase.surfaces.${key}`, surface);
+};
+
+export const translateBounce = (bounce: string, t: any) => {
+  if (!bounce) return '';
+  const normalized = bounce.toLowerCase();
+  return t(`courtDatabase.bounces.${normalized}`, bounce);
+};
 
 function CourtDatabaseBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [step, setStep] = useState(0);
@@ -181,7 +198,13 @@ export function CourtDatabase() {
     }
 
     if (surfaceFilter !== 'All') {
-      filtered = filtered.filter(t => t.surface === surfaceFilter);
+      filtered = filtered.filter(t => {
+        const s = t.surface.toLowerCase();
+        if (surfaceFilter === 'Hard') return s.includes('hard');
+        if (surfaceFilter === 'Clay') return s.includes('clay');
+        if (surfaceFilter === 'Grass') return s.includes('grass');
+        return false;
+      });
     }
 
     filtered.sort((a, b) => {
@@ -228,11 +251,11 @@ export function CourtDatabase() {
   };
 
   const getSurfaceColor = (surface: string) => {
-    switch (surface) {
-      case 'Clay': return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
-      case 'Grass': return 'text-green-400 border-green-400/30 bg-green-400/10';
-      default: return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
-    }
+    if (!surface) return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+    const s = surface.toLowerCase();
+    if (s.includes('clay')) return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
+    if (s.includes('grass')) return 'text-green-400 border-green-400/30 bg-green-400/10';
+    return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
   };
 
   if (accessLoading) return <LoadingScreen message="Verifying Access..." />;
@@ -349,41 +372,41 @@ export function CourtDatabase() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredTournaments.map((t) => (
+                {filteredTournaments.map((court) => (
                   <tr 
-                    key={t.id} 
-                    onClick={() => handleCourtClick(t)}
+                    key={court.id} 
+                    onClick={() => handleCourtClick(court)}
                     className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
                   >
                     <td className="px-6 py-5">
                       <div className="flex flex-col">
-                        <span className="text-white font-bold group-hover:text-tennis-lime transition-colors">{t.name}</span>
-                        {t.notes && <span className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1 italic">{t.notes}</span>}
+                        <span className="text-white font-bold group-hover:text-tennis-lime transition-colors">{court.name}</span>
+                        {court.notes && <span className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1 italic">{court.notes}</span>}
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-2 text-gray-400 font-medium text-sm">
-                        <MapPin size={14} className="text-gray-600" /> {t.location}
+                        <MapPin size={14} className="text-gray-600" /> {court.location}
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase border ${getSurfaceColor(t.surface)}`}>
-                        {t.surface}
+                      <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase border ${getSurfaceColor(court.surface)}`}>
+                        {translateSurface(court.surface, t)}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg font-black text-sm min-w-[48px] border ${getBSIBadgeColor(t.bsi_rating)}`}>
-                        {t.bsi_rating.toFixed(1)}
+                      <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg font-black text-sm min-w-[48px] border ${getBSIBadgeColor(court.bsi_rating)}`}>
+                        {court.bsi_rating.toFixed(1)}
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${
-                          t.bounce === 'High' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
-                          t.bounce === 'Low' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
+                          court.bounce.toLowerCase() === 'high' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
+                          court.bounce.toLowerCase() === 'low' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
                           'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]'
                         }`} />
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.bounce}</span>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{translateBounce(court.bounce, t)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
@@ -399,36 +422,36 @@ export function CourtDatabase() {
 
           {/* 2. MOBILE VIEW (Cards) - Visible only on Mobile */}
           <div className="md:hidden flex flex-col divide-y divide-white/5">
-            {filteredTournaments.map((t) => (
+            {filteredTournaments.map((court) => (
                <div 
-                 key={t.id}
-                 onClick={() => handleCourtClick(t)}
+                 key={court.id}
+                 onClick={() => handleCourtClick(court)}
                  className="p-5 active:bg-white/5 transition-colors cursor-pointer"
                >
                  <div className="flex justify-between items-start mb-3">
                    <div>
-                     <h3 className="text-white font-bold text-lg leading-tight mb-1">{t.name}</h3>
+                     <h3 className="text-white font-bold text-lg leading-tight mb-1">{court.name}</h3>
                      <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-                        <MapPin size={12} /> {t.location}
+                        <MapPin size={12} /> {court.location}
                      </div>
                    </div>
-                   <div className={`px-2.5 py-1 rounded-md font-black text-xs border ${getBSIBadgeColor(t.bsi_rating)}`}>
-                      {t.bsi_rating.toFixed(1)}
+                   <div className={`px-2.5 py-1 rounded-md font-black text-xs border ${getBSIBadgeColor(court.bsi_rating)}`}>
+                      {court.bsi_rating.toFixed(1)}
                    </div>
                  </div>
                  
                  <div className="flex items-center gap-3 mt-4">
-                    <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase border ${getSurfaceColor(t.surface)}`}>
-                      {t.surface}
+                    <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase border ${getSurfaceColor(court.surface)}`}>
+                      {translateSurface(court.surface, t)}
                     </span>
                     <div className="h-4 w-px bg-white/10"></div>
                     <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${
-                          t.bounce === 'High' ? 'bg-green-500' :
-                          t.bounce === 'Low' ? 'bg-red-500' :
+                          court.bounce.toLowerCase() === 'high' ? 'bg-green-500' :
+                          court.bounce.toLowerCase() === 'low' ? 'bg-red-500' :
                           'bg-yellow-500'
                         }`} />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">{t.bounce} Bounce</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">{translateBounce(court.bounce, t)}</span>
                     </div>
                  </div>
                </div>

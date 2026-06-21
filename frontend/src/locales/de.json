@@ -424,7 +424,19 @@
     "clearFilters": "Alle Filter zurücksetzen",
     "premiumTitle": "Elite Court Intelligence",
     "premiumDesc": "Greife auf unsere umfassende Datenbank professioneller Tennisplätze und deren einzigartige Eigenschaften zu. Upgrade auf Elite für datengestützte Court-Analysen.",
-    "verifiedBy": "Verifiziert durch Tennis-KI-Engine"
+    "verifiedBy": "Verifiziert durch Tennis-KI-Engine",
+    "surfaces": {
+      "grass": "Rasen",
+      "redClay": "Roter Sand",
+      "greenClay": "Grüner Sand",
+      "hardCourtIndoor": "Hartplatz (Halle)",
+      "hardCourtOutdoor": "Hartplatz (Aussen)"
+    },
+    "bounces": {
+      "high": "Hoher Bounce",
+      "medium": "Mittlerer Bounce",
+      "low": "Niedriger Bounce"
+    }
   },
   "courtProfile": {
     "analyzing": "Analysiere Court-Physik...",
@@ -432,6 +444,7 @@
     "officialData": "Offizielle Court Daten",
     "bsiRating": "BSI Rating",
     "bounce": "Absprung",
+    "bounceType": "Absprunghöhe",
     "conditionsHeader": "Bedingungen & Taktische Einsicht",
     "noData": "Noch keine detaillierten Scouting-Daten für dieses Turnier verfügbar.",
     "cards": {

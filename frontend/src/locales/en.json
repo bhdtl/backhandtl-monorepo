@@ -424,7 +424,19 @@
     "clearFilters": "Clear all filters",
     "premiumTitle": "Elite Court Intelligence",
     "premiumDesc": "Access our comprehensive database of professional court surfaces and their unique characteristics. Upgrade to Elite for data-driven court analysis.",
-    "verifiedBy": "Verified by Tennis AI Engine"
+    "verifiedBy": "Verified by Tennis AI Engine",
+    "surfaces": {
+      "grass": "Grass",
+      "redClay": "Red Clay",
+      "greenClay": "Green Clay",
+      "hardCourtIndoor": "Hard Court (Indoor)",
+      "hardCourtOutdoor": "Hard Court (Outdoor)"
+    },
+    "bounces": {
+      "high": "High Bounce",
+      "medium": "Medium Bounce",
+      "low": "Low Bounce"
+    }
   },
   "courtProfile": {
     "analyzing": "Analyzing Court Physics...",
@@ -432,6 +444,7 @@
     "officialData": "Official Court Data",
     "bsiRating": "BSI Rating",
     "bounce": "Bounce",
+    "bounceType": "Bounce Type",
     "conditionsHeader": "Conditions & Tactical Insight",
     "noData": "No detailed scouting data available for this tournament yet.",
     "cards": {

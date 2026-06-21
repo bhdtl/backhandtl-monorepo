@@ -415,7 +415,19 @@
     "clearFilters": "Borrar filtros",
     "premiumTitle": "Inteligencia de Pistas de Élite",
     "premiumDesc": "Acceda a nuestra base de datos completa de superficies de pistas profesionales y sus características únicas. Actualice a Elite para obtener análisis de pistas basados en datos.",
-    "verifiedBy": "Verificado por el Motor de IA de Tenis"
+    "verifiedBy": "Verificado por el Motor de IA de Tenis",
+    "surfaces": {
+      "grass": "Césped",
+      "redClay": "Tierra Batida Roja",
+      "greenClay": "Tierra Batida Verde",
+      "hardCourtIndoor": "Pista Dura (Interior)",
+      "hardCourtOutdoor": "Pista Dura (Exterior)"
+    },
+    "bounces": {
+      "high": "Bote Alto",
+      "medium": "Bote Medio",
+      "low": "Bote Bajo"
+    }
   },
   "courtProfile": {
     "analyzing": "Analizando Física de Pista...",
@@ -423,6 +435,7 @@
     "officialData": "Datos Oficiales",
     "bsiRating": "Clasificación BSI",
     "bounce": "Bote",
+    "bounceType": "Tipo de Bote",
     "conditionsHeader": "Condiciones y Visión Táctica",
     "noData": "Aún no hay datos detallados de scouting para este torneo.",
     "cards": {

@@ -415,7 +415,19 @@
     "clearFilters": "Effacer les filtres",
     "premiumTitle": "Intelligence de Court Élite",
     "premiumDesc": "Accédez à notre base de données complète des surfaces de courts professionnels et de leurs caractéristiques uniques. Passez à Elite pour des analyses de courts basées sur les données.",
-    "verifiedBy": "Vérifié par le Moteur d'IA de Tennis"
+    "verifiedBy": "Vérifié par le Moteur d'IA de Tennis",
+    "surfaces": {
+      "grass": "Gazon",
+      "redClay": "Terre Battue Rouge",
+      "greenClay": "Terre Battue Verte",
+      "hardCourtIndoor": "Dur (Intérieur)",
+      "hardCourtOutdoor": "Dur (Extérieur)"
+    },
+    "bounces": {
+      "high": "Rebond Haut",
+      "medium": "Rebond Moyen",
+      "low": "Rebond Bas"
+    }
   },
   "courtProfile": {
     "analyzing": "Analyse Physique du Court...",
@@ -423,6 +435,7 @@
     "officialData": "Données Officielles",
     "bsiRating": "Note BSI",
     "bounce": "Rebond",
+    "bounceType": "Type de Rebond",
     "conditionsHeader": "Conditions & Aperçu Tactique",
     "noData": "Pas encore de données détaillées pour ce tournoi.",
     "cards": {
