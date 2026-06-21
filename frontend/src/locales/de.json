@@ -312,6 +312,25 @@
     "pValueFootnote": "Unsere aktuelle Skill-Sicherheit liegt bei {{certainty}}%, was bedeutet, dass der Markt statistisch nachweisbar geschlagen wird.",
     "understood": "Verstanden"
   },
+  "oracle": {
+    "loading": "Befrage das Orakel...",
+    "livePredictions": "Live-Vorhersagen",
+    "title": "Das Orakel",
+    "subtitle": "KI-prognostizierte Turniersieger. Reine Logik. Völlig unvoreingenommen.",
+    "eliteIntelligenceTitle": "Elite-Orakel-Prognosen",
+    "eliteIntelligenceDesc": "Erhalte Zugriff auf KI-prognostizierte Turnierverläufe, Match-Simulationen und Auslosungs-Analysen. Hole dir ELITE, um das Orakel freizuschalten.",
+    "noUpcomingDraws": "Keine bevorstehenden Auslosungen",
+    "waitingForDraws": "Das Orakel wartet auf die Veröffentlichung der nächsten Spielpläne.",
+    "searchPlaceholder": "Nach Spieler suchen...",
+    "noMatchesFound": "Keine Spiele für diese Suche gefunden.",
+    "noMatchesScheduled": "Keine Spiele angesetzt.",
+    "matchesLocked": "{{count}} Spiele gesperrt",
+    "matchesLockedDesc": "Der kostenlose Zugang ist auf die ersten 3 Spiele pro Tag beschränkt. Hol dir ELITE, um alle Orakel-Vorhersagen des gesamten Turniers freizuschalten.",
+    "unlockFullDraw": "Gesamten Spielplan freischalten",
+    "upsellTitle": "Den Sieger zu kennen, reicht nicht aus.",
+    "upsellSubtitle": "Nutze den Value Scanner, um mathematische Fehler in den Quoten der Buchmacher zu finden.",
+    "scanForValue": "Nach Value scannen"
+  },
   "watchlist": {
     "loading": "Synchronisiere Watchlist...",
     "title": "Merkliste",

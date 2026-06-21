@@ -303,6 +303,25 @@
     "pValueFootnote": "Notre certitude de compétence actuelle est de {{certainty}}%, ce qui prouve mathématiquement que nous battons le marché.",
     "understood": "Compris"
   },
+  "oracle": {
+    "loading": "Consultation de l'Oracle...",
+    "livePredictions": "Prédictions en Direct",
+    "title": "L'Oracle",
+    "subtitle": "Vainqueurs de tableaux prédits par IA. Pure logique. Zéro biais.",
+    "eliteIntelligenceTitle": "Intelligence Oracle Élite",
+    "eliteIntelligenceDesc": "Accédez aux tableaux de tournois prédits par l'IA, aux simulations de matchs et à l'analyse des tirages. Passez à Élite pour déverrouiller l'Oracle.",
+    "noUpcomingDraws": "Aucun tirage à venir",
+    "waitingForDraws": "L'Oracle attend la publication des prochains tableaux.",
+    "searchPlaceholder": "Rechercher un joueur...",
+    "noMatchesFound": "Aucun match trouvé pour cette recherche.",
+    "noMatchesScheduled": "Aucun match programmé.",
+    "matchesLocked": "{{count}} matchs verrouillés",
+    "matchesLockedDesc": "L'accès gratuit est limité aux 3 premiers matchs par jour. Passez à Elite pour voir les prédictions de l'Oracle pour tout le tournoi.",
+    "unlockFullDraw": "Déverrouiller le tableau complet",
+    "upsellTitle": "Savoir qui va gagner ne suffit pas.",
+    "upsellSubtitle": "Utilisez le Value Scanner pour trouver des erreurs mathématiques dans les cotes des bookmakers.",
+    "scanForValue": "Rechercher de la Value"
+  },
   "watchlist": {
     "loading": "Synchro Liste...",
     "title": "Liste de Suivi",

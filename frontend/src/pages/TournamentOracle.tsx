@@ -19,6 +19,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { PremiumLock } from '../components/PremiumLock';
 import { trackEvent } from '../lib/analytics'; // SOTA Telemetry
+import { useTranslation } from 'react-i18next';
 
 interface OracleDraw {
   id: string;
@@ -133,6 +134,7 @@ document.head.appendChild(style);
 export function TournamentOracle() {
   const navigate = useNavigate();
   const { isElite, loading: accessLoading } = useAccess();
+  const { t } = useTranslation();
   
   const [draws, setDraws] = useState<OracleDraw[]>([]);
   const [loading, setLoading] = useState(true);
@@ -321,7 +323,7 @@ export function TournamentOracle() {
       return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
-  if (loading || accessLoading) return <LoadingScreen message="Consulting the Oracle..." />;
+  if (loading || accessLoading) return <LoadingScreen message={t('oracle.loading')} />;
 
   return (
     <div className="min-h-screen bg-[#0f1115] w-full overflow-x-hidden relative selection:bg-tennis-lime/30 selection:text-tennis-lime pb-32 font-sans tracking-tight">
@@ -344,13 +346,16 @@ export function TournamentOracle() {
         {/* HERO SECTION */}
         <div className="text-center mb-10 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-            <Radar size={14} className="text-tennis-lime animate-pulse" /> Live Predictions
+            <Radar size={14} className="text-tennis-lime animate-pulse" /> {t('oracle.livePredictions')}
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-2xl">
-            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime to-white">Oracle</span>
+            {t('oracle.title').split(' ').slice(0, -1).join(' ')}{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime to-white">
+              {t('oracle.title').split(' ').slice(-1)[0]}
+            </span>
           </h1>
           <p className="text-gray-400 text-sm md:text-base max-w-2xl mx-auto font-medium">
-            AI predicted bracket winners. Pure logic. Zero bias.
+            {t('oracle.subtitle')}
           </p>
         </div>
 
@@ -360,15 +365,15 @@ export function TournamentOracle() {
         <PremiumLock
           isLocked={!isElite}
           minTier="ELITE"
-          title="Elite Oracle Intelligence"
-          description="Access AI-predicted tournament brackets, match simulations, and draw analysis. Upgrade to Elite to unlock the Oracle."
+          title={t('oracle.eliteIntelligenceTitle')}
+          description={t('oracle.eliteIntelligenceDesc')}
           blurAmount="blur-lg"
         >
           {draws.length === 0 ? (
             <div className="text-center py-20 mx-4 bg-[#1a1d26]/50 rounded-[2.5rem] border border-dashed border-white/10">
               <Calendar className="mx-auto text-gray-600 mb-4" size={40} />
-              <h3 className="text-white font-black uppercase tracking-widest mb-2">No Upcoming Draws</h3>
-              <p className="text-gray-500 text-sm">The Oracle is waiting for the next brackets to be released.</p>
+              <h3 className="text-white font-black uppercase tracking-widest mb-2">{t('oracle.noUpcomingDraws')}</h3>
+              <p className="text-gray-500 text-sm">{t('oracle.waitingForDraws')}</p>
             </div>
           ) : (
             <>
@@ -439,7 +444,7 @@ export function TournamentOracle() {
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={18} />
                       <input 
                           type="text"
-                          placeholder="Search for a player..."
+                          placeholder={t('oracle.searchPlaceholder')}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="w-full bg-[#1a1d26] border border-white/10 rounded-2xl py-3.5 pl-12 pr-10 text-white text-sm font-medium focus:outline-none focus:border-tennis-lime transition-all placeholder:text-gray-600 shadow-inner"
@@ -459,7 +464,7 @@ export function TournamentOracle() {
               <div className="space-y-4 px-4 md:px-0 min-h-[400px]">
                   {finalDisplayMatches.length === 0 ? (
                       <div className="text-center py-16 text-gray-500 font-mono text-xs uppercase tracking-widest">
-                          {searchQuery ? "No matches found for this search." : "No matches scheduled."}
+                          {searchQuery ? t('oracle.noMatchesFound') : t('oracle.noMatchesScheduled')}
                       </div>
                   ) : isMobile ? (
                       /* Mobile Layout: Pure HTML divs for 120fps scrolling and instant paint */
@@ -664,16 +669,16 @@ export function TournamentOracle() {
                                     <Lock size={24} className="text-tennis-lime" />
                                 </div>
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-                                    +{hiddenMatchesCount} Matches Locked
+                                    {t('oracle.matchesLocked', { count: hiddenMatchesCount })}
                                 </h3>
                                 <p className="text-gray-400 text-sm font-medium mb-6">
-                                    Free access is limited to the first 3 matches per day. Upgrade to Elite to see the Oracle's predictions for the entire tournament.
+                                    {t('oracle.matchesLockedDesc')}
                                 </p>
                                 <button 
                                     onClick={() => navigate('/pricing')}
                                     className="w-full py-4 bg-tennis-lime text-black rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(132,204,22,0.3)]"
                                 >
-                                    <Crown size={16} /> Unlock Full Draw
+                                    <Crown size={16} /> {t('oracle.unlockFullDraw')}
                                 </button>
                             </div>
                         </div>
@@ -690,14 +695,14 @@ export function TournamentOracle() {
                       <div>
                           <h3 className="text-gray-300 font-bold text-sm md:text-base flex items-center justify-center md:justify-start gap-2 mb-1">
                               <Target className="text-gray-500 group-hover:text-blue-400 transition-colors" size={16} />
-                              Knowing the winner isn't enough.
+                              {t('oracle.upsellTitle')}
                           </h3>
                           <p className="text-gray-500 text-xs md:text-sm text-center md:text-left">
-                              Use the Value Scanner to find mathematical mistakes in the bookmakers' odds.
+                              {t('oracle.upsellSubtitle')}
                           </p>
                       </div>
                       <button className="shrink-0 px-6 py-3 w-full md:w-auto bg-white/5 group-hover:bg-blue-500/10 group-hover:text-blue-400 text-gray-400 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                          Scan for Value <ArrowRight size={14} />
+                          {t('oracle.scanForValue')} <ArrowRight size={14} />
                       </button>
                   </div>
               </div>

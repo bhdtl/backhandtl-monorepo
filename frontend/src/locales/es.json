@@ -303,6 +303,25 @@
     "pValueFootnote": "Nuestra certeza de habilidad actual es del {{certainty}}%, lo que demuestra matemáticamente que estamos superando al mercado.",
     "understood": "Entendido"
   },
+  "oracle": {
+    "loading": "Consultando al Oráculo...",
+    "livePredictions": "Predicciones en Vivo",
+    "title": "El Oráculo",
+    "subtitle": "Ganadores de cuadros predichos por IA. Pura lógica. Cero sesgo.",
+    "eliteIntelligenceTitle": "Inteligencia Elite del Oráculo",
+    "eliteIntelligenceDesc": "Accede a cuadros de torneos predichos por IA, simulaciones de partidos y análisis de sorteos. Actualiza a Elite para desbloquear el Oráculo.",
+    "noUpcomingDraws": "Sin próximos sorteos",
+    "waitingForDraws": "El Oráculo está esperando a que se publiquen los próximos cuadros.",
+    "searchPlaceholder": "Buscar un jugador...",
+    "noMatchesFound": "No se encontraron partidos para esta búsqueda.",
+    "noMatchesScheduled": "No hay partidos programados.",
+    "matchesLocked": "{{count}} partidos bloqueados",
+    "matchesLockedDesc": "El acceso gratuito está limitado a los primeros 3 partidos por día. Actualiza a Elite para ver las predicciones del Oráculo para todo el torneo.",
+    "unlockFullDraw": "Desbloquear cuadro completo",
+    "upsellTitle": "Saber quién ganará no es suficiente.",
+    "upsellSubtitle": "Usa el Value Scanner para encontrar errores matemáticos en las cuotas de las casas de apuestas.",
+    "scanForValue": "Escanear en busca de valor"
+  },
   "watchlist": {
     "loading": "Sincronizando Lista...",
     "title": "Lista de Seguimiento",

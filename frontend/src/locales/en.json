@@ -312,6 +312,25 @@
     "pValueFootnote": "Our current skill certainty is {{certainty}}%, proving mathematically that we are beating the market.",
     "understood": "Understood"
   },
+  "oracle": {
+    "loading": "Consulting the Oracle...",
+    "livePredictions": "Live Predictions",
+    "title": "The Oracle",
+    "subtitle": "AI predicted bracket winners. Pure logic. Zero bias.",
+    "eliteIntelligenceTitle": "Elite Oracle Intelligence",
+    "eliteIntelligenceDesc": "Access AI-predicted tournament brackets, match simulations, and draw analysis. Upgrade to Elite to unlock the Oracle.",
+    "noUpcomingDraws": "No Upcoming Draws",
+    "waitingForDraws": "The Oracle is waiting for the next brackets to be released.",
+    "searchPlaceholder": "Search for a player...",
+    "noMatchesFound": "No matches found for this search.",
+    "noMatchesScheduled": "No matches scheduled.",
+    "matchesLocked": "{{count}} Matches Locked",
+    "matchesLockedDesc": "Free access is limited to the first 3 matches per day. Upgrade to Elite to see the Oracle's predictions for the entire tournament.",
+    "unlockFullDraw": "Unlock Full Draw",
+    "upsellTitle": "Knowing the winner isn't enough.",
+    "upsellSubtitle": "Use the Value Scanner to find mathematical mistakes in the bookmakers' odds.",
+    "scanForValue": "Scan for Value"
+  },
   "watchlist": {
     "loading": "Syncing Watchlist...",
     "title": "Watchlist",

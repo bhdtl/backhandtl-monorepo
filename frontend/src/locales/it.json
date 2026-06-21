@@ -300,6 +300,25 @@
     "pValueFootnote": "La nostra attuale certezza di abilità è del {{certainty}}%, dimostrando matematicamente che stiamo battendo il mercato.",
     "understood": "Capito"
   },
+  "oracle": {
+    "loading": "Consultando l'Oracolo...",
+    "livePredictions": "Pronostici in Diretta",
+    "title": "L'Oracolo",
+    "subtitle": "Vincitori dei tabelloni previsti dall'IA. Pura logica. Zero pregiudizi.",
+    "eliteIntelligenceTitle": "Intelligenza Elite dell'Oracolo",
+    "eliteIntelligenceDesc": "Accedi ai tabelloni dei tornei previsti dall'IA, alle simulazioni delle partite e all'analisi dei sorteggi. Passa a Elite per sbloccare l'Oracolo.",
+    "noUpcomingDraws": "Nessun sorteggio in arrivo",
+    "waitingForDraws": "L'Oracolo sta aspettando la pubblicazione dei prossimi tabelloni.",
+    "searchPlaceholder": "Cerca un giocatore...",
+    "noMatchesFound": "Nessun incontro trovato per questa ricerca.",
+    "noMatchesScheduled": "Nessun incontro programmato.",
+    "matchesLocked": "{{count}} incontri bloccati",
+    "matchesLockedDesc": "L'accesso gratuito è limitato ai primi 3 incontri al giorno. Passa a Elite per vedere i pronostici dell'Oracolo per l'intero torneo.",
+    "unlockFullDraw": "Sblocca il tabellone completo",
+    "upsellTitle": "Sapere chi vincerà non basta.",
+    "upsellSubtitle": "Usa il Value Scanner per trovare errori matematici nelle quote dei bookmaker.",
+    "scanForValue": "Scansiona per Trovare Valore"
+  },
   "watchlist": {
     "loading": "Sincronizzazione...",
     "title": "Osservati",
