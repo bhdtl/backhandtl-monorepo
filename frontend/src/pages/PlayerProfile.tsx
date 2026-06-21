@@ -589,7 +589,6 @@ export const PlayerProfile: React.FC = () => {
                 weaknesses={translatedReport?.weaknesses}
                 mentalGameNotes={translatedReport?.mentalGameNotes}
                 lastUpdated={report?.last_updated}
-                onlyScouting={true}
               />
             )}
 

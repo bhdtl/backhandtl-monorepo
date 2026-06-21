@@ -1,7 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { Users, Zap, Swords, User as UserIcon, Radar, Target } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import { AdminNotificationWidget } from './AdminNotificationWidget'; // 🚀 Import
 
 interface MobileTabBarProps {

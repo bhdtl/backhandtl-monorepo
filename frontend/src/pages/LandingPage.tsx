@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { BrandLogo } from '../components/BrandLogo';
 import { 
   Zap, Activity, BrainCircuit, 
-  TrendingUp, ArrowRight, X, Database, Eye, Lock, ShieldCheck, CreditCard 
+  TrendingUp, ArrowRight, X, Database, Eye, Lock, ShieldCheck 
 } from 'lucide-react';
 // 🚀 SOTA FIX: Importiere Lenis für das "Butter Smooth Scrolling" aus dem Video
 import Lenis from '@studio-freight/lenis';
@@ -94,6 +94,7 @@ const paymentMethods = [
 
 // --- COMPONENT: COOKIE & PRIVACY BANNER ---
 function CookieBanner() {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(!safeLocalStorage.getItem('cookie_consent'));
   
   if (!isVisible) return null;
@@ -305,6 +306,7 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
 
 // 3. EXPLAINER MODAL
 function ExplainerModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:px-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose}></div>
@@ -354,7 +356,7 @@ function ExplainerModal({ onClose }: { onClose: () => void }) {
 }
 
 // 🚀 MAIN LANDING COMPONENT
-export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: LandingPageProps) {
+export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed, onOpenLegal }: LandingPageProps) {
   const { t } = useTranslation();
   const [showQuiz, setShowQuiz] = useState(false);
   const [showExplainer, setShowExplainer] = useState(false);

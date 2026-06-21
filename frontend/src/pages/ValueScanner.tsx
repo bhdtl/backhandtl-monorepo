@@ -215,20 +215,6 @@ const getEdgeColorClass = (edge: number) => {
   return 'text-red-500';                     
 };
 
-// --- DYNAMIC BOOKMAKER COLORS ---
-const getBookieColors = (bookieName: string) => {
-  const name = bookieName.toLowerCase();
-  if (name.includes('bet365')) return 'bg-[#007A5E] text-white border-[#009975]';
-  if (name.includes('1xbet')) return 'bg-[#1C75BC] text-white border-[#2488D4]';
-  if (name.includes('bwin')) return 'bg-[#E5B800] text-black border-[#FFCC00]';
-  if (name.includes('pinnacle')) return 'bg-[#FF9900] text-black border-[#FFB84D]';
-  if (name.includes('hardrock')) return 'bg-[#5B2B82] text-white border-[#7638A8]';
-  if (name.includes('draftkings')) return 'bg-[#41B619] text-black border-[#54E322]';
-  if (name.includes('fanduel')) return 'bg-[#212121] text-[#3FFF22] border-[#3FFF22]/50';
-  if (name.includes('betmgm')) return 'bg-[#003B70] text-white border-[#005199]';
-  if (name.includes('unibet')) return 'bg-[#FFC600] text-black border-[#FFD633]';
-  return 'bg-white/10 text-gray-300 border-white/20'; 
-};
 
 const formatLastName = (fullName: string) => {
   if (!fullName) return "";
@@ -359,8 +345,7 @@ export function ValueScanner() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isGeoSafe, setIsGeoSafe] = useState<boolean>(false);
 
-  const [availableBookies, setAvailableBookies] = useState<string[]>([]);
-  const [preferredBookie, setPreferredBookie] = useState<string>('neobet');
+  const preferredBookie: string = 'neobet';
   const [viewLevel, setViewLevel] = useState<'beginner' | 'advanced'>(() => {
     return (safeLocalStorage.getItem('scanner_view_level') as any) || 'beginner';
   });
@@ -477,8 +462,6 @@ export function ValueScanner() {
       const { data: playersData } = await supabase.from('players').select('*');
 
       if (rawMarketData && playersData) {
-        const tempBookies = new Set<string>();
-
         const detectedMatches = rawMarketData.map((row: MarketOddsRow) => {
           const p1Name = (row.player1_name || 'Unknown').trim().toLowerCase();
           const p2Name = (row.player2_name || 'Unknown').trim().toLowerCase();
@@ -550,7 +533,6 @@ export function ValueScanner() {
 
         }).filter(m => m !== null);
 
-        setAvailableBookies(Array.from(tempBookies).sort());
         setMatches(detectedMatches);
       }
     } catch (e) {} 

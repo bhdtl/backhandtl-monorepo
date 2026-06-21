@@ -586,7 +586,7 @@ interface FilterSheetProps {
 }
 
 function FilterSheet({
-  isOpen,
+  isOpen: _isOpen,
   onClose,
   countries,
   playStyles,

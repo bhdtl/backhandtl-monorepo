@@ -227,7 +227,6 @@ function AccessDeniedModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
 // 3. TACTICAL BRIEFING MODAL (APPLE SHEET STYLE)
 function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [step, setStep] = useState(0);
-    const { t } = useTranslation();
     
     useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
 
