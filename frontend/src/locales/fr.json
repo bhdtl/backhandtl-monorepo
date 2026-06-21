@@ -1,4 +1,10 @@
 {
+  "metadata": {
+    "title": "BackhandTL - Plateforme de Scouting de Tennis",
+    "description": "Plateforme professionnelle de scouting de tennis alimentée par l'analyse de valeur par IA et une intelligence de joueur détaillée.",
+    "ogTitle": "BackhandTL - Intelligence du Tennis",
+    "ogDescription": "Analyse de tennis propulsée par l'IA et scan de valeur."
+  },
   "sidebar": {
     "dashboard": "Tableau de bord",
     "playerDatabase": "Base Joueurs",
@@ -227,7 +233,9 @@
     "footer": "Capture d'écran à partager 📸"
   },
   "valueScanner": {
-    "loading": "Scan des Marchés Mondiaux...",
+    "premiumTitle": "Intelligence Elite",
+    "premiumDesc": "Le scanner de valeur identifie les avantages mathématiques d'avant-match. Passez à Elite pour accéder à cet outil de trading professionnel.",
+    "loading": "Analyse des Marchés Globaux...",
     "header": {
       "badge": "Intelligence de Marché",
       "title": "Scanner de Valeur",
@@ -544,11 +552,18 @@
   },
   "mobileMenu": {
     "nav": {
-      "tournamentOracle": "Oracle du Tournoi"
+      "tournamentOracle": "Oracle",
+      "systemAdmin": "Admin Système"
     }
   },
   "picks": {
-    "neobetCta": "Ajouter au coupon",
+    "header": {
+      "title": "Portefeuille d'Action",
+      "subtitle": "Votre liste de prédictions mathématiquement validées pour aujourd'hui. Dimensionné selon le critère de Kelly pour une croissance optimale de la bankroll."
+    },
+    "premiumTitle": "Portefeuille Elite",
+    "premiumDesc": "Le portefeuille d'AI Picks est strictement réservé aux membres Elite. Mettez à niveau pour débloquer les mises Kelly exactes et les listes d'actions en temps réel.",
+    "neobetCta": "Ajouter au Ticket",
     "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "footerDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "streamTitle": "Flux de Picks",
@@ -624,6 +639,79 @@
     "premiumPartner": "Publicité | Partenaire Premium Officiel",
     "description": "Cotes exclusives, interface en tempo réel et placement ultra-rapide des coupons de pari pour une performance maximale.",
     "licensedRegulated": "Agréé et Réglementé (Liste Blanche)"
+  },
+  "support": {
+    "titlePart1": "Contrôle de",
+    "titlePart2": "Mission",
+    "subtitle": "Accédez à la documentation, façonnez la feuille de route ou contactez le support prioritaire.",
+    "tabs": {
+      "hub": "Centre d'Aide",
+      "feedback": "Feuille de Route",
+      "tickets": "Mes Tickets"
+    }
+  },
+  "pricing": {
+    "badge": "Professional Grade Data Hub",
+    "titlePart1": "Choisissez votre",
+    "titlePart2": "avantage stratégique.",
+    "recommended": "Accès Recommandé",
+    "checkoutDisclaimer": "Activation immédiate via Merchant of Record. Cryptage SSL 256 bits.",
+    "byContinuing": "En continuant, vous acceptez nos",
+    "terms": "Conditions d'utilisation",
+    "and": "et",
+    "privacy": "Politique de confidentialité",
+    "securedBy": "Sécurisé par Lemon Squeezy",
+    "plans": {
+      "free": {
+        "name": "Niveau Gratuit",
+        "duration": "Pour toujours",
+        "cta": "Rester gratuit",
+        "features": {
+          "0": "3 Matchups d'IA gratuits",
+          "1": "Analyses de profil de joueur détaillée gratuites",
+          "2": "Analyses de vitesse de rebond (BSI) et style",
+          "3": "Rapports de scouting et nouvelles"
+        }
+      },
+      "weekend_pass": {
+        "name": "Passe de Fin de Semaine",
+        "duration": "Paiement unique",
+        "cta": "Débloquer le Passe"
+      },
+      "elite_monthly": {
+        "name": "Accès Elite",
+        "duration": "Facturé mensuellement",
+        "trial": "Essai gratuit de 3 jours actif",
+        "cta": "Commencer l'essai de 3 jours"
+      },
+      "premium_yearly": {
+        "name": "Niveau Premium",
+        "duration": "Facturé annuellement",
+        "cta": "Obtenir Premium annuel"
+      }
+    },
+    "features": {
+      "matchups": {
+        "title": "Matchups d'IA illimités",
+        "desc": "Prédiction par deep learning, handicaps attendus et paris sur les sets sans limites quotidiennes."
+      },
+      "scanner": {
+        "title": "Scanner de Valeur en Direct",
+        "desc": "Détection d'avantages automatisée en temps réel chez plus de 40 bookmakers mondiaux."
+      },
+      "picks": {
+        "title": "Picks d'IA à Haut Rendement",
+        "desc": "Prévisions et sélections de valeur attendue mathématique SOTA."
+      },
+      "oracle": {
+        "title": "Oracle du Tournoi",
+        "desc": "Simulations de tirages, analyses de tableaux et modèles prédictifs."
+      },
+      "courtIndex": {
+        "title": "Indice de Court Global",
+        "desc": "Base de données complète des vitesses physiques de rebond (BSI) pour tous les courts professionnels."
+      }
+    }
   },
   "header": {
     "member": "Membre"

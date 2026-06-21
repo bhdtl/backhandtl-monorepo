@@ -1,4 +1,10 @@
 {
+  "metadata": {
+    "title": "BackhandTL - Plataforma de Scouting de Tenis",
+    "description": "Plataforma profesional de scouting de tenis impulsada por escaneo de valor de IA e inteligencia detallada del jugador.",
+    "ogTitle": "BackhandTL - Inteligencia de Tenis",
+    "ogDescription": "Análisis de tenis impulsado por IA y escaneo de valor."
+  },
   "sidebar": {
     "dashboard": "Tablero",
     "playerDatabase": "Base de Datos",
@@ -227,6 +233,8 @@
     "footer": "Captura para compartir 📸"
   },
   "valueScanner": {
+    "premiumTitle": "Inteligencia Elite",
+    "premiumDesc": "El Escáner de Valor identifica ventajas matemáticas antes del partido. Actualiza a Elite para acceder a esta herramienta de trading profesional.",
     "loading": "Escaneando Mercados Globales...",
     "header": {
       "badge": "Inteligencia de Mercado",
@@ -544,11 +552,18 @@
   },
   "mobileMenu": {
     "nav": {
-      "tournamentOracle": "Oráculo del Torneo"
+      "tournamentOracle": "Oráculo del Torneo",
+      "systemAdmin": "Admin de Sistema"
     }
   },
   "picks": {
-    "neobetCta": "Añadir al cupón",
+    "header": {
+      "title": "Portafolio de Acción",
+      "subtitle": "Tu lista seleccionada de predicciones matemáticamente validadas para hoy. Dimensionado por el criterio de Kelly para un crecimiento óptimo del bankroll."
+    },
+    "premiumTitle": "Portafolio Elite",
+    "premiumDesc": "El Portafolio de AI Picks está estrictamente reservado para miembros Elite. Regístrate para desbloquear montos exactos de Kelly y listas de acción en tiempo real.",
+    "neobetCta": "Añadir al Boleto",
     "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "footerDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "streamTitle": "Picks Stream",
@@ -741,5 +756,78 @@
     "partnership": "Asociación",
     "partnerDesc": "Abre una apuesta directamente en NEO.bet para el próximo partido de este jugador. Consigue cuotas premium de ATP/WTA y aprovecha los análisis diarios de IA de Backhand Tennis Line para maximizar tu ventaja.",
     "betLive": "Apostar en Vivo en NEO.bet"
+  },
+  "support": {
+    "titlePart1": "Control de",
+    "titlePart2": "Misión",
+    "subtitle": "Acceda a la documentación, configure la hoja de ruta o contacte al soporte de alta prioridad.",
+    "tabs": {
+      "hub": "Centro de Ayuda",
+      "feedback": "Mapa de Ruta",
+      "tickets": "Mis Tickets"
+    }
+  },
+  "pricing": {
+    "badge": "Professional Grade Data Hub",
+    "titlePart1": "Elige tu",
+    "titlePart2": "ventaja estratégica.",
+    "recommended": "Acceso Recomendado",
+    "checkoutDisclaimer": "Activación inmediata a través del intermediario comercial. Cifrado SSL de 256 bits.",
+    "byContinuing": "Al continuar, aceptas nuestras",
+    "terms": "Condiciones de servicio",
+    "and": "y",
+    "privacy": "Política de privacidad",
+    "securedBy": "Asegurado por Lemon Squeezy",
+    "plans": {
+      "free": {
+        "name": "Nivel Gratis",
+        "duration": "Para siempre",
+        "cta": "Permanecer gratis",
+        "features": {
+          "0": "3 Matchups de IA gratis",
+          "1": "Análisis profundos de perfil de jugador gratis",
+          "2": "Análisis de velocidad de bote (BSI) y estilo",
+          "3": "Informes de scouting y noticias"
+        }
+      },
+      "weekend_pass": {
+        "name": "Pase de Fin de Semana",
+        "duration": "Pago único",
+        "cta": "Desbloquear Pase de Fin de Semana"
+      },
+      "elite_monthly": {
+        "name": "Acceso Elite",
+        "duration": "Facturado mensualmente",
+        "trial": "Prueba gratuita de 3 días activa",
+        "cta": "Iniciar prueba de 3 días"
+      },
+      "premium_yearly": {
+        "name": "Nivel Premium",
+        "duration": "Facturado anualmente",
+        "cta": "Obtener Premium anual"
+      }
+    },
+    "features": {
+      "matchups": {
+        "title": "Matchups de IA ilimitados",
+        "desc": "Predicción de aprendizaje profundo, handicaps esperados y apuestas de set sin límites diarios."
+      },
+      "scanner": {
+        "title": "Escáner de Valor en Vivo",
+        "desc": "Detección de ventajas automatizada en tiempo real en más de 40 casas de apuestas globales."
+      },
+      "picks": {
+        "title": "Picks de IA de Alto Rendimiento",
+        "desc": "Predicciones y selecciones de valor esperado matemático SOTA."
+      },
+      "oracle": {
+        "title": "Oráculo del Torneo",
+        "desc": "Simulaciones de cuadros, análisis de llaves y modelos predictivos."
+      },
+      "courtIndex": {
+        "title": "Índice Global de Pistas",
+        "desc": "Base de datos completa de velocidades de bote físicas (BSI) para todas las pistas de los circuitos profesionales."
+      }
+    }
   }
 }

@@ -5,6 +5,7 @@ import { MemberCard } from '../components/MemberCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { LegalModal } from '../components/LegalModal';
+import { useTranslation } from 'react-i18next';
 
 // --- 🎨 SOTA ASSETS: BULLETPROOF SIMPLE-ICONS CDN ---
 const PAYMENT_METHODS = [
@@ -100,6 +101,38 @@ const PLANS = [
 ];
 
 export function PricingPage() {
+  const { t } = useTranslation();
+  
+  const premiumFeatures = [
+    { icon: Swords, label: t('pricing.features.matchups.title', 'Unlimited AI Matchups'), desc: t('pricing.features.matchups.desc', 'Deep-learning prediction, expected handicaps & set betting without daily limits.') },
+    { icon: Zap, label: t('pricing.features.scanner.title', 'Live Value Scanner'), desc: t('pricing.features.scanner.desc', 'Real-time automated edge detection across 40+ global sportsbooks.') },
+    { icon: Target, label: t('pricing.features.picks.title', 'High-Yield AI Picks'), desc: t('pricing.features.picks.desc', 'SOTA mathematical expected-value predictions and selections.') },
+    { icon: Radar, label: t('pricing.features.oracle.title', 'Tournament Oracle'), desc: t('pricing.features.oracle.desc', 'Draw simulations, bracket analysis, and predictive models.') },
+    { icon: Gauge, label: t('pricing.features.courtIndex.title', 'Global Court Index'), desc: t('pricing.features.courtIndex.desc', 'Complete database of physical bounce speeds (BSI) for all professional tour courts.') }
+  ];
+
+  const plans = PLANS.map(plan => {
+    let features: any[] = [];
+    if (plan.id === 'free') {
+      features = [
+        t('pricing.plans.free.features.0', '3 Free AI Matchups'),
+        t('pricing.plans.free.features.1', 'Free Player Profile Deep Dives'),
+        t('pricing.plans.free.features.2', 'BSI Speed & Style Analytics'),
+        t('pricing.plans.free.features.3', 'Scouting Reports & News')
+      ];
+    } else {
+      features = premiumFeatures;
+    }
+    return {
+      ...plan,
+      name: t(`pricing.plans.${plan.id}.name`, plan.name),
+      duration: t(`pricing.plans.${plan.id}.duration`, plan.duration),
+      trial: plan.trial ? t(`pricing.plans.${plan.id}.trial`, plan.trial) : undefined,
+      cta: t(`pricing.plans.${plan.id}.cta`, plan.cta),
+      features
+    };
+  });
+
   const [activeIndex, setActiveIndex] = useState(2); 
   const navigate = useNavigate();
   const dragX = useMotionValue(0);
@@ -216,14 +249,14 @@ export function PricingPage() {
           className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6"
         >
           <Shield size={12} className="text-tennis-lime" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Professional Grade Data Hub</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{t('pricing.badge', 'Professional Grade Data Hub')}</span>
         </motion.div>
         
         <motion.h1 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-7xl font-black tracking-tighter mb-4 uppercase leading-[0.9]"
         >
-          Choose Your <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime via-emerald-400 to-teal-500">Strategic Edge.</span>
+          {t('pricing.titlePart1', 'Choose Your')} <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime via-emerald-400 to-teal-500">{t('pricing.titlePart2', 'Strategic Edge.')}</span>
         </motion.h1>
       </div>
 
@@ -236,7 +269,7 @@ export function PricingPage() {
           onDragEnd={handleDragEnd}
         >
           <AnimatePresence mode="popLayout">
-            {PLANS.map((plan, index) => {
+            {plans.map((plan, index) => {
               const distance = index - activeIndex;
               const absDistance = Math.abs(distance);
               const isActive = index === activeIndex;
@@ -279,7 +312,7 @@ export function PricingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black uppercase px-5 py-2 rounded-full shadow-[0_20px_40px_rgba(255,255,255,0.3)] flex items-center gap-2"
                     >
-                      <Sparkles size={12} fill="black" /> Recommended Access
+                      <Sparkles size={12} fill="black" /> {t('pricing.recommended', 'Recommended Access')}
                     </motion.div>
                   )}
                 </motion.div>
@@ -290,7 +323,7 @@ export function PricingPage() {
       </div>
 
       <div className="flex justify-center gap-2 mb-10 md:mb-16">
-        {PLANS.map((_, i) => (
+        {plans.map((_, i) => (
           <div 
             key={i} 
             className={`h-1.5 transition-all duration-500 rounded-full ${i === activeIndex ? 'w-10 bg-tennis-lime shadow-[0_0_15px_#ccff00]' : 'w-2 bg-white/10'}`} 
@@ -309,27 +342,27 @@ export function PricingPage() {
           >
             <div className="text-center relative">
               {/* 🚀 SOTA FIX: Trial-Badge wird ausgeblendet, falls verbraucht */}
-              {PLANS[activeIndex].trial && !hasUsedTrial && (
+              {plans[activeIndex].trial && !hasUsedTrial && (
                  <motion.div 
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   className="inline-flex items-center gap-2 mb-5 px-5 py-2 bg-[#ccff00] text-black rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(204,255,0,0.5)]"
                  >
                     <Zap size={14} fill="black" />
-                    {PLANS[activeIndex].trial}
+                    {plans[activeIndex].trial}
                  </motion.div>
               )}
               <div className="text-6xl md:text-8xl font-black tracking-tighter mb-2 flex items-center justify-center gap-2">
                 <span className="text-2xl md:text-3xl font-bold text-gray-600 mt-2">€</span>
-                {PLANS[activeIndex].price}
+                {plans[activeIndex].price}
               </div>
               <div className="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">
-                {PLANS[activeIndex].duration}
+                {plans[activeIndex].duration}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {PLANS[activeIndex].features.map((item: any, i: number) => {
+              {plans[activeIndex].features.map((item: any, i: number) => {
                 const isString = typeof item === 'string';
                 const Icon = isString ? Check : item.icon;
                 const label = isString ? item : item.label;
@@ -374,7 +407,7 @@ export function PricingPage() {
                 ) : (
                   <>
                     {/* 🚀 SOTA FIX: Dynamischer CTA-Text */}
-                    {hasUsedTrial && PLANS[activeIndex].id === 'elite_monthly' ? 'Upgrade to Elite' : PLANS[activeIndex].cta}
+                    {hasUsedTrial && plans[activeIndex].id === 'elite_monthly' ? t('pricing.plans.elite.ctaUpdate', 'Upgrade to Elite') : plans[activeIndex].cta}
                     <ChevronRight size={16} strokeWidth={3} />
                   </>
                 )}
@@ -397,13 +430,13 @@ export function PricingPage() {
                    </div>
 
                    <p className="text-[10px] text-gray-600 text-center max-w-[340px] leading-relaxed font-medium">
-                      Instant activation via Merchant of Record. 256-bit SSL encryption. <br/>
-                      By continuing, you agree to our <button onClick={() => setLegalModal('terms')} className="text-white hover:underline transition-colors">Terms</button> and <button onClick={() => setLegalModal('privacy')} className="text-white hover:underline transition-colors">Privacy Policy</button>.
+                      {t('pricing.checkoutDisclaimer', 'Instant activation via Merchant of Record. 256-bit SSL encryption.')} <br/>
+                      {t('pricing.byContinuing', 'By continuing, you agree to our')} <button onClick={() => setLegalModal('terms')} className="text-white hover:underline transition-colors">{t('pricing.terms', 'Terms')}</button> {t('pricing.and', 'and')} <button onClick={() => setLegalModal('privacy')} className="text-white hover:underline transition-colors">{t('pricing.privacy', 'Privacy Policy')}</button>.
                    </p>
 
                    <div className="flex items-center gap-2.5 px-4 py-2 bg-white/[0.02] border border-white/5 rounded-full">
                       <Lock size={12} className="text-tennis-lime" />
-                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">Secured by Lemon Squeezy</span>
+                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">{t('pricing.securedBy', 'Secured by Lemon Squeezy')}</span>
                    </div>
                 </div>
               )}

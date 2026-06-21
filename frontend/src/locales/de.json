@@ -1,4 +1,10 @@
 {
+  "metadata": {
+    "title": "BackhandTL - Tennis-Scouting-Plattform",
+    "description": "Professionelle Tennis-Scouting-Plattform mit KI-gestütztem Value Scanning und detaillierten Spieler-Analysen.",
+    "ogTitle": "BackhandTL - Tennis-Intelligenz",
+    "ogDescription": "KI-gestützte Tennis-Analysen und Value Scanning."
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "playerDatabase": "Spielerdatenbank",
@@ -225,9 +231,11 @@
       "competitive": "2 Enge Sätze",
       "deciding": "Entscheidungssatz (2-1)"
     },
-    "footer": "Screenshot zum Teilen 📸"
+    "footer": "Screenshot to share 📸"
   },
   "valueScanner": {
+    "premiumTitle": "Elite-Intelligenz",
+    "premiumDesc": "Der Value Scanner identifiziert mathematische Pre-Match-Vorteile. Upgrade auf Elite, um auf dieses professionelle Trading-Tool zuzugreifen.",
     "loading": "Scanne globale Märkte...",
     "viewMode": {
       "beginner": "Einfache Ansicht",
@@ -588,6 +596,12 @@
     }
   },
   "picks": {
+    "header": {
+      "title": "Action-Portfolio",
+      "subtitle": "Deine kuratierte Liste mathematisch validierter Vorhersagen für heute. Gewichtet nach dem Kelly-Kriterium für optimales Bankroll-Wachstum."
+    },
+    "premiumTitle": "Elite-Portfolio",
+    "premiumDesc": "Das AI Picks Portfolio ist ausschließlich Elite-Mitgliedern vorbehalten. Upgrade, um exakte Kelly-Einsätze und Echtzeit-Aktionslisten freizuschalten.",
     "neobetCta": "In den Wettschein",
     "whitelistDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
     "footerDisclaimer": "Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00",
@@ -819,6 +833,79 @@
       "step3Desc": "Deep-Learning-Modelle analysieren psychologische und taktische Matchups basierend auf über 10.000 Spielen.",
       "step4Title": "4. Der analytische Vorteil",
       "step4Desc": "Wir vergleichen unsere Fair-Value-Berechnung mit dem Marktkonsens. Wir benachrichtigen dich, wenn die Abweichung >5% beträgt."
+    }
+  },
+  "support": {
+    "titlePart1": "Missions",
+    "titlePart2": "Kontrolle",
+    "subtitle": "Greife auf Dokumentation zu, gestalte die Roadmap mit oder kontaktiere den Premium-Support.",
+    "tabs": {
+      "hub": "Hilfe-Center",
+      "feedback": "Roadmap",
+      "tickets": "Meine Tickets"
+    }
+  },
+  "pricing": {
+    "badge": "Professional Grade Data Hub",
+    "titlePart1": "Wähle deinen",
+    "titlePart2": "strategischen Vorteil.",
+    "recommended": "Empfohlener Zugang",
+    "checkoutDisclaimer": "Sofortige Aktivierung via Merchant of Record. 256-Bit SSL-Verschlüsselung.",
+    "byContinuing": "Mit dem Fortfahren stimmst du unseren",
+    "terms": "Nutzungsbedingungen",
+    "and": "und",
+    "privacy": "Datenschutzrichtlinien",
+    "securedBy": "Gesichert durch Lemon Squeezy",
+    "plans": {
+      "free": {
+        "name": "Kostenlose Stufe",
+        "duration": "Dauerhaft",
+        "cta": "Kostenlos bleiben",
+        "features": {
+          "0": "3 kostenlose AI Matchups",
+          "1": "Kostenlose Spielerprofil-Tiefenanalysen",
+          "2": "BSI Geschwindigkeits- & Stilanalysen",
+          "3": "Scouting-Berichte & News"
+        }
+      },
+      "weekend_pass": {
+        "name": "Weekend-Pass",
+        "duration": "Einmalzahlung",
+        "cta": "Weekend-Pass freischalten"
+      },
+      "elite_monthly": {
+        "name": "Elite-Zugang",
+        "duration": "Monatliche Abrechnung",
+        "trial": "3 Tage kostenloser Test aktiv",
+        "cta": "3 Tage kostenlosen Test starten"
+      },
+      "premium_yearly": {
+        "name": "Premium-Stufe",
+        "duration": "Jährliche Abrechnung",
+        "cta": "Jährliches Premium sichern"
+      }
+    },
+    "features": {
+      "matchups": {
+        "title": "Unbegrenzte AI Matchups",
+        "desc": "Deep-Learning-Vorhersagen, erwartete Handicaps & Satzwetten ohne tägliche Limits."
+      },
+      "scanner": {
+        "title": "Live-Value-Scanner",
+        "desc": "Automatisierte Edge-Erkennung in Echtzeit bei über 40 globalen Buchmachern."
+      },
+      "picks": {
+        "title": "High-Yield AI Picks",
+        "desc": "SOTA mathematisch optimierte Value-Vorhersagen und -Auswahlen."
+      },
+      "oracle": {
+        "title": "Turnier-Orakel",
+        "desc": "Auslosungssimulationen, Bracket-Analysen und prädiktive Modelle."
+      },
+      "courtIndex": {
+        "title": "Globaler Court-Index",
+        "desc": "Vollständige Datenbank der physischen Absprunggeschwindigkeiten (BSI) für alle Profiplätze."
+      }
     }
   }
 }

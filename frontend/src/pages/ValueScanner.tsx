@@ -766,7 +766,7 @@ export function ValueScanner() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
               <div>
                 <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">{t('valueScanner.header.title')}</h1>
-                <p className="text-gray-500 font-medium text-xs">Finding mathematical value and pre-match edges</p>
+                <p className="text-gray-500 font-medium text-xs">{t('valueScanner.header.subtitle')}</p>
               </div>
           </div>
       </div>
@@ -774,8 +774,8 @@ export function ValueScanner() {
       <PremiumLock
         isLocked={!isElite}
         minTier="ELITE"
-        title="Elite Intelligence"
-        description="The Value Scanner identifies mathematical pre-match edges. Upgrade to Elite to access this professional trading tool."
+        title={t('valueScanner.premiumTitle', 'Elite Intelligence')}
+        description={t('valueScanner.premiumDesc', 'The Value Scanner identifies mathematical pre-match edges. Upgrade to Elite to access this professional trading tool.')}
         blurAmount="blur-lg"
       >
           {/* VIEW MODE TOGGLE (Einfach / Fortgeschritten) */}
@@ -792,7 +792,7 @@ export function ValueScanner() {
               
               <button 
                   onClick={() => handleViewLevelChange('beginner')}
-                  className={`flex-1 py-2 text-xs font-semibold tracking-tight text-center relative z-10 transition-colors duration-200
+                  className={`flex-1 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
                   ${viewLevel === 'beginner' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
               >
                   {t('valueScanner.viewMode.beginner', 'Beginner')}
@@ -800,7 +800,7 @@ export function ValueScanner() {
               
               <button 
                   onClick={() => handleViewLevelChange('advanced')}
-                  className={`flex-1 py-2 text-xs font-semibold tracking-tight text-center relative z-10 transition-colors duration-200
+                  className={`flex-1 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
                   ${viewLevel === 'advanced' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
               >
                   {t('valueScanner.viewMode.advanced', 'Expert')}
@@ -818,12 +818,12 @@ export function ValueScanner() {
                           {t('valueScanner.banner.title', 'Was ist ein Value Pick?')}
                       </h4>
                       <p className="text-xs text-gray-400 font-medium leading-relaxed">
-                          {t('valueScanner.banner.desc', "Unsere KI berechnet die faire Wahrscheinlichkeit für jedes Spiel. Wenn NEO.bet eine höhere Quote anbietet als unsere Berechnung, entsteht ein mathematischer Vorteil ('Value Pick').")}
+                          {t('valueScanner.banner.desc', "Unsere KI berechnet die faire Wahrscheinlichkeit für jedes Spiel. Liegt die Quote von NEO.bet über dieser fairen Quote, ist dies ein 'Value Pick' – ein mathematischer Vorteil für dich.")}
                       </p>
                   </div>
                   <button 
-                      onClick={handleDismissBanner}
-                      className="absolute top-3 right-3 p-1 text-gray-500 hover:text-white transition-colors"
+                      onClick={() => setBannerDismissed(true)}
+                      className="absolute top-3 right-3 p-1 text-gray-500 hover:text-white rounded-full transition-colors"
                       aria-label="Dismiss banner"
                   >
                       <X size={14} />
@@ -843,7 +843,7 @@ export function ValueScanner() {
                                 ? 'bg-tennis-lime text-[#0f1115] border-transparent shadow-[0_8px_16px_rgba(132,204,22,0.2)] scale-[1.02]'
                                 : 'bg-white/[0.03] backdrop-blur-md text-gray-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white'}`}
                         >
-                            <span className={`text-xs font-semibold tracking-tight mb-1 ${selectedDate === d.value ? 'text-[#0f1115]/80' : 'text-gray-500'}`}>{d.label}</span>
+                            <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${selectedDate === d.value ? 'text-[#0f1115]/80' : 'text-gray-500'}`}>{d.label}</span>
                             <span className={`text-xl font-black leading-none ${selectedDate === d.value ? 'text-black' : 'text-gray-300'}`}>{d.dayNum}</span>
                         </button>
                     ))}
@@ -854,14 +854,14 @@ export function ValueScanner() {
           {/* FILTER & SEARCH BAR */}
           <div className="bg-[#1c1c1e]/40 border border-white/[0.06] backdrop-blur-xl p-3 rounded-2xl mb-6 flex flex-col lg:flex-row gap-3 items-center shadow-sm w-full">
             <div className="relative flex-1 w-full flex flex-col sm:flex-row gap-2.5">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={15} />
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={16} />
                     <input 
                       type="text" 
                       placeholder={t('valueScanner.filters.search')} 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
-                      className="w-full bg-[#1c1c1e]/60 text-white pl-9 pr-10 py-2.5 rounded-xl border border-white/[0.06] focus:border-white/20 transition-all outline-none font-medium text-xs placeholder:text-gray-500" 
+                      className="w-full pl-11 pr-10 py-3 bg-[#15171e] border border-white/5 rounded-xl focus:outline-none focus:border-tennis-lime focus:bg-black/20 text-white placeholder-gray-500 text-xs transition-all shadow-inner" 
                     />
                     {searchTerm && (
                       <button
@@ -873,8 +873,6 @@ export function ValueScanner() {
                       </button>
                     )}
                 </div>
-                
-
             </div>
             
             <div className="flex w-full lg:w-auto gap-1.5 overflow-x-auto no-scrollbar pb-0.5 lg:pb-0 select-none">
@@ -887,7 +885,7 @@ export function ValueScanner() {
                     <button
                         key={sort.id}
                         onClick={() => handleSortChange(sort.id as any)}
-                        className={`flex-1 lg:flex-none whitespace-nowrap px-4 py-2.5 rounded-full text-xs font-bold tracking-tight transition-all duration-200 border flex items-center justify-center gap-1.5 focus:outline-none
+                        className={`flex-1 lg:flex-none whitespace-nowrap px-4 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-200 border flex items-center justify-center gap-1.5 focus:outline-none
                         ${sortBy === sort.id
                             ? 'bg-white text-black border-transparent shadow-[0_2px_8px_rgba(255,255,255,0.15)]'
                             : 'bg-white/[0.03] backdrop-blur-md text-gray-400 border-white/[0.06] hover:bg-[#1c1c1e]/60'}`}
@@ -1097,24 +1095,24 @@ export function ValueScanner() {
                                 {/* Matchup Names & Odds */}
                                 <div className="flex items-center justify-between cursor-pointer" onClick={() => handleMatchClick(match)}>
                                     <div className="flex flex-col w-[45%]">
-                                        <div className={`text-base font-bold tracking-tight mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                            {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
+                                        <div className={`text-xs sm:text-sm font-black uppercase tracking-tight leading-tight mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown').toUpperCase()}
                                         </div>
                                         <div className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
                                             <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
-                                            <span className="text-white font-mono font-bold text-xs">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                            <span className="text-white font-mono font-black text-xs">{(match.marketOddsA || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
                                     
-                                    <div className="text-gray-600 font-bold text-xs uppercase tracking-widest text-center w-[10%] select-none">VS</div>
+                                    <div className="text-gray-600 font-black text-xs uppercase tracking-widest text-center w-[10%] select-none">VS</div>
                                     
                                     <div className="flex flex-col items-end text-right w-[45%]">
-                                        <div className={`text-base font-bold tracking-tight mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                            {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
+                                        <div className={`text-xs sm:text-sm font-black uppercase tracking-tight leading-tight mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                            {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown').toUpperCase()}
                                         </div>
                                         <div className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
                                             <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
-                                            <span className="text-white font-mono font-bold text-xs">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                            <span className="text-white font-mono font-black text-xs">{(match.marketOddsB || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1124,9 +1122,9 @@ export function ValueScanner() {
                                         {/* Simple Recommendation Box */}
                                         <div className="p-4 bg-tennis-lime/[0.06] border border-tennis-lime/15 rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 shadow-sm animate-in fade-in duration-300">
                                             <span className="text-xs font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
-                                            <span className="text-base font-bold text-white tracking-tight">
+                                            <span className="text-sm sm:text-base font-black text-white uppercase tracking-tight">
                                                 {(() => {
-                                                    const formattedName = toTitleCase(formatLastName(safePickName));
+                                                    const formattedName = formatLastName(safePickName).toUpperCase();
                                                     const lowerPick = safePickName.toLowerCase();
                                                     const isMoneyline = !lowerPick.includes('games') && 
                                                                         !lowerPick.includes('over') && 
@@ -1173,7 +1171,7 @@ export function ValueScanner() {
                                         <div className="mt-2 text-center border-t border-white/[0.04] pt-2">
                                             <button
                                                 onClick={() => toggleExpand(match.id)}
-                                                className="text-xs font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-1 mx-auto"
+                                                className="text-xs font-black text-gray-400 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-1 mx-auto"
                                             >
                                                 <span>{expandedMatchIds[match.id] ? 'Details ausblenden' : 'Details & alternative Wetten'}</span>
                                                 <ChevronRight size={10} className={`transform transition-transform ${expandedMatchIds[match.id] ? 'rotate-90' : ''}`} />
@@ -1198,14 +1196,14 @@ export function ValueScanner() {
                                                     </div>
                                                     <div>
                                                         <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
-                                                        <div className="text-xs font-mono font-bold text-white">{h2hRecord}</div>
+                                                        <div className="text-xs font-mono font-black text-white">{h2hRecord}</div>
                                                     </div>
                                                 </div>
 
                                                 {/* Alternative plays */}
                                                 {altPlays.length > 0 && (
                                                     <div className="space-y-2">
-                                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
+                                                        <div className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Alternative Bets:</div>
                                                         <div className="rounded-2xl border border-white/[0.04] bg-[#1c1c1e]/30 overflow-hidden divide-y divide-white/[0.04] shadow-sm">
                                                              {altPlays.map((play, i) => (
                                                                  <div key={i} className="px-4 py-3 flex justify-between items-center hover:bg-white/[0.01] transition-colors">
@@ -1214,24 +1212,24 @@ export function ValueScanner() {
                                                                              <play.icon size={14} className={play.color} />
                                                                          </div>
                                                                          <div className="flex flex-col">
-                                                                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
-                                                                             <span className="text-xs font-bold text-white mt-0.5">{toTitleCase(play.label)}</span>
+                                                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{play.type}</span>
+                                                                             <span className="text-xs font-black text-white uppercase tracking-tight mt-0.5">{play.label.toUpperCase()}</span>
                                                                          </div>
                                                                      </div>
                                                                      <div className="text-right">
                                                                          {play.isTarget ? (
                                                                              <>
-                                                                                 <span className={`text-xs font-mono font-bold ${play.color}`}>{play.targetValue}</span>
+                                                                                 <span className={`text-xs font-mono font-black ${play.color}`}>{play.targetValue}</span>
                                                                                  <span className="block text-[10px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
                                                                              </>
                                                                          ) : (
                                                                              <>
                                                                                  <div className="flex items-center gap-1.5 justify-end">
-                                                                                     <span className={`text-xs font-mono font-bold ${play.color}`}>{play.prob}% Prob</span>
+                                                                                     <span className={`text-xs font-mono font-black ${play.color}`}>{play.prob}% Prob</span>
                                                                                      {play.marketOdds && play.marketOdds !== "Market" && (
                                                                                          <>
                                                                                              <span className="text-xs text-gray-600">|</span>
-                                                                                             <span className="text-xs font-mono text-white font-bold">@{play.marketOdds}</span>
+                                                                                             <span className="text-xs font-mono text-white font-black">@{play.marketOdds}</span>
                                                                                          </>
                                                                                      )}
                                                                                  </div>
@@ -1254,19 +1252,19 @@ export function ValueScanner() {
                             <>
                                 <div className="flex items-center justify-between mb-5 cursor-pointer" onClick={() => handleMatchClick(match)}>
                                       <div className="flex flex-col w-[32%]">
-                                          <div className={`text-base font-bold tracking-tight mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                              {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
+                                          <div className={`text-xs sm:text-sm font-black uppercase tracking-tight leading-tight mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown').toUpperCase()}
                                           </div>
                                           <div className="text-xs font-mono font-semibold text-gray-500 flex items-center gap-1.5">
                                               <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
-                                              <span className="text-white font-bold">{(match.marketOddsA || 0).toFixed(2)}</span>
+                                              <span className="text-white font-mono font-black text-xs">{(match.marketOddsA || 0).toFixed(2)}</span>
                                           </div>
                                       </div>
 
                                       <div className="flex flex-col items-center justify-center w-[36%]">
                                           <div className="bg-white/[0.02] px-3 py-1.5 rounded-lg border border-white/[0.04] flex flex-col items-center shadow-sm w-full">
                                               <span className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
-                                              <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-xs font-bold leading-tight">
+                                              <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-xs font-black leading-tight">
                                                   <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
                                                   <span className="text-gray-700 hidden md:inline">/</span>
                                                   <span className={fairB < fairA ? 'text-white' : 'text-gray-500'}>{fairB > 0 ? fairB.toFixed(2) : '-'}</span>
@@ -1275,12 +1273,12 @@ export function ValueScanner() {
                                       </div>
 
                                       <div className="flex flex-col items-end text-right w-[32%]">
-                                          <div className={`text-base font-bold tracking-tight mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
-                                              {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
+                                          <div className={`text-xs sm:text-sm font-black uppercase tracking-tight leading-tight mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
+                                              {formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown').toUpperCase()}
                                           </div>
                                           <div className="text-xs font-mono font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
                                               <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
-                                              <span className="text-white font-bold">{(match.marketOddsB || 0).toFixed(2)}</span>
+                                              <span className="text-white font-mono font-black text-xs">{(match.marketOddsB || 0).toFixed(2)}</span>
                                           </div>
                                       </div>
                                 </div>

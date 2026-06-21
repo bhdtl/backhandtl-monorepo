@@ -315,7 +315,32 @@ function AppContent() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  // Dynamic Metadata & SEO Localization Sync
+  useEffect(() => {
+    const lang = i18n.language || 'en';
+    document.documentElement.lang = lang;
+    
+    // Set dynamic page title
+    document.title = t('metadata.title', 'BackhandTL - Tennis Scouting Platform');
+    
+    // Set dynamic meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', t('metadata.description', 'Professional tennis scouting platform powered by AI value scanning and detailed player intelligence.'));
+    }
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', t('metadata.ogTitle', 'BackhandTL - Tennis Intelligence'));
+    }
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) {
+      ogDesc.setAttribute('content', t('metadata.ogDescription', 'AI-driven tennis analysis and value scanning.'));
+    }
+  }, [i18n.language, t]);
 
   useEffect(() => {
     const detectLanguageByIP = async () => {

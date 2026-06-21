@@ -561,18 +561,18 @@ export function AIPicksPage() {
           <div className="p-2 bg-tennis-lime/10 rounded-xl ring-1 ring-tennis-lime/20">
             <Target size={24} className="text-tennis-lime" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Action Portfolio</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">{t('picks.header.title', 'Action Portfolio')}</h1>
         </div>
         <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl leading-relaxed pl-1">
-          Your curated list of mathematically validated predictions for today. Sized by the Kelly Criterion for optimal bankroll growth.
+          {t('picks.header.subtitle', 'Your curated list of mathematically validated predictions for today. Sized by the Kelly Criterion for optimal bankroll growth.')}
         </p>
       </div>
 
       <PremiumLock
         isLocked={!isElite}
         minTier="ELITE"
-        title="Elite Portfolio"
-        description="The AI Picks Portfolio is strictly reserved for Elite members. Upgrade to unlock exact Kelly stakes and real-time Action Lists."
+        title={t('picks.premiumTitle', 'Elite Portfolio')}
+        description={t('picks.premiumDesc', 'The AI Picks Portfolio is strictly reserved for Elite members. Upgrade to unlock exact Kelly stakes and real-time Action Lists.')}
         blurAmount="blur-xl"
       >
           {/* Clean Search & Filter Panel (Apple/Revolut-Style) */}

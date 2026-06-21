@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Toast } from '../components/Toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // --- TYPES ---
 interface FeedbackItem {
@@ -30,6 +31,7 @@ interface TicketItem {
 }
 
 export function SupportPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'hub' | 'feedback' | 'tickets'>('hub');
   const [loading, setLoading] = useState(false);
@@ -270,10 +272,10 @@ export function SupportPage() {
       {/* HERO HEADER */}
       <div className="text-center mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">
-          Mission <span className="text-tennis-lime">Control</span>
+          {t('support.titlePart1', 'Mission')} <span className="text-tennis-lime">{t('support.titlePart2', 'Control')}</span>
         </h1>
         <p className="text-gray-400 font-medium max-w-xl mx-auto text-sm md:text-base px-4">
-          Access documentation, shape the roadmap, or contact high-priority support.
+          {t('support.subtitle', 'Access documentation, shape the roadmap, or contact high-priority support.')}
         </p>
       </div>
 
@@ -281,9 +283,9 @@ export function SupportPage() {
       <div className="flex justify-center mb-8 md:mb-12">
         <div className="bg-[#15171e] p-1.5 rounded-2xl border border-white/10 flex gap-1 shadow-2xl overflow-x-auto max-w-full no-scrollbar">
           {[
-            { id: 'hub', label: 'Help Hub', icon: LifeBuoy },
-            { id: 'feedback', label: 'Roadmap', icon: ThumbsUp },
-            { id: 'tickets', label: 'My Tickets', icon: MessageSquare }
+            { id: 'hub', label: t('support.tabs.hub', 'Help Hub'), icon: LifeBuoy },
+            { id: 'feedback', label: t('support.tabs.feedback', 'Roadmap'), icon: ThumbsUp },
+            { id: 'tickets', label: t('support.tabs.tickets', 'My Tickets'), icon: MessageSquare }
           ].map(tab => (
             <button
               key={tab.id}
