@@ -384,8 +384,12 @@ export function TournamentOracle() {
                         <button
                           key={tour}
                           onClick={() => { setSelectedDisplayTour(tour); setSearchQuery(""); }}
-                          className="snap-center shrink-0 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-colors relative whitespace-nowrap focus:outline-none"
-                          style={{ color: isActive ? '#000' : 'rgba(255,255,255,0.45)' }}
+                          className="snap-center shrink-0 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all relative whitespace-nowrap focus:outline-none border hover:bg-white/[0.02]"
+                          style={{ 
+                            color: isActive ? '#000' : 'rgba(255,255,255,0.45)',
+                            borderColor: isActive ? 'transparent' : 'rgba(255, 255, 255, 0.08)',
+                            backgroundColor: isActive ? 'transparent' : 'rgba(255, 255, 255, 0.02)'
+                          }}
                         >
                           {isActive && (
                             <motion.div
