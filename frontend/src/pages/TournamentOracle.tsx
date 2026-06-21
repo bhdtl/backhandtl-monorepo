@@ -384,7 +384,7 @@ export function TournamentOracle() {
                         <button
                           key={tour}
                           onClick={() => { setSelectedDisplayTour(tour); setSearchQuery(""); }}
-                          className="snap-center shrink-0 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-colors relative whitespace-nowrap focus:outline-none"
+                          className="snap-center shrink-0 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-colors relative whitespace-nowrap focus:outline-none"
                           style={{ color: isActive ? '#000' : 'rgba(255,255,255,0.45)' }}
                         >
                           {isActive && (
@@ -411,7 +411,7 @@ export function TournamentOracle() {
                                   <button 
                                       key={dateStr}
                                       onClick={() => { setSelectedDate(dateStr); setSearchQuery(""); }}
-                                      className="px-5 py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors flex-shrink-0 relative focus:outline-none"
+                                      className="px-5 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors flex-shrink-0 relative focus:outline-none"
                                       style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.45)' }}
                                   >
                                       {isActive && (
@@ -494,7 +494,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base font-bold uppercase tracking-tight truncate max-w-[135px] xs:max-w-[170px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
@@ -525,7 +525,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base font-bold uppercase tracking-tight truncate max-w-[135px] xs:max-w-[170px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (
@@ -588,7 +588,7 @@ export function TournamentOracle() {
                                                           <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-lg font-bold uppercase tracking-tight truncate max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
@@ -621,7 +621,7 @@ export function TournamentOracle() {
                                                           <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-lg font-bold uppercase tracking-tight truncate max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (
