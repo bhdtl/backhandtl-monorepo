@@ -547,7 +547,6 @@ body {
 /* --- APPLE HIG NATIVE LAYOUT UPDATES --- */
 
 .ios-nav-bar {
-  position: relative;
   width: 100%;
   height: 52px;
   background: rgba(15, 17, 21, 0.75);

@@ -261,7 +261,7 @@ function MobileHeader() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle'];
+    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance'];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
@@ -271,7 +271,7 @@ function MobileHeader() {
         if (path === '/support') return t('mobileMenu.nav.supportIdeas', 'Support');
         if (path === '/watchlist') return t('sidebar.watchlist', 'Watchlist');
         if (path === '/admin') return t('sidebar.admin', 'Admin');
-        if (path === '/performance') return t('performance.title', 'Performance Ledger');
+        if (path === '/performance') return t('sidebar.aiPerformance', 'AI Performance');
         return t('navigation.details', 'Details');
     };
 
