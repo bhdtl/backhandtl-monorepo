@@ -327,45 +327,44 @@ function StatBattleBar({ label, valA, valB }: { label: string, valA: number, val
   ); 
 }
 
-// --- PLAYER SLOT (APPLE HIG DESIGN) ---
 function PlayerSlot({ label, player, onClick, onClear, isError }: any) { 
   const { t } = useTranslation();
   
   const emptyStateClasses = isError 
     ? 'border-red-500/50 bg-red-500/5 animate-shake' 
-    : 'border-white/5 hover:border-white/10 bg-[#16171d]'; 
+    : 'border-white/5 hover:border-white/20 animate-border-breathe bg-[#15171e]'; 
 
-  const activeClasses = 'border-white/10 hover:border-tennis-lime shadow-xl';
+  const activeClasses = 'border-white/10 hover:border-tennis-lime shadow-xl bg-[#15171e]';
 
   return ( 
       <div 
         onClick={onClick} 
-        className={`group relative w-full aspect-[4/5] md:aspect-[3/4] rounded-3xl overflow-hidden cursor-pointer border transition-all duration-300 transform-gpu will-change-transform active:scale-[0.98]
+        className={`group relative w-full aspect-[4/5] md:aspect-[3/4] rounded-2xl md:rounded-[2.5rem] overflow-hidden cursor-pointer border-2 transition-all duration-500 transform-gpu will-change-transform active:scale-[0.98]
         ${player ? activeClasses : emptyStateClasses}`}
       > 
           {player ? ( 
               <> 
-                  <img src={player.profile_image_url} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-102 transform-gpu will-change-transform" alt={player.last_name}/> 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" /> 
+                  <img src={player.profile_image_url} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 transform-gpu will-change-transform" alt={player.last_name}/> 
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" /> 
                   <button 
                       onClick={(e) => { e.stopPropagation(); onClear(); }} 
-                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/50 hover:bg-red-500/80 text-white transition-all z-20 backdrop-blur-md border border-white/10 active:scale-90"
+                      className="absolute top-2 md:top-4 right-2 md:right-4 p-2 md:p-2 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors z-20 backdrop-blur-md border border-white/10 active:scale-90"
                   >
-                      <X size={12}/>
+                      <X size={14}/>
                   </button> 
-                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6"> 
-                      <div className="text-tennis-lime text-[11px] font-black uppercase tracking-[0.3em] mb-1">{label}</div> 
-                      <div className="text-white font-black text-xl md:text-2xl uppercase leading-none truncate tracking-tight">{player.last_name}</div> 
-                      <div className="text-gray-400 text-xs font-bold mt-2 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8"> 
+                      <div className="text-tennis-lime text-[10px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-0.5 md:mb-1">{label}</div> 
+                      <div className="text-white font-black text-xl md:text-3xl uppercase leading-none truncate tracking-tighter">{player.last_name}</div> 
+                      <div className="text-gray-400 text-[10px] md:text-[10px] font-bold mt-1.5 md:mt-2 uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
                           <img src={`https://flagcdn.com/w20/${getCountryISO(player.country)}.png`} className="w-3.5 h-auto rounded-[1px] grayscale-[0.2]" alt="" />
                           {player.country}
                       </div> 
                   </div> 
               </> 
           ) : ( 
-              <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40 group-hover:opacity-100 transition-all px-4 relative">
-                  <div className={`h-11 w-11 rounded-2xl border border-dashed flex items-center justify-center transition-all relative z-10 ${isError ? 'border-red-500 text-red-500' : 'border-white/20 group-hover:border-tennis-lime text-gray-400 group-hover:text-tennis-lime'}`}><Plus size={20} /></div> 
-                  <span className={`text-[11px] font-black uppercase tracking-[0.2em] text-center leading-normal transition-colors ${isError ? 'text-red-500' : 'text-gray-400 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
+              <div className="flex flex-col items-center justify-center h-full gap-3 md:gap-4 opacity-40 group-hover:opacity-100 transition-all px-2 relative">
+                  <div className={`h-10 w-10 md:h-12 w-12 rounded-2xl border-2 border-dashed flex items-center justify-center transition-all relative z-10 ${isError ? 'border-red-500 text-red-500' : 'border-gray-700 group-hover:border-tennis-lime text-gray-500 group-hover:text-tennis-lime'}`}><Plus size={24} /></div> 
+                  <span className={`text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] text-center leading-tight transition-colors ${isError ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
               </div> 
           )} 
       </div> 
@@ -447,28 +446,28 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
   
   return ( 
       <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"> 
-          <div className="bg-[#1c1c1e] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[2.5rem] md:rounded-[2rem] flex flex-col border border-white/5 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300"> 
+          <div className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300"> 
               {/* Grabber Bar for Mobile Sheet */}
               <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mt-3 mb-1 md:hidden" />
 
-              <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-black/10">
+              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center bg-black/20">
                   <button onClick={onClose} className="text-tennis-lime font-bold text-sm hover:text-white transition-colors py-2 px-1">
                       {t('common.cancel', 'Cancel')}
                   </button>
-                  <h3 className="text-white font-black uppercase tracking-wider text-xs md:text-sm text-center flex-1">
+                  <h3 className="text-white font-black uppercase tracking-widest text-xs md:text-sm text-center flex-1">
                       {t('matchup.modal.title')}
                   </h3>
                   {/* Spacer for alignment balance */}
                   <div className="w-12 pointer-events-none" />
               </div> 
-              <div className="p-4 md:p-6">
+              <div className="p-4 md:p-8">
                   <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={18} />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={20} />
                       <input 
                         autoFocus 
                         type="text" 
                         placeholder={t('matchup.modal.search')} 
-                        className="w-full bg-black/30 text-white pl-11 pr-11 py-3.5 rounded-xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-base" 
+                        className="w-full bg-black/40 text-white pl-12 pr-12 py-4 rounded-xl md:rounded-2xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-base md:text-lg" 
                         value={search} 
                         onChange={(e) => setSearch(e.target.value)}
                       />
@@ -482,34 +481,34 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
                       )}
                   </div>
               </div> 
-              <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-1.5 custom-scrollbar"> 
+              <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-8 space-y-2 md:space-y-3 custom-scrollbar"> 
                   {filtered.map((p: Player) => {
                       const pStyle = p.play_style ? translatePlayStyle(p.play_style.split(',')[0], t) : null; 
                       return ( 
                           <button 
                             key={p.id} 
                             onClick={() => { onSelect(p); onClose(); setSearch(''); }} 
-                            className="w-full flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all text-left group border border-transparent active:scale-[0.98] transform-gpu will-change-transform"
+                            className="w-full flex items-center gap-4 md:gap-5 p-3 md:p-4 hover:bg-white/5 rounded-xl md:rounded-[1.5rem] transition-all text-left group border border-transparent hover:border-white/5 active:scale-[0.98] transform-gpu will-change-transform"
                           > 
                               {p.profile_image_url ? (
-                                  <img src={p.profile_image_url} className="h-16 w-12 rounded-xl object-cover bg-gray-800 border border-white/5 group-hover:scale-102 transition-transform transform-gpu" />
+                                  <img src={p.profile_image_url} className="h-20 w-16 md:h-24 md:w-20 rounded-2xl object-cover bg-gray-800 border border-white/10 group-hover:scale-105 transition-transform transform-gpu duration-300" />
                               ) : (
-                                  <div className="h-16 w-12 rounded-xl bg-gray-800 border border-white/5 flex items-center justify-center text-[10px] font-black tracking-wider uppercase text-gray-500">{t('matchup.modal.noImg')}</div>
+                                  <div className="h-20 w-16 md:h-24 md:w-20 rounded-2xl bg-gray-800 border border-white/10 flex items-center justify-center text-[10px] font-black tracking-widest uppercase text-gray-500">{t('matchup.modal.noImg')}</div>
                               )} 
                               <div className="flex-1 min-w-0">
-                                  <div className="text-white font-black uppercase text-base leading-none mb-1.5 truncate group-hover:text-tennis-lime transition-colors">{p.last_name}</div>
+                                  <div className="text-white font-black uppercase text-base md:text-xl leading-none mb-1.5 md:mb-2 truncate group-hover:text-tennis-lime transition-colors tracking-tighter">{p.last_name}</div>
                                   <div className="flex items-center gap-2">
-                                      <div className="text-gray-500 text-xs font-bold uppercase tracking-wider truncate">
+                                      <div className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">
                                           {p.first_name} • <span className="text-white/40">{p.country}</span>
                                       </div>
                                       {pStyle && (
-                                          <div className="hidden md:flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                          <div className="hidden sm:flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-[8px] md:text-[10px] font-black uppercase tracking-widest text-gray-400">
                                               <Target size={8} /> {pStyle}
                                           </div>
                                       )}
                                   </div>
                               </div>
-                              <ChevronRight className="text-gray-700 group-hover:text-tennis-lime group-hover:translate-x-0.5 transition-all transform-gpu" size={18} /> 
+                              <ChevronRight className="text-gray-700 group-hover:text-tennis-lime group-hover:translate-x-1 transition-[color,transform] transform-gpu will-change-transform" size={20} /> 
                           </button> 
                       )
                   })} 
@@ -834,7 +833,7 @@ const BsiInput = ({ value, onChange, label }: { value: number | string, onChange
                 type="text" 
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg md:rounded-xl p-3 md:p-4 text-sm md:text-sm text-white focus:border-tennis-lime outline-none transition-all font-bold"
+                className="bg-black/40 border border-white/10 rounded-xl md:rounded-2xl p-4 text-base text-white focus:border-tennis-lime outline-none transition-all font-bold"
             />
         </div>
     );
@@ -849,7 +848,7 @@ const CustomSurfaceSelect = ({ value, onChange }: { value: string, onChange: (v:
                 <select
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="bg-black/40 text-white text-sm md:text-sm font-bold px-3 md:px-4 py-3 md:py-4 rounded-lg md:rounded-xl border border-white/10 outline-none focus:border-tennis-lime w-full transition-all appearance-none cursor-pointer"
+                    className="bg-black/40 text-white text-base font-bold px-4 py-4 rounded-xl md:rounded-2xl border border-white/10 outline-none focus:border-tennis-lime w-full transition-all appearance-none cursor-pointer"
                 >
                     <option value="Hard">{t('courtDatabase.filters.hard')}</option>
                     <option value="Indoor">Indoor</option>
@@ -1448,13 +1447,13 @@ export function MatchupAnalyzer() {
                  </div>
                  <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 w-full md:w-auto flex-1 md:justify-end">
                     <div className="relative w-full md:max-w-[320px] group">
-                        <Search className="absolute left-4 md:left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={16} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-tennis-lime transition-colors" size={18} />
                         <input 
                             type="text" 
                             placeholder={t('matchup.controls.searchCourt')} 
                             value={courtSearchTerm} 
                             onChange={(e) => { setCourtSearchTerm(e.target.value); setSelectedTournamentId(''); setAnalysisResult(null); }} 
-                            className="w-full bg-black/30 text-white pl-11 pr-11 py-3.5 rounded-xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-sm" 
+                            className="w-full bg-black/40 text-white pl-12 pr-12 py-4 rounded-xl md:rounded-2xl border border-white/10 outline-none focus:border-tennis-lime transition-all font-bold text-sm md:text-base" 
                         />
                         {courtSearchTerm && (
                             <button 
