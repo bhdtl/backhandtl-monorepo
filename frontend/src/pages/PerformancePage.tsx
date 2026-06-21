@@ -1029,7 +1029,7 @@ export function PerformancePage() {
               <Activity size={24} className="text-tennis-lime" />
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
-              {t('performance.title')}
+              {t('sidebar.aiPerformance', 'AI Performance')}
             </h1>
           </div>
           <p className="text-gray-400 text-sm font-medium max-w-2xl leading-relaxed pl-1">

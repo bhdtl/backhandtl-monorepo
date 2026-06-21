@@ -40,6 +40,63 @@ const staggerContainer: Variants = {
   }
 };
 
+// --- BRANDED PAYMENT OPTIONS (Apple HIG High-Fidelity SVGs) ---
+const paymentMethods = [
+  {
+    name: 'Visa',
+    icon: (
+      <svg className="w-8 h-3.5 fill-current text-white/50 group-hover:text-white transition-all duration-300" viewBox="0 0 24 8" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.6 8L5.4 0H4L2.2 8H3.6ZM9.3 0H7.7C7.4 0 7.1 0.2 7 0.5L4.2 8H5.7L6 7.1H8.6L8.8 8H10.3L9.3 0ZM6.4 5.9L7.3 3.3L7.8 5.9H6.4ZM15.1 0H13.8L12.3 5.4L11.5 0.7C11.4 0.3 11.1 0 10.7 0H9.1L9 0.4C10 1.2 10.9 2.2 11.6 3.3L12.9 8H14.4L16.2 0H15.1ZM20.7 2.4C20.7 1.4 19.3 1.3 19.3 0.9C19.3 0.8 19.5 0.7 19.8 0.7C20.1 0.7 20.7 0.8 21 1L21.3 0.1C20.9 0 20.3 0 19.8 0C18.6 0 17.8 0.6 17.8 1.5C17.8 2.6 19.3 2.7 19.3 3.3C19.3 3.5 19 3.6 18.7 3.6C18.3 3.6 17.7 3.4 17.4 3.2L17.1 4.2C17.6 4.4 18.2 4.5 18.8 4.5C20.1 4.5 20.7 3.8 20.7 2.4Z"/>
+      </svg>
+    )
+  },
+  {
+    name: 'Mastercard',
+    icon: (
+      <svg className="w-5.5 h-3.5 transition-all duration-300 opacity-60 group-hover:opacity-100" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="7" fill="#EB001B" />
+        <circle cx="16" cy="8" r="7" fill="#F79E1B" fillOpacity="0.8" />
+      </svg>
+    )
+  },
+  {
+    name: 'Apple Pay',
+    icon: (
+      <svg className="w-9 h-3.5 fill-current text-white/50 group-hover:text-white transition-all duration-300" viewBox="0 0 35 15" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5.2 2.2C4.5 3 3.5 3.5 2.5 3.4c-.1-1 .4-2 1.1-2.7C4.3.9 5.4.4 6.3.5c.1.9-.4 1.9-1.1 1.7zm1.1 1.5c-1 0-1.8.6-2.3.6-.5 0-1.2-.5-2-.5C.9 3.8 0 4.8 0 6.6c0 3 2.3 6.4 4.3 6.4.9 0 1.4-.5 2.2-.5.8 0 1.2.5 2.2.5 1.9 0 3.3-3 3.3-4.5 0-2.4-2.1-3.3-3.2-3.3z"/>
+        <path d="M16.5 4.5h2.5c1.4 0 2.2.7 2.2 1.8s-.8 1.8-2.2 1.8h-1.3v2.2h-1.2V4.5zm2.5 2.5c.7 0 1.1-.3 1.1-.8s-.4-.7-1.1-.7h-1.3v1.5h1.3zm6 1h-2v1.2h2.2v.9h-3.4V4.5h3.4v.9h-2.2v1.1h2v.7zm3 2.3l-1.9-5.8h1.3l1.2 4.1 1.2-4.1h1.3l-1.9 5.8h-1.2z"/>
+      </svg>
+    )
+  },
+  {
+    name: 'Google Pay',
+    icon: (
+      <svg className="w-9 h-3.5 fill-current text-white/50 group-hover:text-white transition-all duration-300" viewBox="0 0 35 15" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5.2 6.8v1.7h2.8c-.1.7-.8 2-2.8 2-1.7 0-3.1-1.4-3.1-3.2S3.5 4.1 5.2 4.1c1 0 1.6.4 2 .8l1.3-1.3C7.6 2.7 6.5 2 5.2 2c-3 0-5.4 2.4-5.4 5.4s2.4 5.4 5.4 5.4c3.1 0 5.2-2.2 5.2-5.3 0-.4 0-.6-.1-.7H5.2z"/>
+        <path d="M14.5 4.5h2.5c1.4 0 2.2.7 2.2 1.8s-.8 1.8-2.2 1.8h-1.3v2.2h-1.2V4.5zm2.5 2.5c.7 0 1.1-.3 1.1-.8s-.4-.7-1.1-.7h-1.3v1.5h1.3zm6 1h-2v1.2h2.2v.9h-3.4V4.5h3.4v.9h-2.2v1.1h2v.7zm3 2.3l-1.9-5.8h1.3l1.2 4.1 1.2-4.1h1.3l-1.9 5.8h-1.2z"/>
+      </svg>
+    )
+  },
+  {
+    name: 'PayPal',
+    icon: (
+      <svg className="w-8 h-3.5 fill-current text-blue-400/50 group-hover:text-blue-400 transition-all duration-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20.06 6.13c-.32-1.63-1.45-3.05-3.08-3.66C15.35 1.85 13.56 1.7 11.83 1.7H4.42c-.52 0-.96.38-1.04.89L1.04 17.55c-.09.52.31.98.83.98h3.94l.87-5.5c.08-.52.52-.89 1.04-.89h2.33c4.13 0 7.37-1.68 8.24-5.97.09-.43.14-.85.14-1.26a6.83 6.83 0 0 0-.33-1.78zM18.17 6.2c-.73 3.63-3.23 5.05-6.8 5.05H8.73l.79-5.02c.03-.22.22-.38.45-.38h1.86c2.51 0 4.47.53 5.3 1.63.5.65.65 1.54.54 2.1c-.02.13-.04.26-.06.38z"/>
+        <path d="M16.94 11.23c-.31-1.6-1.43-3.01-3.05-3.61C12.3 7 10.51 6.85 8.78 6.85H1.37c-.52 0-.96.38-1.04.89L.33 22.7c-.09.52.31.98.83.98h3.94l.87-5.5c.08-.52.52-.89 1.04-.89h2.33c4.13 0 7.37-1.68 8.24-5.97.09-.43.14-.85.14-1.26c0-.62-.12-1.22-.33-1.83z" fillOpacity="0.4"/>
+      </svg>
+    )
+  },
+  {
+    name: 'Amex',
+    icon: (
+      <svg className="w-8 h-3.5 fill-current text-cyan-400/50 group-hover:text-cyan-400 transition-all duration-300" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="16" rx="2" fill="currentColor" fillOpacity="0.05"/>
+        <text x="3" y="11" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fontSize="7" letterSpacing="0.3" fill="currentColor">AMEX</text>
+      </svg>
+    )
+  }
+];
+
 // --- COMPONENT: COOKIE & PRIVACY BANNER ---
 function CookieBanner() {
   const [isVisible, setIsVisible] = useState(!safeLocalStorage.getItem('cookie_consent'));
@@ -72,13 +129,13 @@ function CookieBanner() {
         <div className="flex gap-2">
           <button 
             onClick={handleAccept}
-            className="flex-1 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-tennis-lime transition-colors"
+            className="flex-1 h-11 px-4 bg-white text-black text-xs font-bold rounded-xl hover:bg-tennis-lime transition-all duration-300 flex items-center justify-center"
           >
             Accept All
           </button>
           <button 
             onClick={handleDecline}
-            className="flex-1 py-2.5 bg-white/5 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-colors"
+            className="flex-1 h-11 px-4 bg-white/5 text-gray-400 text-xs font-bold rounded-xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center"
           >
             Essential Only
           </button>
@@ -98,7 +155,7 @@ function LandingHeader({ onLogin }: { onLogin: () => void }) {
     >
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth'})}>
         <BrandLogo className="h-6 text-white" />
-        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest hidden md:inline-block border border-white/10 px-2 py-0.5 rounded-md">
+        <span className="text-[11px] font-mono text-gray-500 uppercase tracking-widest hidden md:inline-block border border-white/10 px-2.5 py-0.5 rounded-md">
           v8.6 PRO
         </span>
       </div>
@@ -109,7 +166,7 @@ function LandingHeader({ onLogin }: { onLogin: () => void }) {
         </a>
         <button 
           onClick={onLogin}
-          className="text-xs font-black uppercase tracking-wider bg-white text-black px-5 py-2.5 rounded-lg hover:bg-tennis-lime transition-colors shadow-lg hover:shadow-tennis-lime/20"
+          className="text-xs font-bold bg-white text-black px-6 py-2.5 rounded-xl hover:bg-tennis-lime hover:text-black transition-all duration-300 shadow-md hover:shadow-tennis-lime/20 h-11 flex items-center justify-center"
         >
           Login
         </button>
@@ -156,7 +213,7 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
               </div>
             </div>
             
-            <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">Compiling Alpha Data</h3>
+            <h3 className="text-xl font-extrabold text-white mb-2 tracking-tight">Compiling Alpha Data</h3>
             <p className="text-sm text-gray-400 mb-8">Crunching 14,000+ historical data points for your profile...</p>
             
             <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden transform-gpu">
@@ -172,8 +229,8 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
           <>
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Analysis Step {step}/{totalSteps}</span>
-                <button onClick={onClose}><X size={16} className="text-gray-600 hover:text-white transition-colors" /></button>
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Analysis Step {step}/{totalSteps}</span>
+                <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-full"><X size={16} className="text-gray-600 hover:text-white transition-colors" /></button>
               </div>
               <div className="flex gap-1.5">
                 {[1, 2, 3].map((i) => (
@@ -185,7 +242,7 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div key="step1" initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -10, opacity: 0 }}>
-                  <h3 className="text-3xl font-black text-white mb-2 tracking-tighter">Target ROI?</h3>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Target ROI?</h3>
                   <p className="text-gray-400 text-sm mb-8">What is your primary focus for the dashboard?</p>
                   
                   <div className="space-y-3">
@@ -210,7 +267,7 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
 
               {step === 2 && (
                 <motion.div key="step2" initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -10, opacity: 0 }}>
-                  <h3 className="text-3xl font-black text-white mb-2 tracking-tighter">Experience?</h3>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Experience?</h3>
                   <p className="text-gray-400 text-sm mb-8">We tailor the complexity based on your level.</p>
                   
                   <div className="space-y-3">
@@ -229,16 +286,16 @@ function QuizModal({ onClose, onFinish }: { onClose: () => void, onFinish: (data
                   <div className="w-20 h-20 bg-tennis-lime/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-tennis-lime/20">
                     <ShieldCheck size={40} className="text-tennis-lime" />
                   </div>
-                  <h3 className="text-3xl font-black text-white mb-4 tracking-tighter">Commitment.</h3>
+                  <h3 className="text-3xl font-extrabold text-white mb-4 tracking-tight">Commitment</h3>
                   <p className="text-gray-400 text-sm mb-10 leading-relaxed px-2">
                     Neural Scout Pro delivers high-precision market data. To proceed, you must commit to maintaining financial discipline and professional risk management.
                   </p>
                   
                   <button 
                     onClick={handleCommit} 
-                    className="w-full py-5 bg-tennis-lime text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="w-full h-14 bg-tennis-lime text-black font-bold text-sm rounded-2xl shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center"
                   >
-                    I Commit. Show Results.
+                    I commit. Show results.
                   </button>
                 </motion.div>
               )}
@@ -271,7 +328,7 @@ function ExplainerModal({ onClose }: { onClose: () => void }) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-tennis-lime"></span>
             </span>
-            <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white">How it Works</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">How it Works</h2>
           </div>
           
           <div className="space-y-8 relative">
@@ -388,23 +445,23 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
             variants={staggerContainer}
             className="flex flex-col items-center"
           >
-            <motion.div variants={fadeInUp} className="mb-8 inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.02] backdrop-blur-md shadow-2xl">
+            <motion.div variants={fadeInUp} className="mb-8 inline-flex items-center gap-3 px-4.5 py-2 rounded-full border border-white/10 bg-white/[0.02] backdrop-blur-md shadow-2xl">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute h-full w-full rounded-full bg-green-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-gray-300">
                   {t('landing.systemLive', 'System Live')}
                 </span>
               </div>
               <div className="w-px h-3 bg-white/10"></div>
-              <span className="text-[10px] font-mono text-gray-400">
+              <span className="text-[11px] font-mono text-gray-400">
                 {playerCount ? t('landing.playersTracked', '{{count}} Players Tracked', { count: playerCount }) : t('landing.connectingDb', 'Connecting Database...')}
               </span>
             </motion.div>
 
-            <motion.h1 variants={fadeInUp} className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.95] mb-8 text-white">
+            <motion.h1 variants={fadeInUp} className="text-5xl md:text-8xl font-extrabold tracking-tight leading-[0.95] mb-8 text-white">
               {t('landing.headlineLine1', 'The Edge')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-600">
                 {t('landing.headlineLine2', "You're Missing.")}
@@ -418,16 +475,16 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
               <button 
                 onClick={handleStartAnalysis}
-                className="group relative px-8 py-4 bg-tennis-lime text-black font-black text-sm uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:shadow-[0_0_50px_rgba(204,255,0,0.5)] transform-gpu"
+                className="group relative h-13 px-8 bg-tennis-lime text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:shadow-[0_0_50px_rgba(204,255,0,0.5)] transform-gpu flex items-center justify-center"
               >
-                {t('landing.startAnalysis', 'Start Analysis')}
+                <span>{t('landing.startAnalysis', 'Start Analysis')}</span>
                 <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={16} />
               </button>
               
               <button 
                 onClick={() => setShowExplainer(true)}
                 id="how-it-works"
-                className="px-8 py-4 bg-transparent border border-white/10 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:bg-white/5 transition-colors transform-gpu"
+                className="h-13 px-8 bg-transparent border border-white/10 text-white font-bold text-sm rounded-xl hover:bg-white/5 transition-all transform-gpu flex items-center justify-center"
               >
                 {t('landing.howItWorks', 'How it works')}
               </button>
@@ -452,11 +509,11 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
         <div className="max-w-6xl mx-auto">
           <div className="mb-16 md:flex justify-between items-end border-b border-white/5 pb-8 text-center md:text-left">
             <div>
-              <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Intelligence Grid</h2>
+              <h2 className="text-3xl font-extrabold tracking-tight mb-2 text-white">Intelligence Grid</h2>
               <p className="text-gray-500 text-sm">Real-time processing of complex tennis metrics.</p>
             </div>
             <div className="hidden md:block text-right">
-                <div className="text-[10px] font-mono text-gray-600 bg-white/5 px-2 py-1 rounded">STATUS: OPERATIONAL</div>
+                <div className="text-[10px] font-mono text-gray-600 bg-white/5 px-2.5 py-1 rounded">STATUS: OPERATIONAL</div>
             </div>
           </div>
 
@@ -469,11 +526,11 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                     <div className="bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-md mb-8">
                       <BrainCircuit className="text-tennis-lime" size={28} />
                     </div>
-                    <span className="text-[9px] font-mono text-gray-500 border border-white/5 px-2 py-1 rounded bg-black/20">AI MODEL: DEEP LEARNING</span>
+                    <span className="text-[10px] font-mono text-gray-500 border border-white/5 px-2.5 py-1 rounded bg-black/20">AI MODEL: DEEP LEARNING</span>
                   </div>
                   
                   <div>
-                    <h3 className="text-2xl font-black mb-3 text-white">Professional Scout Intel</h3>
+                    <h3 className="text-2xl font-extrabold mb-3 text-white">Professional Scout Intel</h3>
                     <p className="text-sm text-gray-400 max-w-md leading-relaxed">
                       Our system generates comprehensive "Raw Intel" reports. It evaluates tactical matchups, historical performance, and real-time form to predict outcomes with high confidence.
                     </p>
@@ -502,7 +559,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                    <Eye className="text-blue-400" size={24} />
                  </div>
                  <div>
-                   <h3 className="text-xl font-black mb-2 text-white">Visual BSI</h3>
+                   <h3 className="text-xl font-extrabold mb-2 text-white">Visual BSI</h3>
                    <p className="text-xs text-gray-500 leading-relaxed">We analyze video feeds to determine the actual Bounce Speed Index of the court.</p>
                  </div>
               </div>
@@ -513,7 +570,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                    <Activity className="text-purple-400" size={24} />
                  </div>
                  <div>
-                   <h3 className="text-xl font-black mb-2 text-white">Market Pulse</h3>
+                   <h3 className="text-xl font-extrabold mb-2 text-white">Market Pulse</h3>
                    <p className="text-xs text-gray-500 leading-relaxed">Aggregating market data to identify probability discrepancies against our neural models.</p>
                  </div>
               </div>
@@ -532,30 +589,23 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
           
           <div className="max-w-3xl flex flex-col items-center gap-8">
             <div className="flex flex-wrap justify-center gap-4 w-full">
-              {[
-                { name: 'Visa', color: 'text-blue-500' },
-                { name: 'Mastercard', color: 'text-orange-500' },
-                { name: 'Apple Pay', color: 'text-white' },
-                { name: 'Google Pay', color: 'text-gray-200' },
-                { name: 'PayPal', color: 'text-blue-400' },
-                { name: 'Amex', color: 'text-cyan-400' }
-              ].map((method) => (
-                <div key={method.name} className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.06] hover:border-white/20 transition-all cursor-default group transform-gpu">
-                  <CreditCard size={12} className={`${method.color} transition-transform group-hover:scale-110`} />
-                  <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{method.name}</span>
+              {paymentMethods.map((method) => (
+                <div key={method.name} className="flex items-center gap-2.5 px-4.5 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.06] hover:border-white/20 transition-all cursor-default group transform-gpu h-10">
+                  {method.icon}
+                  <span className="text-[10px] font-bold text-gray-400 tracking-wider">{method.name}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+            <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 h-7">
               <ShieldCheck size={12} className="text-tennis-lime" />
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Enterprise Grade Data Security</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Enterprise Grade Data Security</span>
             </div>
             
-            <p className="text-[10px] text-gray-700 leading-relaxed font-medium uppercase tracking-wider">
+            <p className="text-[10px] text-gray-500 leading-relaxed font-medium tracking-wide">
               BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Historical player data and matchup statistics are powered by data from Jeff Sackmann (CC BY-NC-SA 4.0, non-commercial only). Sports analysis involves risk. Please use responsibly.
             </p>
-            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider mt-4">
+            <p className="text-[10px] text-gray-500 font-semibold tracking-wider mt-4">
               Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00
             </p>
           </div>

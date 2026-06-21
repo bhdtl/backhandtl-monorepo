@@ -8,6 +8,7 @@
     "matchupAnalyzer": "Match-Analyse",
     "valueScanner": "Value Scanner",
     "courtIndex": "BSI Court Index",
+    "courtProfile": "Court-Profil",
     "admin": "System Admin",
     "activeAccount": "Aktives Konto",
     "accessGranted": "Zugriff Erteilt",
@@ -532,8 +533,39 @@
     "login": "Login"
   },
   "mobileMenu": {
+    "enterPromoCode": "Promo-Code eingeben...",
+    "unlockFullAccess": "Schalte vollen Zugriff auf KI-Modell-Erkenntnisse & Premium-Daten frei.",
+    "loginNow": "Jetzt einloggen",
+    "menu": "Menü",
+    "myAccount": "Mein Konto",
+    "redeemCode": "Promo-Code einlösen",
+    "logout": "Abmelden",
+    "loginSignUp": "Einloggen / Registrieren",
+    "status": {
+      "free": "Kostenloses Konto",
+      "pro": "Pro Mitglied",
+      "expires": "PRO-Mitgliedschaft Aktiv",
+      "balance": "Scouting-Guthaben",
+      "credits": "Credits"
+    },
     "nav": {
+      "playerDatabase": "Spielerdatenbank",
+      "watchlist": "Merkliste",
+      "membershipPlans": "Mitgliedschaften",
+      "matchupAnalyzer": "Match-Analyse",
+      "valueScanner": "Value Scanner",
+      "aiPicks": "AI Picks",
+      "bsiCourtIndex": "BSI Court Index",
+      "aiPerformance": "KI-Performance",
+      "supportIdeas": "Support & Feedback",
+      "systemAdmin": "System Admin",
       "tournamentOracle": "Turnier-Orakel"
+    },
+    "badges": {
+      "upgrade": "Upgrade",
+      "new": "Neu",
+      "hot": "Heiß",
+      "help": "Hilfe"
     }
   },
   "picks": {

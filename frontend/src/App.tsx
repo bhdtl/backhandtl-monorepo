@@ -265,13 +265,13 @@ function MobileHeader() {
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
-        if (path.startsWith('/court/')) return t('court.profile', 'Court Profile');
-        if (path === '/courts') return t('court.index', 'Court Index');
-        if (path === '/pricing') return t('mobileMenu.nav.membership', 'Membership');
-        if (path === '/support') return t('mobileMenu.nav.support', 'Support');
-        if (path === '/watchlist') return t('mobileMenu.nav.watchlist', 'Watchlist');
-        if (path === '/admin') return t('mobileMenu.nav.admin', 'Admin');
-        if (path === '/performance') return t('performance.title', 'Performance Ledger');
+        if (path.startsWith('/court/')) return t('sidebar.courtProfile', 'Court Profile');
+        if (path === '/courts') return t('sidebar.courtIndex', 'Court Index');
+        if (path === '/pricing') return t('mobileMenu.nav.membershipPlans', 'Membership');
+        if (path === '/support') return t('mobileMenu.nav.supportIdeas', 'Support');
+        if (path === '/watchlist') return t('sidebar.watchlist', 'Watchlist');
+        if (path === '/admin') return t('sidebar.admin', 'Admin');
+        if (path === '/performance') return t('sidebar.aiPerformance', 'KI-Performance');
         return t('navigation.details', 'Details');
     };
 
@@ -343,6 +343,44 @@ function AppContent() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const detectLanguageByIP = async () => {
+      try {
+        const hasBeenDetected = safeLocalStorage.getItem('bh_i18n_ip_detected');
+        if (hasBeenDetected) return;
+
+        const res = await fetch('https://ipapi.co/json/');
+        if (!res.ok) throw new Error('IP API lookup failed');
+        const data = await res.json();
+        const country = data.country_code?.toUpperCase();
+
+        let targetLang = 'en';
+        if (['DE', 'AT', 'CH'].includes(country)) {
+          targetLang = 'de';
+        } else if (['ES', 'MX', 'AR', 'CL', 'CO', 'PE', 'VE', 'UY', 'EC', 'BO', 'PY', 'GT', 'HN', 'SV', 'NI', 'CR', 'PA', 'DO'].includes(country)) {
+          targetLang = 'es';
+        } else if (['FR', 'BE', 'LU', 'CA'].includes(country) && country !== 'CA') {
+          targetLang = 'fr';
+        } else if (country === 'IT') {
+          targetLang = 'it';
+        }
+
+        if (targetLang !== 'en') {
+          i18n.changeLanguage(targetLang);
+          safeLocalStorage.setItem('i18nextLng', targetLang);
+        }
+        safeLocalStorage.setItem('bh_i18n_ip_detected', 'true');
+      } catch (err) {
+        console.warn('IP-based language detection failed, falling back to browser language:', err);
+        // Save flag anyway to prevent repeated API calls on failures
+        safeLocalStorage.setItem('bh_i18n_ip_detected', 'true');
+      }
+    };
+
+    detectLanguageByIP();
+  }, [i18n]);
 
   useEffect(() => {
     const handleSessionSync = async (session: any) => {
@@ -481,7 +519,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {isLandingPage && <GlobalFooter onOpenLegal={(type) => setLegalModal(type)} />}
+      {!isLandingPage && <GlobalFooter onOpenLegal={(type) => setLegalModal(type)} />}
       
       {!isLandingPage && (
         <MobileTabBar
