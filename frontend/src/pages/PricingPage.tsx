@@ -236,28 +236,30 @@ export function PricingPage() {
   };
   
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white pt-20 md:pt-24 pb-24 md:pb-32 overflow-x-hidden selection:bg-tennis-lime selection:text-black font-sans relative">
+    <div className="min-h-screen bg-[#0f1115] text-white pt-6 pb-24 md:pb-32 overflow-x-hidden selection:bg-tennis-lime selection:text-black font-sans relative">
       
       <AnimatePresence>
          {legalModal && <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-6 text-center mb-6 md:mb-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6"
-        >
-          <Shield size={12} className="text-tennis-lime" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{t('pricing.badge', 'Professional Grade Data Hub')}</span>
-        </motion.div>
-        
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-7xl font-black tracking-tighter mb-4 uppercase leading-[0.9]"
-        >
-          {t('pricing.titlePart1', 'Choose Your')} <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime via-emerald-400 to-teal-500">{t('pricing.titlePart2', 'Strategic Edge.')}</span>
-        </motion.h1>
+      <div className="max-w-7xl mx-auto px-6 mb-6 md:mb-12 mt-8 md:mt-12 text-left">
+        <div className="flex items-center gap-2.5 text-tennis-lime font-black text-xs uppercase tracking-widest mb-2.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+          </span>
+          <span>{t('pricing.header.badge', 'MEMBERSHIP')}</span>
+        </div>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+          <div className="flex-1">
+            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">
+              {t('pricing.titlePart1', 'Choose Your')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime via-emerald-400 to-teal-500">{t('pricing.titlePart2', 'Strategic Edge.')}</span>
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl pl-1">
+              {t('pricing.badge', 'Professional Grade Data Hub')}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="relative h-[340px] md:h-[450px] flex items-center justify-center touch-none mb-2 md:mb-0">

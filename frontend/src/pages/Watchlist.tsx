@@ -153,11 +153,23 @@ export function Watchlist({ onPlayerClick }: { onPlayerClick: (id: string) => vo
     <div className="pb-24 pt-6 px-4 max-w-7xl mx-auto animate-in fade-in duration-500">
       
       {/* Header Section */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-            <h1 className="text-3xl font-black text-white flex items-center gap-2 uppercase tracking-tighter">
-                {t('watchlist.title')} <Heart className="text-tennis-lime fill-tennis-lime" size={24} />
+      <div className="mt-8 md:mt-12 mb-6">
+        <div className="flex items-center gap-2.5 text-tennis-lime font-black text-xs uppercase tracking-widest mb-2.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
+          </span>
+          <span>{t('watchlist.header.badge', 'WATCHLIST')}</span>
+        </div>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+          <div className="flex-1">
+            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">
+              {t('watchlist.title')}
             </h1>
+            <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl pl-1">
+              {t('watchlist.loggedOut.description')}
+            </p>
+          </div>
         </div>
       </div>
 
