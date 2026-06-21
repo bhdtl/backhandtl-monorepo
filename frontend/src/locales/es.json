@@ -396,9 +396,9 @@
     "subtitle": "Índice oficial de velocidad de pista y condiciones.",
     "searchPlaceholder": "Buscar por nombre de torneo o ubicación...",
     "filters": {
-      "allSurfaces": "Todas las Superficies",
+      "allSurfaces": "Todas",
       "hard": "Dura",
-      "clay": "Arcilla",
+      "clay": "Tierra",
       "grass": "Hierba",
       "fastestFirst": "Más Rápidas Primero",
       "slowestFirst": "Más Lentas Primero"

@@ -405,9 +405,9 @@
     "subtitle": "Offizieller Court-Speed-Index und Turnierbedingungen.",
     "searchPlaceholder": "Suche nach Turniername oder Ort...",
     "filters": {
-      "allSurfaces": "Alle Beläge",
-      "hard": "Hartplatz",
-      "clay": "Sandplatz",
+      "allSurfaces": "Alle",
+      "hard": "Hart",
+      "clay": "Sand",
       "grass": "Rasen",
       "fastestFirst": "Schnellste zuerst",
       "slowestFirst": "Langsamste zuerst"

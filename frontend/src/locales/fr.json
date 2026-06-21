@@ -396,9 +396,9 @@
     "subtitle": "Indice officiel de vitesse de court et conditions.",
     "searchPlaceholder": "Rechercher par nom de tournoi ou lieu...",
     "filters": {
-      "allSurfaces": "Toutes Surfaces",
+      "allSurfaces": "Toutes",
       "hard": "Dur",
-      "clay": "Terre Battue",
+      "clay": "Terre",
       "grass": "Gazon",
       "fastestFirst": "Plus Rapides d'Abord",
       "slowestFirst": "Plus Lents d'Abord"

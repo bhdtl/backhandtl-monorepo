@@ -305,15 +305,15 @@ export function CourtDatabase() {
             )}
           </div>
             
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex bg-black/40 p-1 rounded-xl md:rounded-2xl border border-white/5 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="flex bg-black/40 p-1 rounded-xl md:rounded-2xl border border-white/5 w-full sm:w-auto overflow-x-auto scrollbar-none whitespace-nowrap">
               {['All', 'Hard', 'Clay', 'Grass'].map((surf) => (
                 <button
                   key={surf}
                   onClick={() => handleSurfaceFilterChange(surf)}
-                  className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg md:rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                  className={`flex-1 sm:flex-none px-3.5 sm:px-5 py-2 rounded-lg md:rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                     surfaceFilter === surf
-                      ? 'bg-tennis-lime text-black shadow-lg'
+                      ? 'bg-tennis-lime text-black shadow-lg shadow-tennis-lime/10'
                       : 'text-gray-500 hover:text-white'
                   }`}
                 >

@@ -405,7 +405,7 @@
     "subtitle": "Official court speed index and tournament conditions.",
     "searchPlaceholder": "Search by tournament name or location...",
     "filters": {
-      "allSurfaces": "All Surfaces",
+      "allSurfaces": "All",
       "hard": "Hard",
       "clay": "Clay",
       "grass": "Grass",

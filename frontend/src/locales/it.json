@@ -393,7 +393,7 @@
     "subtitle": "Indice ufficiale velocità campi e condizioni.",
     "searchPlaceholder": "Cerca per nome torneo o luogo...",
     "filters": {
-      "allSurfaces": "Tutte le Superfici",
+      "allSurfaces": "Tutte",
       "hard": "Cemento",
       "clay": "Terra",
       "grass": "Erba",
