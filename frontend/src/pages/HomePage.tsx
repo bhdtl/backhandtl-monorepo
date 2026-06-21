@@ -11,7 +11,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { PartnerBadge } from '../components/PartnerBadge';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
@@ -605,6 +605,7 @@ function FilterSheet({
   onReset
 }: FilterSheetProps) {
   const { t } = useTranslation();
+  const dragControls = useDragControls();
   
   return (
     <div className="fixed inset-0 z-[100] flex justify-center items-end md:items-center no-select">
@@ -617,20 +618,36 @@ function FilterSheet({
       />
       
       <motion.div
+        drag={window.innerWidth < 768 ? "y" : false}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0.1, bottom: 0.8 }}
+        onDragEnd={(_e, info) => {
+          if (info.offset.y > 150) {
+            onClose();
+          }
+        }}
         initial={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
         animate={window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
         exit={window.innerWidth < 768 ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 260 }}
         className="relative w-full md:max-w-lg max-h-[85vh] md:max-h-[90vh] bg-[#13151b] border-t md:border border-white/10 rounded-t-[2.5rem] md:rounded-[2.5rem] flex flex-col overflow-hidden z-10 shadow-2xl"
       >
-        <div className="md:hidden flex justify-center py-3">
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="md:hidden flex justify-center py-3 cursor-grab active:cursor-grabbing select-none touch-none"
+        >
           <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
         
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-sm font-medium">Cancel</button>
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] cursor-grab active:cursor-grabbing select-none touch-none"
+        >
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-gray-400 hover:text-white text-sm font-medium">Cancel</button>
           <span className="text-sm font-black uppercase tracking-widest text-white">Refine Scout</span>
-          <button onClick={onClose} className="text-tennis-lime hover:text-tennis-lime/80 text-sm font-black uppercase tracking-wider">Done</button>
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-tennis-lime hover:text-tennis-lime/80 text-sm font-black uppercase tracking-wider">Done</button>
         </div>
         
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar pb-32">

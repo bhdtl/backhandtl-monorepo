@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, AnimatePresence, Variants, useDragControls } from 'framer-motion';
 import { X, Gift, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,7 @@ interface NeoBetPromoModalProps {
 export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
+  const dragControls = useDragControls();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -78,10 +79,29 @@ export function NeoBetPromoModal({ isOpen, onClose }: NeoBetPromoModalProps) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            drag={isMobile ? "y" : false}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y > 150) {
+                onClose();
+              }
+            }}
             className="relative bg-gradient-to-br from-[#121620] via-[#0d1017] to-[#07090d] border border-white/10 w-full max-w-[420px] shadow-2xl overflow-hidden flex flex-col z-10 max-md:absolute max-md:bottom-0 max-md:top-auto max-md:rounded-b-none max-md:rounded-t-[2.5rem] md:rounded-[2.5rem]"
           >
+            {/* Grabber Bar for Mobile Sheet */}
+            <div 
+              onPointerDown={(e) => dragControls.start(e)}
+              className="md:hidden w-full flex justify-center py-3 cursor-grab active:cursor-grabbing select-none absolute top-0 left-0 right-0 z-30 touch-none"
+            >
+              <div className="w-10 h-1 bg-white/20 rounded-full" />
+            </div>
+
             {/* Top Close Button (Sleek Apple style circle) */}
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={onClose}
               className="absolute top-5 right-5 z-20 flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all active:scale-95"
             >

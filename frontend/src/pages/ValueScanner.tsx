@@ -12,7 +12,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { useTranslation } from 'react-i18next';
 import { localizeBackendText } from '../utils/localizer';
 import { useAccess } from '../hooks/useAccess';
-import { motion } from 'framer-motion';
+import { motion, useDragControls } from 'framer-motion';
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
 import { OddsMovementModal } from '../components/OddsMovementModal'; 
 import { LiveValueMatch, Player, ParsedBet } from '../types/tennis'; 
@@ -237,6 +237,7 @@ const toTitleCase = (str: string) => {
 function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [step, setStep] = useState(0);
   const { t } = useTranslation();
+  const dragControls = useDragControls();
 
   useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
   if (!isOpen) return null;
@@ -267,9 +268,26 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
   return (
       <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
-          <div className="relative bg-[#1c1c1e] border-t sm:border border-white/[0.08] w-full max-w-md rounded-t-[20px] sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl flex flex-col items-center text-center overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transform-gpu">
+          <motion.div 
+            drag={window.innerWidth < 768 ? "y" : false}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
+            onDragEnd={(_e, info) => {
+                if (info.offset.y > 150) {
+                    onClose();
+                }
+            }}
+            className="relative bg-[#1c1c1e] border-t sm:border border-white/[0.08] w-full max-w-md rounded-t-[20px] sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl flex flex-col items-center text-center overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 transform-gpu z-10"
+          >
               {/* iOS Sheet Drag Indicator */}
-              <div className="w-12 h-1 bg-white/20 rounded-full mb-6 cursor-pointer hover:bg-white/30 transition-colors" />
+              <div 
+                onPointerDown={(e) => dragControls.start(e)}
+                className="w-full flex justify-center py-2 -mt-2 mb-4 cursor-grab active:cursor-grabbing select-none touch-none"
+              >
+                  <div className="w-12 h-1.5 bg-white/20 rounded-full hover:bg-white/30 transition-colors" />
+              </div>
 
               <div className="flex gap-1.5 mb-6 justify-center">
                   {steps.map((_, i) => (
@@ -294,7 +312,7 @@ function ValueScannerBriefing({ isOpen, onClose }: { isOpen: boolean, onClose: (
               >
                   {step < steps.length - 1 ? t('common.next', 'Next') : t('valueScanner.tutorial.start', 'Start Scanning')}
               </button>
-          </div>
+          </motion.div>
       </div>
   );
 }
@@ -1496,13 +1514,6 @@ export function ValueScanner() {
             )}
           </div>
       </PremiumLock>
-
-      {/* Germany Regulatory Whitelist Footer */}
-      <div className="mt-16 pt-8 border-t border-white/5 text-center">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-gray-600 max-w-xl mx-auto leading-relaxed">
-              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
-          </p>
-      </div>
 
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />

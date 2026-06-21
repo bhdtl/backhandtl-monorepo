@@ -44,7 +44,7 @@ import { useAccess } from '../hooks/useAccess';
 import { StyleAnalysis } from '../components/StyleAnalysis'; 
 import { BsiSpeedPerformance } from '../components/BsiSpeedPerformance'; 
 import { MarketOddsPerformance } from '../components/MarketOddsPerformance'; 
-import { motion } from 'framer-motion'; 
+import { motion, useDragControls } from 'framer-motion'; 
 
 // Trigger fresh Vercel deployment
 import { NeoBetPromoModal } from '../components/NeoBetPromoModal';
@@ -227,6 +227,7 @@ function AccessDeniedModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
 // 3. TACTICAL BRIEFING MODAL (APPLE SHEET STYLE)
 function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [step, setStep] = useState(0);
+    const dragControls = useDragControls();
     
     useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
 
@@ -258,9 +259,26 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
     return (
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300">
             <div className="absolute inset-0" onClick={onClose}></div>
-            <div className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center">
+            <motion.div 
+                drag={window.innerWidth < 768 ? "y" : false}
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0.1, bottom: 0.8 }}
+                onDragEnd={(_e, info) => {
+                    if (info.offset.y > 150) {
+                        onClose();
+                    }
+                }}
+                className="relative bg-[#1c1c1e] border border-white/5 w-full md:max-w-md rounded-t-[2.5rem] md:rounded-[2rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 overflow-hidden flex flex-col items-center text-center z-10"
+            >
                 {/* Grabber Bar for Mobile Sheet */}
-                <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-4 md:hidden" />
+                <div 
+                    onPointerDown={(e) => dragControls.start(e)}
+                    className="w-full flex justify-center py-2 -mt-4 mb-2 cursor-grab active:cursor-grabbing select-none touch-none"
+                >
+                    <div className="w-10 h-1 bg-white/10 rounded-full" />
+                </div>
 
                 <div className="flex gap-2.5 mb-8">
                     {steps.map((_, i) => (
@@ -283,7 +301,7 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                 >
                     {step < steps.length - 1 ? "Next Step" : "Get Started"}
                 </button>
-            </div>
+            </motion.div>
         </div>
     );
 }
@@ -440,18 +458,40 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
 function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) { 
   const { t } = useTranslation();
   const [search, setSearch] = useState(''); 
+  const dragControls = useDragControls();
+
   if (!isOpen) return null; 
   const safePlayers = Array.isArray(players) ? players : []; 
   const filtered = safePlayers.filter((p: Player) => `${p.first_name} ${p.last_name}`.toLowerCase().includes(search.toLowerCase())); 
   
   return ( 
       <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"> 
-          <div className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300"> 
+          <motion.div 
+            drag={window.innerWidth < 768 ? "y" : false}
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.1, bottom: 0.8 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y > 150) {
+                onClose();
+              }
+            }}
+            className="bg-[#1a1d26] w-full md:max-w-xl h-[85vh] md:h-[700px] rounded-t-[3rem] md:rounded-[2.5rem] flex flex-col border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 z-10"
+          > 
               {/* Grabber Bar for Mobile Sheet */}
-              <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mt-3 mb-1 md:hidden" />
+              <div 
+                onPointerDown={(e) => dragControls.start(e)}
+                className="w-full flex justify-center py-3 cursor-grab active:cursor-grabbing select-none md:hidden touch-none"
+              >
+                  <div className="w-10 h-1 bg-white/10 rounded-full mx-auto" />
+              </div>
 
-              <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center bg-black/20">
-                  <button onClick={onClose} className="text-tennis-lime font-bold text-sm hover:text-white transition-colors py-2 px-1">
+              <div 
+                onPointerDown={(e) => dragControls.start(e)}
+                className="px-6 py-5 border-b border-white/5 flex justify-between items-center bg-black/20 cursor-grab active:cursor-grabbing select-none touch-none"
+              >
+                  <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-tennis-lime font-bold text-sm hover:text-white transition-colors py-2 px-1">
                       {t('common.cancel', 'Cancel')}
                   </button>
                   <h3 className="text-white font-black uppercase tracking-widest text-xs md:text-sm text-center flex-1">
@@ -513,7 +553,7 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
                       )
                   })} 
               </div> 
-          </div> 
+          </motion.div> 
       </div> 
   ); 
 }

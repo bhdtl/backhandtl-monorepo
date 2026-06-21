@@ -1472,13 +1472,6 @@ export function AIPicksPage() {
           )}
       </PremiumLock>
 
-      {/* Germany Regulatory Whitelist Footer */}
-      <div className="mt-16 pt-8 border-t border-white/5 text-center">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
-              {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
-          </p>
-      </div>
-
       {/* NeoBet Promo Modal */}
       <NeoBetPromoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
 
