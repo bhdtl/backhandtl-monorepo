@@ -645,9 +645,9 @@ function FilterSheet({
           onPointerDown={(e) => dragControls.start(e)}
           className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] cursor-grab active:cursor-grabbing select-none touch-none"
         >
-          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-gray-400 hover:text-white text-sm font-medium">Cancel</button>
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-gray-400 hover:text-white text-sm font-black tracking-widest">Cancel</button>
           <span className="text-sm font-black uppercase tracking-widest text-white">Refine Scout</span>
-          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-tennis-lime hover:text-tennis-lime/80 text-sm font-black uppercase tracking-wider">Done</button>
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="text-tennis-lime hover:text-tennis-lime/80 text-sm font-black uppercase tracking-widest">Done</button>
         </div>
         
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar pb-32">
@@ -656,14 +656,14 @@ function FilterSheet({
             <div className="flex bg-black/40 p-0.5 rounded-xl border border-white/10 h-10 select-none relative">
               <button
                 onClick={() => setSortBy('name')}
-                className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                className="flex-1 text-center font-black text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
                 style={{ color: sortBy === 'name' ? '#000' : 'rgba(255,255,255,0.45)' }}
               >
                 {t('homePage.footer.name')}
               </button>
               <button
                 onClick={() => setSortBy('rating')}
-                className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                className="flex-1 text-center font-black text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
                 style={{ color: sortBy === 'rating' ? '#000' : 'rgba(255,255,255,0.45)' }}
               >
                 {t('homePage.footer.rating')}
@@ -1043,12 +1043,12 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
                 <div className="flex bg-black/40 p-0.5 rounded-xl border border-white/5 relative h-10 w-full md:w-44 select-none">
                     <button 
                         onClick={() => handleTourChange('ATP')}
-                        className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                        className="flex-1 text-center font-black text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
                         style={{ color: tourFilter === 'ATP' ? '#000' : 'rgba(255,255,255,0.45)' }}
                     >ATP</button>
                     <button 
                         onClick={() => handleTourChange('WTA')}
-                        className="flex-1 text-center font-bold text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
+                        className="flex-1 text-center font-black text-xs tracking-widest relative z-10 flex items-center justify-center rounded-lg transition-colors h-full focus:outline-none"
                         style={{ color: tourFilter === 'WTA' ? '#000' : 'rgba(255,255,255,0.45)' }}
                     >WTA</button>
                     <motion.div
@@ -1080,25 +1080,25 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
         {hasActiveFilters && (
             <div className="px-4 pb-4 flex flex-wrap gap-2 animate-in slide-in-from-top-2 border-t border-white/5 pt-3">
                 {countryFilter && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold uppercase tracking-wider shadow-sm">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-black uppercase tracking-widest shadow-sm">
                         <MapPin size={10} /> {countryFilter}
                         <button onClick={() => setCountryFilter('')} className="hover:text-white transition-colors"><X size={12} /></button>
                     </div>
                 )}
                 {surfaceFilter && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-400 text-xs font-bold uppercase tracking-wider shadow-sm">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-400 text-xs font-black uppercase tracking-widest shadow-sm">
                         <Layers size={10} /> {surfaceFilter}
                         <button onClick={() => setSurfaceFilter('')} className="hover:text-white transition-colors"><X size={12} /></button>
                     </div>
                 )}
                 {playStyleFilter.map(style => (
-                    <div key={style} className="flex items-center gap-2 px-3 py-1 bg-tennis-lime/10 border border-tennis-lime/30 rounded-full text-tennis-lime text-xs font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(132,204,22,0.1)]">
+                    <div key={style} className="flex items-center gap-2 px-3 py-1 bg-tennis-lime/10 border border-tennis-lime/30 rounded-full text-tennis-lime text-xs font-black uppercase tracking-widest shadow-[0_0_10px_rgba(132,204,22,0.1)]">
                         <Activity size={10} /> {style}
                         <button onClick={() => removePlayStyleTag(style)} className="hover:text-white transition-colors"><X size={12} /></button>
                     </div>
                 ))}
                 {ratingFilter > 0 && (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-500 text-xs font-bold uppercase tracking-wider shadow-sm">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-500 text-xs font-black uppercase tracking-widest shadow-sm">
                         <Sparkles size={10} /> {ratingFilter}+ {t('homePage.filters.rating')}
                         <button onClick={() => setRatingFilter(0)} className="hover:text-white transition-colors"><X size={12} /></button>
                     </div>
@@ -1110,12 +1110,12 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
       {/* RESULTS COUNT & ACTIVE TAGS SUMMARY */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <span className="text-gray-500 font-bold text-xs uppercase tracking-wider">
+          <span className="text-gray-500 font-black text-[11px] uppercase tracking-widest">
               {filteredPlayers.length} {t('homePage.footer.players')} found
           </span>
           
           {hasActiveFilters && (
-              <button onClick={resetFilters} className="text-xs text-gray-500 hover:text-red-400 underline transition-colors font-bold uppercase tracking-wider">
+              <button onClick={resetFilters} className="text-[11px] text-gray-500 hover:text-red-400 underline transition-colors font-black uppercase tracking-widest">
                   {t('homePage.filters.clearAll')}
               </button>
           )}
@@ -1125,9 +1125,9 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
       {filteredPlayers.length === 0 ? (
         <div className="text-center py-20 bg-[#1a1d26] rounded-3xl border border-white/5 border-dashed animate-in fade-in zoom-in-95 duration-300">
           <div className="bg-black/30 p-6 rounded-full inline-block mb-4 shadow-lg"><Filter size={32} className="text-gray-600"/></div>
-          <h3 className="text-white font-bold text-lg mb-1">{t('homePage.noResults.title')}</h3>
+          <h3 className="text-white font-black text-lg mb-1 uppercase tracking-tight">{t('homePage.noResults.title')}</h3>
           <p className="text-gray-400 font-medium mb-6">{t('homePage.noResults.subtitle')}</p>
-          <button onClick={resetFilters} className="px-6 py-2 bg-white text-black font-bold rounded-full hover:bg-tennis-lime transition-colors shadow-lg">{t('homePage.noResults.button')}</button>
+          <button onClick={resetFilters} className="px-6 py-2.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-full hover:bg-tennis-lime transition-all duration-300 active:scale-95 shadow-lg">{t('homePage.noResults.button')}</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

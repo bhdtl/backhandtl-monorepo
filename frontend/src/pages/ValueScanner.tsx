@@ -744,29 +744,28 @@ export function ValueScanner() {
 
       <div className="mt-8 md:mt-12 mb-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 text-tennis-lime font-bold text-xs uppercase tracking-wider mb-2.5">
+            <div className="flex items-center gap-2.5 text-tennis-lime font-black text-xs uppercase tracking-widest mb-2.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
               </span>
-              {t('valueScanner.header.badge')}
+              <span>{t('valueScanner.liveStatus')}</span>
             </div>
             
             <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowTutorial(true)}
+              <button
+                  onClick={() => setIsBriefingOpen(true)}
                   className="flex items-center justify-center w-11 h-11 bg-white/[0.04] rounded-full border border-white/[0.06] hover:bg-white/[0.08] transition-colors text-gray-400 hover:text-white shadow-sm"
-                  title="Guide"
-                >
-                    <HelpCircle size={18} />
-                </button>
+                  title="How it works"
+              >
+                <HelpCircle size={18} />
+              </button>
             </div>
           </div>
-
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-              <div>
+              <div className="flex-1">
                 <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none mb-2">{t('valueScanner.header.title')}</h1>
-                <p className="text-gray-500 font-medium text-xs">{t('valueScanner.header.subtitle')}</p>
+                <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl pl-1">{t('valueScanner.header.subtitle')}</p>
               </div>
           </div>
       </div>
@@ -861,7 +860,7 @@ export function ValueScanner() {
                       placeholder={t('valueScanner.filters.search')} 
                       value={searchTerm} 
                       onChange={(e) => setSearchTerm(e.target.value)} 
-                      className="w-full pl-11 pr-10 py-3 bg-[#15171e] border border-white/5 rounded-xl focus:outline-none focus:border-tennis-lime focus:bg-black/20 text-white placeholder-gray-500 text-xs transition-all shadow-inner" 
+                      className="w-full pl-11 pr-10 py-3 bg-[#15171e] border border-white/5 rounded-2xl focus:outline-none focus:border-tennis-lime focus:bg-black/20 text-white placeholder-gray-500 text-xs transition-all shadow-inner" 
                     />
                     {searchTerm && (
                       <button
@@ -1036,7 +1035,7 @@ export function ValueScanner() {
                     <div className="flex justify-between items-start mb-4 opacity-100 z-10 relative cursor-pointer" onClick={() => handleMatchClick(match)}>
                         <div className={`flex flex-col ${isFinished ? 'opacity-70' : 'opacity-100'}`}>
                             {/* Row 1: Tournament name */}
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
                                 {match.tournament}
                             </span>
                             {/* Row 2: Timing / Time ago */}
@@ -1048,7 +1047,7 @@ export function ValueScanner() {
                                 {!isFinished && timeAgoInfo.text && (
                                     <>
                                         <span className="text-gray-600">•</span>
-                                        <div className={`inline-flex items-center gap-1 text-xs font-bold tracking-tight
+                                        <div className={`inline-flex items-center gap-1 text-xs font-black tracking-widest uppercase
                                             ${timeAgoInfo.isHot ? 'text-orange-400 animate-pulse' : 
                                               timeAgoInfo.isWarm ? 'text-yellow-500/80' : 
                                               'text-gray-500'}`}
@@ -1064,22 +1063,22 @@ export function ValueScanner() {
                         {/* Right side: Edge or Status badge */}
                         <div className="shrink-0 ml-4">
                             {!isFinished ? (
-                                  <div className="flex items-center gap-1 px-3 py-1 bg-tennis-lime/10 text-tennis-lime border border-tennis-lime/20 text-xs font-bold rounded-full shadow-sm">
+                                  <div className="flex items-center gap-1 px-3 py-1 bg-tennis-lime/10 text-tennis-lime border border-tennis-lime/20 text-xs font-black rounded-full shadow-sm">
                                      <Activity size={12} className={edgeColorClass} />
-                                     <span className={`tracking-wide ${edgeColorClass}`}>
+                                     <span className={`tracking-widest uppercase ${edgeColorClass}`}>
                                          {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}% EDGE
                                      </span>
                                   </div>
                             ) : (
                                 predictionStatus === 'WON' ? (
-                                    <div className="flex items-center gap-1 px-3 py-1 border border-tennis-lime/20 bg-tennis-lime/10 text-tennis-lime text-xs font-bold rounded-full shadow-sm">
+                                    <div className="flex items-center gap-1 px-3 py-1 border border-tennis-lime/20 bg-tennis-lime/10 text-tennis-lime text-xs font-black rounded-full shadow-sm">
                                         <CheckCircle2 size={12} />
-                                        <span className="tracking-wide">{t('valueScanner.card.won')}</span>
+                                        <span className="tracking-widest uppercase">{t('valueScanner.card.won')}</span>
                                     </div>
                                 ) : predictionStatus === 'LOST' ? (
-                                    <div className="flex items-center gap-1 px-3 py-1 border border-red-500/20 bg-red-500/10 text-red-500 text-xs font-bold rounded-full shadow-sm">
+                                    <div className="flex items-center gap-1 px-3 py-1 border border-red-500/20 bg-red-500/10 text-red-500 text-xs font-black rounded-full shadow-sm">
                                         <XCircle size={12} />
-                                        <span className="tracking-wide">{t('valueScanner.card.miss')}</span>
+                                        <span className="tracking-widest uppercase">{t('valueScanner.card.miss')}</span>
                                     </div>
                                 ) : null
                             )}
@@ -1141,9 +1140,9 @@ export function ValueScanner() {
                                                     return formattedName;
                                                 })()}
                                             </span>
-                                            <div className="flex items-center gap-2 mt-1 text-sm font-semibold text-gray-300">
+                                            <div className="flex items-center gap-2 mt-1 text-sm font-black text-white">
                                                 <span className="text-tennis-lime">{getStarRating(analysis.stake)}</span>
-                                                <span className="tracking-wide">({analysis.stake.toFixed(1)} Units)</span>
+                                                <span className="tracking-widest uppercase">({analysis.stake.toFixed(1)} Units)</span>
                                             </div>
                                         </div>
 
@@ -1156,11 +1155,11 @@ export function ValueScanner() {
                                                 }
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
-                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                                className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
                                             >
                                                 <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
                                                 <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
-                                                <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
+                                                <span className="font-mono font-black text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
                                             </a>
                                             <div className="text-[10px] font-medium text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                 {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
@@ -1187,15 +1186,15 @@ export function ValueScanner() {
                                                 {/* Advanced Metrics Summary */}
                                                 <div className="grid grid-cols-3 gap-4 text-center bg-white/[0.02] p-3 rounded-2xl border border-white/[0.04]">
                                                     <div>
-                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
-                                                        <div className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</div>
+                                                        <div className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Fair Odds</div>
+                                                        <div className="text-xs font-mono font-black text-white">{safeFairOdds.toFixed(2)}</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
-                                                        <div className="text-xs font-mono font-bold text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
+                                                        <div className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Edge</div>
+                                                        <div className="text-xs font-mono font-black text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
+                                                        <div className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">H2H Record</div>
                                                         <div className="text-xs font-mono font-black text-white">{h2hRecord}</div>
                                                     </div>
                                                 </div>
@@ -1212,7 +1211,7 @@ export function ValueScanner() {
                                                                              <play.icon size={14} className={play.color} />
                                                                          </div>
                                                                          <div className="flex flex-col">
-                                                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{play.type}</span>
+                                                                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">{play.type}</span>
                                                                              <span className="text-xs font-black text-white uppercase tracking-tight mt-0.5">{play.label.toUpperCase()}</span>
                                                                          </div>
                                                                      </div>
@@ -1325,7 +1324,7 @@ export function ValueScanner() {
                                         <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar pb-1">
                                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
                                                 <Crosshair size={12} className="text-purple-400" />
-                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">H2H: <span className="text-white">{h2hRecord}</span></span>
+                                                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">H2H: <span className="text-white font-mono font-black">{h2hRecord}</span></span>
                                             </div>
                                         </div>
 
@@ -1333,10 +1332,10 @@ export function ValueScanner() {
                                         <div className="bg-[#1c1c1e]/60 rounded-2xl p-4 border border-white/[0.06] border-l-4 border-l-tennis-lime shadow-md space-y-3">
                                              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-white/[0.04]">
                                                  <div className="flex items-center gap-2 flex-wrap">
-                                                     <span className="text-xs font-semibold text-gray-400">Pick:</span>
-                                                     <span className="text-sm font-bold text-white tracking-tight">
+                                                     <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Pick:</span>
+                                                     <span className="text-xs md:text-sm font-black text-white uppercase tracking-tight">
                                                          {(() => {
-                                                             const formattedName = toTitleCase(formatLastName(safePickName));
+                                                             const formattedName = formatLastName(safePickName).toUpperCase();
                                                              const lowerPick = safePickName.toLowerCase();
                                                              const isMoneyline = !lowerPick.includes('games') && 
                                                                                  !lowerPick.includes('over') && 
@@ -1355,14 +1354,14 @@ export function ValueScanner() {
                                                      </span>
                                                      {renderTypeBadge(analysis.type)}
                                                      {match.games_prediction?.is_grand_slam && (
-                                                         <div className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_8px_rgba(234,179,8,0.15)] flex items-center gap-1 shrink-0">
+                                                         <div className="px-2 py-0.5 rounded text-xs font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_8px_rgba(234,179,8,0.15)] flex items-center gap-1 shrink-0">
                                                              <span>🎾</span> Slam (Bo5)
                                                          </div>
                                                      )}
                                                  </div>
                                                  
                                                  {analysis.stake > 0 && (
-                                                    <div className="flex items-center gap-2 bg-tennis-lime/10 border border-tennis-lime/20 px-2.5 py-1 rounded-full text-xs font-bold">
+                                                    <div className="flex items-center gap-2 bg-tennis-lime/10 border border-tennis-lime/20 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest">
                                                         <span className="text-tennis-lime">{getStarRating(analysis.stake)}</span>
                                                         <span className="text-tennis-lime/90 font-mono">({analysis.stake.toFixed(1)} Units)</span>
                                                     </div>
@@ -1371,28 +1370,28 @@ export function ValueScanner() {
 
                                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-center sm:text-left">
                                                  <div className="flex flex-col">
-                                                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</span>
-                                                     <span className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</span>
+                                                     <span className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Fair Odds</span>
+                                                     <span className="text-xs font-mono font-black text-white">{safeFairOdds.toFixed(2)}</span>
                                                  </div>
                                                  <div className="flex flex-col">
-                                                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</span>
-                                                     <span className={`text-xs font-bold ${edgeColorClass} flex items-center justify-center sm:justify-start gap-1`}>
+                                                     <span className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Edge</span>
+                                                     <span className={`text-xs font-black ${edgeColorClass} flex items-center justify-center sm:justify-start gap-1`}>
                                                          <Zap size={12} />
                                                          {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
                                                      </span>
                                                  </div>
                                                  {hasMovement ? (
                                                      <div className="flex flex-col col-span-2 sm:col-span-1">
-                                                         <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Line Movement</span>
-                                                         <span className={`text-xs font-mono font-bold ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} flex items-center justify-center sm:justify-start gap-1`}>
+                                                         <span className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Line Movement</span>
+                                                         <span className={`text-xs font-mono font-black ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} flex items-center justify-center sm:justify-start gap-1`}>
                                                              {isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                                                              {activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}
                                                          </span>
                                                      </div>
                                                  ) : (
                                                      <div className="flex flex-col col-span-2 sm:col-span-1">
-                                                         <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</span>
-                                                         <span className="text-xs font-mono font-bold text-white">{h2hRecord}</span>
+                                                         <span className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-0.5">H2H Record</span>
+                                                         <span className="text-xs font-mono font-black text-white">{h2hRecord}</span>
                                                      </div>
                                                  )}
                                              </div>
@@ -1447,11 +1446,11 @@ export function ValueScanner() {
                                                 }
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
-                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                                className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
                                             >
                                                 <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
                                                 <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
-                                                <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
+                                                <span className="font-mono font-black text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
                                             </a>
                                             <div className="text-[10px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                 {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
@@ -1480,11 +1479,11 @@ export function ValueScanner() {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
                                 </span>
-                                <span className="text-xs font-bold uppercase tracking-wider text-tennis-lime">
+                                <span className="text-xs font-black uppercase tracking-widest text-tennis-lime">
                                     {t('picks.partnerPromo', 'Anzeige | Partner Promotion')}
                                 </span>
                             </div>
-                            <span className="text-xs font-mono font-bold text-gray-500 tracking-wider">
+                            <span className="text-xs font-mono font-black text-gray-500 tracking-widest">
                                 BACKHAND.DTL × NEO.bet
                             </span>
                         </div>
@@ -1496,7 +1495,7 @@ export function ValueScanner() {
                                     <Gift size={24} className="animate-pulse" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <h3 className="text-base font-bold text-white tracking-tight">
+                                    <h3 className="text-base font-black text-white uppercase tracking-tight">
                                         {t('picks.promoTitleScanner', 'Sichere dir 25€ Gratiswette ohne Einzahlung')}
                                     </h3>
                                     <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -1506,7 +1505,7 @@ export function ValueScanner() {
                             </div>
                             
                             <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between max-sm:mt-2">
-                                <span className="px-4 py-2 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.2)]">
+                                <span className="px-4 py-2.5 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.25)]">
                                     {t('picks.unlockBonus', 'Bonus freischalten')}
                                 </span>
                                 <img src="/neobet_logo_white.svg" alt="neobet" className="h-4.5 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
@@ -1519,7 +1518,7 @@ export function ValueScanner() {
             }) : (
               <div className="flex flex-col items-center justify-center py-20 bg-[#1c1c1e]/30 border border-dashed border-white/10 rounded-2xl text-center px-6">
                 <Filter className="text-gray-700 mb-3" size={32} />
-                <div className="text-white font-semibold text-sm tracking-wide">{t('valueScanner.noMatches.title')}</div>
+                <div className="text-white font-black text-sm uppercase tracking-widest">{t('valueScanner.noMatches.title')}</div>
                 <p className="text-gray-600 text-xs mt-1">{t('valueScanner.noMatches.subtitle')}</p>
               </div>
             )}
