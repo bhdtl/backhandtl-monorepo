@@ -790,6 +790,16 @@
     "cookiesTitle": "Data Privacy & Cookies",
     "cookiesDesc": "We use proprietary encryption and anonymized analytical models (PostHog) to optimize your experience. Strictly necessary cookies are used for authentication. By continuing, you agree to our institutional privacy standards.",
     "acceptAll": "Accept All",
-    "essentialOnly": "Essential Only"
+    "essentialOnly": "Essential Only",
+    "explainer": {
+      "step1Title": "1. Real-Time Aggregation",
+      "step1Desc": "We scan global data streams without delay. As soon as a line moves, you see it instantly.",
+      "step2Title": "2. Visual BSI Engine",
+      "step2Desc": "Our AI sees the court. We calculate the Bounce Speed Index (BSI) from live video feeds.",
+      "step3Title": "3. Neural Core Engine",
+      "step3Desc": "Deep-learning models analyze psychological and tactical matchups based on 10,000+ matches.",
+      "step4Title": "4. The Analytical Edge",
+      "step4Desc": "We compare our 'Fair Value' calculation with the market consensus. We alert you when the variance is >5%."
+    }
   }
 }

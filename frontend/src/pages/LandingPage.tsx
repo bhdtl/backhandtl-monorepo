@@ -333,10 +333,10 @@ function ExplainerModal({ onClose }: { onClose: () => void }) {
               <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-tennis-lime via-white/10 to-transparent"></div>
 
               {[
-                { icon: Database, title: "1. Real-Time Aggregation", desc: "We scan global data streams without delay. As soon as a line moves, you see it instantly." },
-                { icon: Eye, title: "2. Visual BSI Engine", desc: "Our AI sees the court. We calculate the Bounce Speed Index (BSI) from live video feeds." },
-                { icon: BrainCircuit, title: "3. Neural Core Engine", desc: "Deep-learning models analyze psychological and tactical matchups based on 10,000+ matches." },
-                { icon: Zap, title: "4. The Analytical Edge", desc: "We compare our 'Fair Value' calculation with the market consensus. We alert you when the variance is >5%." }
+                { icon: Database, title: t('landing.explainer.step1Title', '1. Real-Time Aggregation'), desc: t('landing.explainer.step1Desc', 'We scan global data streams without delay. As soon as a line moves, you see it instantly.') },
+                { icon: Eye, title: t('landing.explainer.step2Title', '2. Visual BSI Engine'), desc: t('landing.explainer.step2Desc', 'Our AI sees the court. We calculate the Bounce Speed Index (BSI) from live video feeds.') },
+                { icon: BrainCircuit, title: t('landing.explainer.step3Title', '3. Neural Core Engine'), desc: t('landing.explainer.step3Desc', 'Deep-learning models analyze psychological and tactical matchups based on 10,000+ matches.') },
+                { icon: Zap, title: t('landing.explainer.step4Title', '4. The Analytical Edge'), desc: t('landing.explainer.step4Desc', "We compare our 'Fair Value' calculation with the market consensus. We alert you when the variance is >5%.") }
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 relative z-10">
                    <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#1a1d26] flex items-center justify-center border border-white/10 shadow-lg">

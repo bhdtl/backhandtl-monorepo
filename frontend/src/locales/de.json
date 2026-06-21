@@ -790,6 +790,16 @@
     "cookiesTitle": "Datenschutz & Cookies",
     "cookiesDesc": "Wir verwenden proprietäre Verschlüsselung und anonymisierte Analysemodelle (PostHog), um deine Erfahrung zu optimieren. Für die Authentifizierung werden zwingend erforderliche Cookies verwendet. Mit dem Fortfahren stimmst du unseren institutionellen Datenschutzstandards zu.",
     "acceptAll": "Alle akzeptieren",
-    "essentialOnly": "Nur notwendige"
+    "essentialOnly": "Nur notwendige",
+    "explainer": {
+      "step1Title": "1. Echtzeit-Aggregation",
+      "step1Desc": "Wir scannen globale Datenströme ohne Verzögerung. Sobald sich eine Quote ändert, siehst du es sofort.",
+      "step2Title": "2. Visuelle BSI-Engine",
+      "step2Desc": "Unsere KI beobachtet das Spielfeld. Wir berechnen den Bounce Speed Index (BSI) aus Live-Videofeeds.",
+      "step3Title": "3. Neural Core Engine",
+      "step3Desc": "Deep-Learning-Modelle analysieren psychologische und taktische Matchups basierend auf über 10.000 Spielen.",
+      "step4Title": "4. Der analytische Vorteil",
+      "step4Desc": "Wir vergleichen unsere Fair-Value-Berechnung mit dem Marktkonsens. Wir benachrichtigen dich, wenn die Abweichung >5% beträgt."
+    }
   }
 }
