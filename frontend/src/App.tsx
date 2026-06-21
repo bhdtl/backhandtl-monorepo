@@ -271,7 +271,7 @@ function MobileHeader() {
         if (path === '/support') return t('mobileMenu.nav.supportIdeas', 'Support');
         if (path === '/watchlist') return t('sidebar.watchlist', 'Watchlist');
         if (path === '/admin') return t('sidebar.admin', 'Admin');
-        if (path === '/performance') return t('sidebar.aiPerformance', 'KI-Performance');
+        if (path === '/performance') return t('performance.title', 'Performance Ledger');
         return t('navigation.details', 'Details');
     };
 
