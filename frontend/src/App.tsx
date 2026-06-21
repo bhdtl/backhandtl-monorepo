@@ -259,19 +259,20 @@ function UserProtectedRoute({ children, onLoginRequired }: { children: React.Rea
 function MobileHeader() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle'];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
-        if (path.startsWith('/court/')) return 'Court Profile';
-        if (path === '/courts') return 'Court Index';
-        if (path === '/pricing') return 'Membership';
-        if (path === '/support') return 'Support';
-        if (path === '/watchlist') return 'Watchlist';
-        if (path === '/admin') return 'Admin';
-        if (path === '/performance') return 'Performance';
-        return 'Details';
+        if (path.startsWith('/court/')) return t('court.profile', 'Court Profile');
+        if (path === '/courts') return t('court.index', 'Court Index');
+        if (path === '/pricing') return t('mobileMenu.nav.membership', 'Membership');
+        if (path === '/support') return t('mobileMenu.nav.support', 'Support');
+        if (path === '/watchlist') return t('mobileMenu.nav.watchlist', 'Watchlist');
+        if (path === '/admin') return t('mobileMenu.nav.admin', 'Admin');
+        if (path === '/performance') return t('performance.title', 'Performance Ledger');
+        return t('navigation.details', 'Details');
     };
 
     return (
@@ -285,7 +286,7 @@ function MobileHeader() {
                         <ChevronLeft size={20} />
                         <span>Back</span>
                     </button>
-                    <span className="text-sm font-black uppercase tracking-widest text-white absolute left-1/2 -translate-x-1/2">
+                    <span className="text-base font-semibold text-white tracking-tight absolute left-1/2 -translate-x-1/2 select-none">
                         {getPageTitle(location.pathname)}
                     </span>
                     <div className="w-12" />

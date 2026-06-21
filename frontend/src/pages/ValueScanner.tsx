@@ -731,7 +731,7 @@ export function ValueScanner() {
 
       <div className="mt-8 md:mt-12 mb-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 text-tennis-lime font-bold text-[10px] uppercase tracking-widest mb-2.5">
+            <div className="flex items-center gap-2.5 text-tennis-lime font-bold text-xs uppercase tracking-wider mb-2.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
@@ -779,7 +779,7 @@ export function ValueScanner() {
               
               <button 
                   onClick={() => handleViewLevelChange('beginner')}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
+                  className={`flex-1 py-2 text-xs font-semibold tracking-tight text-center relative z-10 transition-colors duration-200
                   ${viewLevel === 'beginner' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
               >
                   {t('valueScanner.viewMode.beginner', 'Beginner')}
@@ -787,7 +787,7 @@ export function ValueScanner() {
               
               <button 
                   onClick={() => handleViewLevelChange('advanced')}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-center relative z-10 transition-colors duration-200
+                  className={`flex-1 py-2 text-xs font-semibold tracking-tight text-center relative z-10 transition-colors duration-200
                   ${viewLevel === 'advanced' ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'}`}
               >
                   {t('valueScanner.viewMode.advanced', 'Expert')}
@@ -801,10 +801,10 @@ export function ValueScanner() {
                       <HelpCircle size={16} />
                   </div>
                   <div className="flex-1 pr-6">
-                      <h4 className="text-xs font-black text-white uppercase tracking-wider mb-0.5">
+                      <h4 className="text-xs font-bold text-white tracking-tight mb-0.5">
                           {t('valueScanner.banner.title', 'Was ist ein Value Pick?')}
                       </h4>
-                      <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                      <p className="text-xs text-gray-400 font-medium leading-relaxed">
                           {t('valueScanner.banner.desc', "Unsere KI berechnet die faire Wahrscheinlichkeit für jedes Spiel. Wenn NEO.bet eine höhere Quote anbietet als unsere Berechnung, entsteht ein mathematischer Vorteil ('Value Pick').")}
                       </p>
                   </div>
@@ -830,7 +830,7 @@ export function ValueScanner() {
                                 ? 'bg-tennis-lime text-[#0f1115] border-transparent shadow-[0_8px_16px_rgba(132,204,22,0.2)] scale-[1.02]'
                                 : 'bg-white/[0.03] backdrop-blur-md text-gray-400 border-white/[0.06] hover:bg-white/[0.06] hover:text-white'}`}
                         >
-                            <span className={`text-[9px] font-bold uppercase tracking-wider mb-1 ${selectedDate === d.value ? 'text-[#0f1115]/80' : 'text-gray-500'}`}>{d.label}</span>
+                            <span className={`text-xs font-semibold tracking-tight mb-1 ${selectedDate === d.value ? 'text-[#0f1115]/80' : 'text-gray-500'}`}>{d.label}</span>
                             <span className={`text-xl font-black leading-none ${selectedDate === d.value ? 'text-black' : 'text-gray-300'}`}>{d.dayNum}</span>
                         </button>
                     ))}
@@ -874,7 +874,7 @@ export function ValueScanner() {
                     <button
                         key={sort.id}
                         onClick={() => handleSortChange(sort.id as any)}
-                        className={`flex-1 lg:flex-none whitespace-nowrap px-4 py-2.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-200 border flex items-center justify-center gap-1.5 focus:outline-none
+                        className={`flex-1 lg:flex-none whitespace-nowrap px-4 py-2.5 rounded-full text-xs font-bold tracking-tight transition-all duration-200 border flex items-center justify-center gap-1.5 focus:outline-none
                         ${sortBy === sort.id
                             ? 'bg-white text-black border-transparent shadow-[0_2px_8px_rgba(255,255,255,0.15)]'
                             : 'bg-white/[0.03] backdrop-blur-md text-gray-400 border-white/[0.06] hover:bg-[#1c1c1e]/60'}`}
@@ -1037,7 +1037,7 @@ export function ValueScanner() {
                                 {!isFinished && timeAgoInfo.text && (
                                     <>
                                         <span className="text-gray-600">•</span>
-                                        <div className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider
+                                        <div className={`inline-flex items-center gap-1 text-xs font-bold tracking-tight
                                             ${timeAgoInfo.isHot ? 'text-orange-400 animate-pulse' : 
                                               timeAgoInfo.isWarm ? 'text-yellow-500/80' : 
                                               'text-gray-500'}`}
@@ -1087,7 +1087,7 @@ export function ValueScanner() {
                                         <div className={`text-base font-bold tracking-tight mb-1.5 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                             {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
                                         </div>
-                                        <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5">
+                                        <div className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
                                             <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
                                             <span className="text-white font-mono font-bold text-xs">{(match.marketOddsA || 0).toFixed(2)}</span>
                                         </div>
@@ -1099,7 +1099,7 @@ export function ValueScanner() {
                                         <div className={`text-base font-bold tracking-tight mb-1.5 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                             {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
                                         </div>
-                                        <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
+                                        <div className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
                                             <img src="/neobet_short.svg" className="h-3.5 w-auto opacity-70" alt="N" />
                                             <span className="text-white font-mono font-bold text-xs">{(match.marketOddsB || 0).toFixed(2)}</span>
                                         </div>
@@ -1110,7 +1110,7 @@ export function ValueScanner() {
                                     <>
                                         {/* Simple Recommendation Box */}
                                         <div className="p-4 bg-tennis-lime/[0.06] border border-tennis-lime/15 rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 shadow-sm animate-in fade-in duration-300">
-                                            <span className="text-[9px] font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
+                                            <span className="text-xs font-black text-tennis-lime uppercase tracking-[0.2em]">{t('valueScanner.card.recommendation', 'Empfehlung / AI Recommendation')}</span>
                                             <span className="text-base font-bold text-white tracking-tight">
                                                 {(() => {
                                                     const formattedName = toTitleCase(formatLastName(safePickName));
@@ -1145,13 +1145,13 @@ export function ValueScanner() {
                                                 }
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
-                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
                                             >
                                                 <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
                                                 <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
                                                 <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
                                             </a>
-                                            <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                            <div className="text-[10px] font-medium text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                 {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                             </div>
                                         </div>
@@ -1160,7 +1160,7 @@ export function ValueScanner() {
                                         <div className="mt-2 text-center border-t border-white/[0.04] pt-2">
                                             <button
                                                 onClick={() => toggleExpand(match.id)}
-                                                className="text-[9px] font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-1 mx-auto"
+                                                className="text-xs font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-1 mx-auto"
                                             >
                                                 <span>{expandedMatchIds[match.id] ? 'Details ausblenden' : 'Details & alternative Wetten'}</span>
                                                 <ChevronRight size={10} className={`transform transition-transform ${expandedMatchIds[match.id] ? 'rotate-90' : ''}`} />
@@ -1176,15 +1176,15 @@ export function ValueScanner() {
                                                 {/* Advanced Metrics Summary */}
                                                 <div className="grid grid-cols-3 gap-4 text-center bg-white/[0.02] p-3 rounded-2xl border border-white/[0.04]">
                                                     <div>
-                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
+                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</div>
                                                         <div className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
+                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</div>
                                                         <div className="text-xs font-mono font-bold text-tennis-lime">+{safeEdge.toFixed(1)}%</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
+                                                        <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</div>
                                                         <div className="text-xs font-mono font-bold text-white">{h2hRecord}</div>
                                                     </div>
                                                 </div>
@@ -1192,7 +1192,7 @@ export function ValueScanner() {
                                                 {/* Alternative plays */}
                                                 {altPlays.length > 0 && (
                                                     <div className="space-y-2">
-                                                        <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
+                                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Alternative Bets:</div>
                                                         <div className="rounded-2xl border border-white/[0.04] bg-[#1c1c1e]/30 overflow-hidden divide-y divide-white/[0.04] shadow-sm">
                                                              {altPlays.map((play, i) => (
                                                                  <div key={i} className="px-4 py-3 flex justify-between items-center hover:bg-white/[0.01] transition-colors">
@@ -1201,7 +1201,7 @@ export function ValueScanner() {
                                                                              <play.icon size={14} className={play.color} />
                                                                          </div>
                                                                          <div className="flex flex-col">
-                                                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
+                                                                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
                                                                              <span className="text-xs font-bold text-white mt-0.5">{toTitleCase(play.label)}</span>
                                                                          </div>
                                                                      </div>
@@ -1209,7 +1209,7 @@ export function ValueScanner() {
                                                                          {play.isTarget ? (
                                                                              <>
                                                                                  <span className={`text-xs font-mono font-bold ${play.color}`}>{play.targetValue}</span>
-                                                                                 <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
+                                                                                 <span className="block text-[10px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
                                                                              </>
                                                                          ) : (
                                                                              <>
@@ -1222,7 +1222,7 @@ export function ValueScanner() {
                                                                                          </>
                                                                                      )}
                                                                                  </div>
-                                                                                 <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
+                                                                                 <span className="block text-[10px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
                                                                              </>
                                                                          )}
                                                                      </div>
@@ -1244,7 +1244,7 @@ export function ValueScanner() {
                                           <div className={`text-base font-bold tracking-tight mb-1 ${p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                               {toTitleCase(formatLastName(match.playerA?.last_name || safePlayerAName || 'Unknown'))}
                                           </div>
-                                          <div className="text-[10px] font-mono font-semibold text-gray-500 flex items-center gap-1.5">
+                                          <div className="text-xs font-mono font-semibold text-gray-500 flex items-center gap-1.5">
                                               <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
                                               <span className="text-white font-bold">{(match.marketOddsA || 0).toFixed(2)}</span>
                                           </div>
@@ -1252,8 +1252,8 @@ export function ValueScanner() {
 
                                       <div className="flex flex-col items-center justify-center w-[36%]">
                                           <div className="bg-white/[0.02] px-3 py-1.5 rounded-lg border border-white/[0.04] flex flex-col items-center shadow-sm w-full">
-                                              <span className="text-[8px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
-                                              <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-[10px] md:text-[11px] font-bold leading-tight">
+                                              <span className="text-[10px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('valueScanner.card.trueFair')}</span>
+                                              <div className="flex flex-col md:flex-row items-center gap-0 md:gap-1.5 font-mono text-xs font-bold leading-tight">
                                                   <span className={fairA < fairB ? 'text-white' : 'text-gray-500'}>{fairA > 0 ? fairA.toFixed(2) : '-'}</span>
                                                   <span className="text-gray-700 hidden md:inline">/</span>
                                                   <span className={fairB < fairA ? 'text-white' : 'text-gray-500'}>{fairB > 0 ? fairB.toFixed(2) : '-'}</span>
@@ -1265,7 +1265,7 @@ export function ValueScanner() {
                                           <div className={`text-base font-bold tracking-tight mb-1 ${!p1IsPick ? 'text-white' : 'text-gray-400'}`}>
                                               {toTitleCase(formatLastName(match.playerB?.last_name || safePlayerBName || 'Unknown'))}
                                           </div>
-                                          <div className="text-[10px] font-mono font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
+                                          <div className="text-xs font-mono font-semibold text-gray-500 flex items-center gap-1.5 justify-end">
                                               <img src="/neobet_short.svg" className="h-3 w-auto opacity-70" alt="N" />
                                               <span className="text-white font-bold">{(match.marketOddsB || 0).toFixed(2)}</span>
                                           </div>
@@ -1314,7 +1314,7 @@ export function ValueScanner() {
                                         <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar pb-1">
                                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] whitespace-nowrap">
                                                 <Crosshair size={12} className="text-purple-400" />
-                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">H2H: <span className="text-white">{h2hRecord}</span></span>
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">H2H: <span className="text-white">{h2hRecord}</span></span>
                                             </div>
                                         </div>
 
@@ -1344,7 +1344,7 @@ export function ValueScanner() {
                                                      </span>
                                                      {renderTypeBadge(analysis.type)}
                                                      {match.games_prediction?.is_grand_slam && (
-                                                         <div className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_8px_rgba(234,179,8,0.15)] flex items-center gap-1 shrink-0">
+                                                         <div className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-[0_0_8px_rgba(234,179,8,0.15)] flex items-center gap-1 shrink-0">
                                                              <span>🎾</span> Slam (Bo5)
                                                          </div>
                                                      )}
@@ -1360,11 +1360,11 @@ export function ValueScanner() {
 
                                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 text-center sm:text-left">
                                                  <div className="flex flex-col">
-                                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</span>
+                                                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fair Odds</span>
                                                      <span className="text-xs font-mono font-bold text-white">{safeFairOdds.toFixed(2)}</span>
                                                  </div>
                                                  <div className="flex flex-col">
-                                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</span>
+                                                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Edge</span>
                                                      <span className={`text-xs font-bold ${edgeColorClass} flex items-center justify-center sm:justify-start gap-1`}>
                                                          <Zap size={12} />
                                                          {safeEdge > 0 ? '+' : ''}{safeEdge.toFixed(1)}%
@@ -1372,7 +1372,7 @@ export function ValueScanner() {
                                                  </div>
                                                  {hasMovement ? (
                                                      <div className="flex flex-col col-span-2 sm:col-span-1">
-                                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Line Movement</span>
+                                                         <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Line Movement</span>
                                                          <span className={`text-xs font-mono font-bold ${isSharpDumping ? 'text-tennis-lime' : 'text-red-500'} flex items-center justify-center sm:justify-start gap-1`}>
                                                              {isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                                                              {activePickOpenOdds.toFixed(2)} ➔ {activePickCurrentOdds.toFixed(2)}
@@ -1380,7 +1380,7 @@ export function ValueScanner() {
                                                      </div>
                                                  ) : (
                                                      <div className="flex flex-col col-span-2 sm:col-span-1">
-                                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</span>
+                                                         <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">H2H Record</span>
                                                          <span className="text-xs font-mono font-bold text-white">{h2hRecord}</span>
                                                      </div>
                                                  )}
@@ -1397,7 +1397,7 @@ export function ValueScanner() {
                                                                  <play.icon size={14} className={play.color} />
                                                              </div>
                                                              <div className="flex flex-col">
-                                                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
+                                                                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{play.type}</span>
                                                                  <span className="text-xs font-bold text-white mt-0.5">{toTitleCase(play.label)}</span>
                                                              </div>
                                                          </div>
@@ -1405,7 +1405,7 @@ export function ValueScanner() {
                                                              {play.isTarget ? (
                                                                  <>
                                                                      <span className={`text-xs font-mono font-bold ${play.color}`}>{play.targetValue}</span>
-                                                                     <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
+                                                                     <span className="block text-[10px] text-gray-500 font-semibold uppercase mt-0.5">{play.subText}</span>
                                                                  </>
                                                              ) : (
                                                                  <>
@@ -1418,7 +1418,7 @@ export function ValueScanner() {
                                                                              </>
                                                                          )}
                                                                      </div>
-                                                                     <span className="block text-[9px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
+                                                                     <span className="block text-[10px] text-gray-500 font-semibold uppercase mt-0.5">Fair: @{play.fairOdds}</span>
                                                                  </>
                                                              )}
                                                          </div>
@@ -1436,13 +1436,13 @@ export function ValueScanner() {
                                                 }
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
-                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
+                                                className="w-full py-2.5 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-2 transform-gpu active:scale-[0.98]"
                                             >
                                                 <img src="/neobet_short.svg" className="h-4 w-auto shrink-0" alt="NEO.bet" />
                                                 <span>{t('picks.neobetCta', 'In den Wettschein')}</span>
                                                 <span className="font-mono font-bold text-white group-hover:text-black">@{activePickCurrentOdds.toFixed(2)}</span>
                                             </a>
-                                            <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                            <div className="text-[10px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                 {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                             </div>
                                         </div>
@@ -1469,11 +1469,11 @@ export function ValueScanner() {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
                                 </span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-tennis-lime">
+                                <span className="text-xs font-bold uppercase tracking-wider text-tennis-lime">
                                     {t('picks.partnerPromo', 'Anzeige | Partner Promotion')}
                                 </span>
                             </div>
-                            <span className="text-[10px] font-mono font-bold text-gray-500 tracking-wider">
+                            <span className="text-xs font-mono font-bold text-gray-500 tracking-wider">
                                 BACKHAND.DTL × NEO.bet
                             </span>
                         </div>
@@ -1517,7 +1517,7 @@ export function ValueScanner() {
 
       {/* Germany Regulatory Whitelist Footer */}
       <div className="mt-16 pt-8 border-t border-white/5 text-center">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-gray-600 max-w-xl mx-auto leading-relaxed">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-gray-600 max-w-xl mx-auto leading-relaxed">
               {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
           </p>
       </div>

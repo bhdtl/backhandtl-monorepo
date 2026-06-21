@@ -586,13 +586,13 @@ export function AIPicksPage() {
                       <div className="flex bg-[#15171e] p-1 rounded-xl border border-white/5 shadow-inner">
                           <button
                               onClick={() => setTimeFilter('ALL')}
-                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${timeFilter === 'ALL' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 ${timeFilter === 'ALL' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               {t('picks.allPlays', 'All Plays')}
                           </button>
                           <button
                               onClick={() => setTimeFilter('30MIN')}
-                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1 ${timeFilter === '30MIN' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'text-gray-500 hover:text-gray-300'}`}
+                              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1 ${timeFilter === '30MIN' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <Flame size={10} className={timeFilter === '30MIN' ? 'animate-pulse' : ''} />
                               {t('picks.last30Min', 'Last 30 Min')}
@@ -603,14 +603,14 @@ export function AIPicksPage() {
                       <div className="flex bg-[#15171e] p-1 rounded-xl border border-white/5 shadow-inner">
                           <button
                               onClick={() => setSortBy('VALUE')}
-                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'VALUE' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'VALUE' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <TrendingUp size={10} />
                               {t('picks.valueSort', 'Value Sort')}
                           </button>
                           <button
                               onClick={() => setSortBy('TIME')}
-                              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'TIME' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 ${sortBy === 'TIME' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                               <Clock size={10} />
                               {t('picks.timeSort', 'Time Sort')}
@@ -647,7 +647,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-gray-400">
                           <Activity size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.activePlays', 'Active Plays')}</span>
+                          <span className="text-xs font-black uppercase tracking-widest">{t('picks.activePlays', 'Active Plays')}</span>
                       </div>
                       <span className="text-4xl font-black text-white tracking-tight">{currentKpis.totalActive}</span>
                   </div>
@@ -659,7 +659,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-tennis-lime">
                           <Wallet size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.riskSizing', 'Risk Sizing')}</span>
+                          <span className="text-xs font-black uppercase tracking-widest">{t('picks.riskSizing', 'Risk Sizing')}</span>
                       </div>
                       <div className="flex items-end gap-1">
                           <span className="text-4xl font-black text-tennis-lime tracking-tight">{currentKpis.totalUnitsRisked}</span>
@@ -673,7 +673,7 @@ export function AIPicksPage() {
                   <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 text-blue-400">
                           <Zap size={14} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{t('picks.maxEdge', 'Max Edge')}</span>
+                          <span className="text-xs font-black uppercase tracking-widest">{t('picks.maxEdge', 'Max Edge')}</span>
                       </div>
                       <div className="flex items-end gap-1">
                           <span className="text-4xl font-black text-white tracking-tight">+{currentKpis.highestEdge}</span>
@@ -702,9 +702,9 @@ export function AIPicksPage() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
                               </span>
-                              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
+                              <span className="text-xs font-black uppercase tracking-[0.25em] text-tennis-lime">{t('picks.partnerPromo', 'Anzeige | Partner Promotion')}</span>
                               <div className="h-3 w-px bg-white/10 hidden sm:block" />
-                              <span className="text-[8px] font-mono font-bold text-gray-500 tracking-wider hidden sm:inline">BACKHAND.DTL × NEO.bet</span>
+                              <span className="text-[11px] font-mono font-bold text-gray-500 tracking-wider hidden sm:inline">BACKHAND.DTL × NEO.bet</span>
                           </div>
                           <h3 className="text-base font-black text-white uppercase tracking-tight">{t('picks.promoTitle', 'Sichere dir 25€ gratis Wettguthaben')}</h3>
                           <p className="text-xs text-gray-500 font-semibold mt-0.5">{t('picks.promoSubtitle', 'Exklusive Freebet ohne Einzahlung für unsere AI Picks.')}</p>
@@ -712,7 +712,7 @@ export function AIPicksPage() {
                   </div>
                   
                   <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
-                      <span className="px-4 py-2.5 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.25)]">{t('picks.unlockPromo', 'Promo freischalten')}</span>
+                      <span className="px-4 py-2.5 bg-gradient-to-r from-tennis-lime/10 to-tennis-green/10 hover:from-tennis-lime hover:to-tennis-green text-tennis-lime hover:text-black border border-tennis-lime/20 hover:border-tennis-lime rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(132,204,22,0.05)] hover:shadow-[0_0_20px_rgba(132,204,22,0.25)]">{t('picks.unlockPromo', 'Promo freischalten')}</span>
                       <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
                   </div>
               </div>
@@ -743,7 +743,7 @@ export function AIPicksPage() {
                   {/* Header: Sleek Glowing Badge & Metadata */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5 relative z-10">
                       <div className="flex flex-wrap items-center gap-3">
-                          <span className="inline-flex items-center gap-2.5 px-3 py-1 bg-tennis-lime text-black rounded-full text-[9px] font-black tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(132,204,22,0.3)]">
+                          <span className="inline-flex items-center gap-2.5 px-3 py-1 bg-tennis-lime text-black rounded-full text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(132,204,22,0.3)]">
                               <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span>
                               {t('picks.pickOfTheDay', 'Pick of the Day')}
                           </span>
@@ -757,7 +757,7 @@ export function AIPicksPage() {
                           <Clock size={12} className="text-gray-600" />
                           <span>{new Date(pickOfTheDay.match_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           <span className="text-gray-700 mx-1">•</span>
-                          <span className="text-[10px] uppercase font-sans tracking-wider font-extrabold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/10">{t('picks.premium', 'Premium')}</span>
+                          <span className="text-xs uppercase font-sans tracking-wider font-extrabold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/10">{t('picks.premium', 'Premium')}</span>
                       </div>
                   </div>
 
@@ -787,7 +787,7 @@ export function AIPicksPage() {
 
                               {/* Center VS Divider */}
                               <div className="flex flex-col items-center justify-center">
-                                  <div className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[9px] font-black text-gray-500 uppercase tracking-widest shadow-inner">
+                                  <div className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-xs font-black text-gray-500 uppercase tracking-widest shadow-inner">
                                       VS
                                   </div>
                               </div>
@@ -812,18 +812,18 @@ export function AIPicksPage() {
                           {/* Recommended Play Block */}
                           <div className="bg-black/30 rounded-[1.5rem] p-5 border border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
                               <div className="w-full sm:w-auto text-center sm:text-left">
-                                  <div className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em] mb-1 font-mono">{t('picks.recommendedSelection', 'RECOMMENDED SELECTION')}</div>
+                                  <div className="text-[11px] font-black text-gray-500 uppercase tracking-[0.15em] mb-1 font-mono">{t('picks.recommendedSelection', 'RECOMMENDED SELECTION')}</div>
                                   <div className="text-lg font-black text-white uppercase tracking-tight">
                                       {displayPickName(pickOfTheDay.parsedVal.pickName)}
                                   </div>
                               </div>
                               <div className="flex gap-3 w-full sm:w-auto shrink-0 justify-center">
                                   <div className="bg-white/[0.03] px-4 py-2.5 rounded-xl border border-white/5 flex flex-col items-center min-w-[70px]">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{t('picks.odds', 'Odds')}</span>
+                                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{t('picks.odds', 'Odds')}</span>
                                       <span className="text-sm font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
                                   </div>
                                   <div className="bg-tennis-lime/10 px-4 py-2.5 rounded-xl border border-tennis-lime/20 flex flex-col items-center min-w-[70px]">
-                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.trueEdge', 'True Edge')}</span>
+                                      <span className="text-[11px] font-bold text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.trueEdge', 'True Edge')}</span>
                                       <span className="text-sm font-mono font-black text-tennis-lime">+{pickOfTheDay.parsedVal.edge.toFixed(1)}%</span>
                                   </div>
                               </div>
@@ -849,7 +849,7 @@ export function AIPicksPage() {
                                   <div className="p-1 bg-tennis-lime/10 rounded-lg border border-tennis-lime/20">
                                       <Gift size={14} className="text-tennis-lime animate-pulse" />
                                   </div>
-                                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-tennis-lime">{t('picks.freebetCalculator', 'Freebet Value Calculator')}</span>
+                                  <span className="text-xs font-black uppercase tracking-[0.15em] text-tennis-lime">{t('picks.freebetCalculator', 'Freebet Value Calculator')}</span>
                               </div>
                               
                               <p className="text-[11px] font-medium text-gray-400 mb-4 leading-relaxed">
@@ -859,15 +859,15 @@ export function AIPicksPage() {
                               {/* Metric Cards Flow */}
                               <div className="grid grid-cols-3 gap-2.5 mb-2">
                                   <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.freebet', 'FREEBET')}</span>
+                                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.freebet', 'FREEBET')}</span>
                                       <span className="text-xs font-mono font-black text-white">25 €</span>
                                   </div>
                                   <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-center text-center">
-                                      <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.oddsLabel', 'ODDS')}</span>
+                                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">{t('picks.oddsLabel', 'ODDS')}</span>
                                       <span className="text-xs font-mono font-black text-white">@{pickOfTheDay.parsedVal.marketOdds.toFixed(2)}</span>
                                   </div>
                                   <div className="bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_0_15px_rgba(132,204,22,0.05)]">
-                                      <span className="text-[8px] font-bold text-tennis-lime uppercase tracking-wider mb-1">{t('picks.netProfit', 'NET PROFIT')}</span>
+                                      <span className="text-[11px] font-bold text-tennis-lime uppercase tracking-wider mb-1">{t('picks.netProfit', 'NET PROFIT')}</span>
                                       <span className="text-xs font-mono font-black text-tennis-lime">{(25 * (pickOfTheDay.parsedVal.marketOdds - 1)).toFixed(2)} €</span>
                                   </div>
                               </div>
@@ -916,7 +916,7 @@ export function AIPicksPage() {
                          <h3 className="text-xs font-black uppercase tracking-wider text-gray-500 pl-1 flex items-center gap-2">
                              <Calendar size={12} className="text-gray-500" />
                              <span>{group.dateKey}</span>
-                             <span className="text-[9px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                             <span className="text-[11px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
                                  {group.picks.length}
                              </span>
                          </h3>
@@ -949,17 +949,17 @@ export function AIPicksPage() {
                                          <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
                                              <div className="flex items-center gap-1.5 overflow-hidden pr-2">
                                                  <MapPin size={10} className="text-gray-500 shrink-0" />
-                                                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                                 <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest truncate">
                                                      {pick.tournament}
                                                  </span>
                                              </div>
                                              <div className="flex items-center gap-2 shrink-0">
                                                  {isHotDrop && (
-                                                     <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                     <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider animate-pulse">
                                                          <Flame size={8} /> {t('picks.newBadge', 'New')}
                                                      </span>
                                                  )}
-                                                 <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
+                                                 <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
                                                      <Clock size={10} /> {timeString}
                                                  </div>
                                              </div>
@@ -975,7 +975,7 @@ export function AIPicksPage() {
                                                      </span>
                                                  </div>
                                                  <div className="flex flex-col items-center justify-center w-[20%]">
-                                                     <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
+                                                     <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black text-gray-600 shadow-inner">
                                                          VS
                                                      </div>
                                                  </div>
@@ -991,8 +991,8 @@ export function AIPicksPage() {
                                                  <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
                                                      <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
                                                      <div>
-                                                         <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
-                                                         <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
+                                                         <div className="text-[11px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
+                                                         <div className="text-xs text-orange-100/80 font-medium leading-snug">
                                                              {localizeBackendText(pick.derivativeAlert, t)}
                                                          </div>
                                                      </div>
@@ -1003,8 +1003,8 @@ export function AIPicksPage() {
                                                   <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
                                                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
                                                       <div>
-                                                          <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
-                                                          <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                          <div className="text-[11px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
+                                                          <div className="text-xs text-red-100/80 font-medium leading-snug">
                                                               {localizeBackendText(pick.games_prediction.pattern_warning, t)}
                                                           </div>
                                                       </div>
@@ -1015,8 +1015,8 @@ export function AIPicksPage() {
                                                   <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
                                                       <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
                                                       <div>
-                                                          <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
-                                                          <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                          <div className="text-[11px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
+                                                          <div className="text-xs text-tennis-lime/90 font-medium leading-snug">
                                                               {localizeBackendText(pick.games_prediction.pattern_boost, t)}
                                                           </div>
                                                       </div>
@@ -1031,8 +1031,8 @@ export function AIPicksPage() {
                                                       }}
                                                       className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/5 hover:border-white/10 transition-colors"
                                                   >
-                                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
-                                                     <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
+                                                     <div className={`flex items-center gap-1 text-xs font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
                                                          {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                                                          {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
                                                      </div>
@@ -1041,27 +1041,27 @@ export function AIPicksPage() {
                                          </div>
 
                                          {/* THE ACTION TRAY */}
-                                         <div className={`p-4 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
+                                         <div className={`p-4 md:p-5 ${isMaxBomb ? 'bg-tennis-lime/5' : 'bg-[#1a1d26]'} border-t ${isMaxBomb ? 'border-tennis-lime/20' : 'border-white/5'} mt-auto relative overflow-hidden`}>
                                              {isMaxBomb && <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/10 to-transparent pointer-events-none"></div>}
 
                                              <div className="flex items-center justify-between mb-4 relative z-10">
                                                  <div className="flex flex-col">
                                                       <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                          <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
                                                               <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
                                                           </span>
                                                           {pick.games_prediction?.is_grand_slam && (
-                                                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
+                                                              <span className="text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
                                                                   🎾 Slam (Bo5)
                                                               </span>
                                                           )}
                                                       </div>
-                                                     <span className="text-xs font-black text-white truncate max-w-[180px] xs:max-w-[220px]" title={val.pickName}>
+                                                     <span className="text-xs md:text-sm font-black text-white truncate max-w-[180px] xs:max-w-[220px] sm:max-w-[280px] md:max-w-none" title={val.pickName}>
                                                          {displayPickName(val.pickName)}
                                                      </span>
                                                  </div>
                                                  
-                                                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${tagClasses}`}>
+                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/5 bg-white/5">
                                                      <Wallet size={12} className={isMaxBomb ? 'text-black' : 'text-inherit'} />
                                                      <span className={`text-sm font-mono font-black tracking-tight ${isMaxBomb ? 'text-black' : 'text-inherit'}`}>
                                                          {val.stake.toFixed(1)}u
@@ -1071,18 +1071,18 @@ export function AIPicksPage() {
 
                                              <div className="grid grid-cols-2 gap-2.5 relative z-10">
                                                  <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
-                                                     <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                         <Target size={8} /> Play At
+                                                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                         <Target size={10} /> Play At
                                                      </span>
-                                                     <span className="text-sm font-mono font-black text-white leading-none">
+                                                     <span className="text-sm md:text-base font-mono font-black text-white leading-none">
                                                          @{val.marketOdds.toFixed(2)}
                                                      </span>
                                                  </div>
                                                  <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
-                                                     <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                         <Zap size={8} /> True Edge
+                                                     <span className="text-[11px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                         <Zap size={10} /> True Edge
                                                      </span>
-                                                     <span className="text-sm font-mono font-black text-blue-400 leading-none">
+                                                     <span className="text-sm md:text-base font-mono font-black text-blue-400 leading-none">
                                                          +{val.edge.toFixed(1)}%
                                                      </span>
                                                  </div>
@@ -1096,12 +1096,12 @@ export function AIPicksPage() {
                                                      }
                                                      target="_blank" 
                                                      rel="noopener noreferrer"
-                                                     className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5"
+                                                     className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
                                                  >
                                                      <Zap size={10} className="fill-current shrink-0" />
                                                      {t('picks.neobetCta', 'In den Wettschein')}
                                                  </a>
-                                                 <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                 <div className="text-xs font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                           {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                                  </div>
                                              </div>
@@ -1110,7 +1110,7 @@ export function AIPicksPage() {
                                                  <div className="mt-4 flex justify-center relative z-10">
                                                      <button 
                                                          onClick={() => setExpandedId(isExpanded ? null : pick.id)}
-                                                         className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
+                                                         className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
                                                      >
                                                          <Brain size={12} className="text-purple-400" />
                                                          {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
@@ -1127,7 +1127,7 @@ export function AIPicksPage() {
                                                          <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
                                                              <div className="flex items-center gap-1.5 mb-1.5">
                                                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                                                                 <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                                                 <span className="text-[11px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
                                                              </div>
                                                              <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
                                                          </div>
@@ -1135,7 +1135,7 @@ export function AIPicksPage() {
                                                      
                                                      {analysisData.analysis && (
                                                          <div>
-                                                             <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                                             <span className="flex items-center gap-1.5 text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
                                                                  <AlignLeft size={10} /> Tactical Breakdown
                                                              </span>
                                                              <p className="text-xs text-gray-300 leading-relaxed text-justify">
@@ -1146,7 +1146,7 @@ export function AIPicksPage() {
 
                                                      {analysisData.bullets.length > 0 && (
                                                          <div>
-                                                             <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
+                                                             <span className="flex items-center gap-1.5 text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
                                                                  <Crosshair size={10} /> Edge Execution
                                                              </span>
                                                              <ul className="flex flex-col gap-1.5">
@@ -1182,7 +1182,7 @@ export function AIPicksPage() {
                          <h3 className="text-sm font-black uppercase tracking-wider text-gray-500 pl-1 flex items-center gap-2">
                              <Calendar size={14} className="text-gray-500" />
                              <span>{group.dateKey}</span>
-                             <span className="text-[10px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                             <span className="text-[11px] font-bold text-gray-600 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
                                  {group.picks.length} {group.picks.length === 1 ? 'Spiel' : 'Spiele'}
                              </span>
                          </h3>
@@ -1224,17 +1224,17 @@ export function AIPicksPage() {
                                              <div className="px-5 py-3 border-b border-white/5 bg-black/20 flex items-center justify-between">
                                                  <div className="flex items-center gap-1.5 overflow-hidden pr-2">
                                                      <MapPin size={10} className="text-gray-500 shrink-0" />
-                                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest truncate">
                                                          {pick.tournament}
                                                      </span>
                                                  </div>
                                                  <div className="flex items-center gap-2 shrink-0">
                                                      {isHotDrop && (
-                                                         <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                         <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider animate-pulse">
                                                              <Flame size={8} /> {t('picks.newBadge', 'New')}
                                                          </span>
                                                      )}
-                                                     <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
+                                                     <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-500 bg-white/5 px-2 py-1 rounded-md">
                                                          <Clock size={10} /> {timeString}
                                                      </div>
                                                  </div>
@@ -1253,7 +1253,7 @@ export function AIPicksPage() {
 
                                                      {/* VS Badge */}
                                                      <div className="flex flex-col items-center justify-center w-[20%]">
-                                                         <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[8px] font-black text-gray-600 shadow-inner">
+                                                         <div className="w-6 h-6 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-[11px] font-black text-gray-600 shadow-inner">
                                                              VS
                                                          </div>
                                                      </div>
@@ -1272,8 +1272,8 @@ export function AIPicksPage() {
                                                      <div className="mb-2 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
                                                          <Flame className="text-orange-500 shrink-0 mt-0.5" size={14} />
                                                          <div>
-                                                             <div className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
-                                                             <div className="text-[10px] text-orange-100/80 font-medium leading-snug">
+                                                             <div className="text-[11px] font-black text-orange-400 uppercase tracking-widest mb-0.5">Alt Market Edge</div>
+                                                             <div className="text-xs text-orange-100/80 font-medium leading-snug">
                                                                  {localizeBackendText(pick.derivativeAlert, t)}
                                                              </div>
                                                          </div>
@@ -1284,8 +1284,8 @@ export function AIPicksPage() {
                                                      <div className="mb-2 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
                                                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse"></div>
                                                          <div>
-                                                             <div className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
-                                                             <div className="text-[10px] text-red-100/80 font-medium leading-snug">
+                                                             <div className="text-[11px] font-black text-red-400 uppercase tracking-widest mb-0.5">{t('picks.historicalPatternRisk', 'Historical Pattern Risk')}</div>
+                                                             <div className="text-xs text-red-100/80 font-medium leading-snug">
                                                                  {localizeBackendText(pick.games_prediction.pattern_warning, t)}
                                                              </div>
                                                          </div>
@@ -1296,8 +1296,8 @@ export function AIPicksPage() {
                                                      <div className="mb-2 bg-tennis-lime/10 border border-tennis-lime/20 rounded-xl p-3 flex items-start gap-2.5">
                                                          <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime mt-1.5 shrink-0"></div>
                                                          <div>
-                                                             <div className="text-[9px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
-                                                             <div className="text-[10px] text-tennis-lime/90 font-medium leading-snug">
+                                                             <div className="text-[11px] font-black text-tennis-lime uppercase tracking-widest mb-0.5">{t('picks.historicalPatternEdge', 'Historical Pattern Edge')}</div>
+                                                             <div className="text-xs text-tennis-lime/90 font-medium leading-snug">
                                                                  {localizeBackendText(pick.games_prediction.pattern_boost, t)}
                                                              </div>
                                                          </div>
@@ -1313,8 +1313,8 @@ export function AIPicksPage() {
                                                           }}
                                                           className="mb-2 bg-black/30 border border-white/5 rounded-xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/5 hover:border-white/10 transition-colors"
                                                       >
-                                                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
-                                                         <div className={`flex items-center gap-1 text-[10px] font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
+                                                         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Line Move</span>
+                                                         <div className={`flex items-center gap-1 text-xs font-mono font-black ${pick.movement.isSharpDumping ? 'text-tennis-lime' : 'text-red-500'}`}>
                                                              {pick.movement.isSharpDumping ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                                                              {pick.movement.openOdds.toFixed(2)} ➔ {pick.movement.currentOdds.toFixed(2)}
                                                          </div>
@@ -1331,11 +1331,11 @@ export function AIPicksPage() {
                                                      <div className="flex flex-col">
                                                           {/* Dynamic Type Tag */}
                                                           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                                              <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                                                              <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
                                                                   <span>{val.type.replace('🔥 ', '').replace('✨ ', '').replace('🛡️ ', '').replace('🔬 ', '')}</span>
                                                               </span>
                                                               {pick.games_prediction?.is_grand_slam && (
-                                                                  <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
+                                                                  <span className="text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex w-max border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
                                                                       🎾 Slam (Bo5)
                                                                   </span>
                                                               )}
@@ -1356,16 +1356,16 @@ export function AIPicksPage() {
 
                                                  <div className="grid grid-cols-2 gap-2.5 relative z-10">
                                                      <div className="bg-black/40 rounded-xl p-3 flex flex-col items-center justify-center border border-white/5">
-                                                         <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                             <Target size={8} /> Play At
+                                                         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                             <Target size={10} /> Play At
                                                          </span>
                                                          <span className="text-sm md:text-base font-mono font-black text-white leading-none">
                                                              @{val.marketOdds.toFixed(2)}
                                                          </span>
                                                      </div>
                                                      <div className="bg-blue-500/10 rounded-xl p-3 flex flex-col items-center justify-center border border-blue-500/20">
-                                                         <span className="text-[8px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                                             <Zap size={8} /> True Edge
+                                                         <span className="text-[11px] font-bold text-blue-400/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                             <Zap size={10} /> True Edge
                                                          </span>
                                                          <span className="text-sm md:text-base font-mono font-black text-blue-400 leading-none">
                                                              +{val.edge.toFixed(1)}%
@@ -1382,12 +1382,12 @@ export function AIPicksPage() {
                                                          }
                                                          target="_blank" 
                                                          rel="noopener noreferrer"
-                                                         className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
+                                                         className="w-full py-3 bg-white/[0.03] border border-white/10 text-gray-200 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-tennis-lime hover:text-black hover:border-tennis-lime hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] transition-all duration-300 flex items-center justify-center gap-1.5 transform-gpu"
                                                      >
                                                          <Zap size={10} className="fill-current shrink-0" />
                                                          {t('picks.neobetCta', 'In den Wettschein')}
                                                      </a>
-                                                     <div className="text-[7.5px] font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
+                                                     <div className="text-xs font-bold text-gray-500 tracking-wider text-center uppercase leading-none mt-0.5">
                                                          {t('picks.whitelistDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
                                                      </div>
                                                  </div>
@@ -1397,7 +1397,7 @@ export function AIPicksPage() {
                                                      <div className="mt-4 flex justify-center relative z-10">
                                                          <button 
                                                              onClick={() => setExpandedId(isExpanded ? null : pick.id)}
-                                                             className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
+                                                             className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors py-1 px-3 bg-white/5 rounded-full border border-white/10"
                                                          >
                                                              <Brain size={12} className="text-purple-400" />
                                                              {isExpanded ? 'Hide Analysis' : 'Deep Dive Analysis'}
@@ -1422,7 +1422,7 @@ export function AIPicksPage() {
                                                                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
                                                                      <div className="flex items-center gap-1.5 mb-1.5">
                                                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                                                                         <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
+                                                                         <span className="text-[11px] font-black text-purple-400 uppercase tracking-widest">Key Factor</span>
                                                                      </div>
                                                                      <p className="text-xs font-medium text-purple-100 leading-snug">{analysisData.keyFactor}</p>
                                                                  </div>
@@ -1431,7 +1431,7 @@ export function AIPicksPage() {
                                                              {/* Deep Dive Text */}
                                                              {analysisData.analysis && (
                                                                  <div>
-                                                                     <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                                                     <span className="flex items-center gap-1.5 text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
                                                                          <AlignLeft size={10} /> Tactical Breakdown
                                                                      </span>
                                                                      <p className="text-xs text-gray-300 leading-relaxed text-justify">
@@ -1443,7 +1443,7 @@ export function AIPicksPage() {
                                                              {/* Bullets */}
                                                              {analysisData.bullets.length > 0 && (
                                                                  <div>
-                                                                     <span className="flex items-center gap-1.5 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
+                                                                     <span className="flex items-center gap-1.5 text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">
                                                                          <Crosshair size={10} /> Edge Execution
                                                                      </span>
                                                                      <ul className="flex flex-col gap-1.5">
@@ -1474,7 +1474,7 @@ export function AIPicksPage() {
 
       {/* Germany Regulatory Whitelist Footer */}
       <div className="mt-16 pt-8 border-t border-white/5 text-center">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-600 max-w-xl mx-auto leading-relaxed">
               {t('picks.footerDisclaimer', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
           </p>
       </div>

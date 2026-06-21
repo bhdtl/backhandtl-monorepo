@@ -299,7 +299,7 @@ const StatCard = ({ title, value, subtext, trend, icon: Icon, colorClass, isUnit
           <div className={`p-2 rounded-lg bg-white/5 ${colorClass} bg-opacity-10`}>
             <Icon size={16} className={colorClass.replace('bg-', 'text-')} />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{title}</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">{title}</span>
         </div>
         <div className={`text-3xl md:text-4xl font-black tracking-tight mb-1 ${colorClass}`}>
           {value}{isUnit ? <span className="text-xl ml-1 text-gray-500 font-bold uppercase tracking-widest">u</span> : ''}
@@ -308,12 +308,12 @@ const StatCard = ({ title, value, subtext, trend, icon: Icon, colorClass, isUnit
         
       <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/5">
         {trend !== undefined && (
-          <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${trend > 0 ? 'bg-green-500/10 text-green-400' : (trend < 0 ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-400')}`}>
+          <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${trend > 0 ? 'bg-green-500/10 text-green-400' : (trend < 0 ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-400')}`}>
             {trend > 0 ? <ArrowUpRight size={12} /> : (trend < 0 ? <ArrowDownRight size={12} /> : null)}
             {Math.abs(trend)}{isUnit ? 'u' : '%'}
           </div>
         )}
-        <span className="text-[10px] font-medium text-gray-500 truncate">{subtext}</span>
+        <span className="text-[11px] font-medium text-gray-500 truncate">{subtext}</span>
       </div>
     </div>
   </div>
@@ -326,15 +326,15 @@ const MiniInsightCard = ({ title, value1, label1, value2, label2, colorClass }: 
     className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex flex-col justify-between shadow-inner relative overflow-hidden shrink-0 w-[75vw] sm:w-[240px] md:w-auto snap-center transition-colors hover:bg-white/[0.04]"
   >
     <div className={`absolute top-0 left-0 w-1 h-full ${colorClass.replace('text-', 'bg-')}`}></div>
-    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-2">{title}</span>
+    <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-2">{title}</span>
     <div className="flex justify-between items-end ml-2">
         <div className="flex flex-col">
             <span className={`text-xl md:text-lg lg:text-xl font-black leading-none mb-1 ${colorClass}`}>{value1}</span>
-            <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">{label1}</span>
+            <span className="text-[11px] text-gray-500 uppercase tracking-widest font-bold">{label1}</span>
         </div>
         <div className="flex flex-col items-end text-right">
             <span className={`text-xl md:text-lg lg:text-xl font-black leading-none mb-1 text-white`}>{value2}</span>
-            <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">{label2}</span>
+            <span className="text-[11px] text-gray-500 uppercase tracking-widest font-bold">{label2}</span>
         </div>
     </div>
   </motion.div>
@@ -346,7 +346,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const data = payload[0].payload;
     return (
       <div className="bg-[#15171e]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-2xl">
-        <p className="text-[10px] font-mono text-gray-400 mb-2">{label}</p>
+        <p className="text-[11px] font-mono text-gray-400 mb-2">{label}</p>
         <div className="flex items-center justify-between gap-4 mb-1">
             <span className="text-xs font-bold text-white">Cumulative Profit:</span>
             <span className={`text-xs font-black ${data.units >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
@@ -354,8 +354,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             </span>
         </div>
         <div className="flex items-center justify-between gap-4">
-            <span className="text-[10px] font-medium text-gray-500">{data.pickName === 'Period Start' ? 'Event:' : 'Pick:'}</span>
-            <span className="text-[10px] font-bold text-gray-300">{data.pickName}</span>
+            <span className="text-[11px] font-medium text-gray-500">{data.pickName === 'Period Start' ? 'Event:' : 'Pick:'}</span>
+            <span className="text-[11px] font-bold text-gray-300">{data.pickName}</span>
         </div>
       </div>
     );
@@ -1037,7 +1037,7 @@ export function PerformancePage() {
           </p>
         </div>
         
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] border border-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400 self-start md:self-auto shadow-lg">
+        <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] border border-white/5 rounded-full text-[11px] font-black uppercase tracking-widest text-gray-400 self-start md:self-auto shadow-lg">
           <div className="w-2 h-2 bg-tennis-lime rounded-full animate-pulse shadow-[0_0_10px_#84cc16]"></div>
           {t('performance.liveStatus')}
         </div>
@@ -1102,7 +1102,7 @@ export function PerformancePage() {
                       : 'Syndicate Analytics (Buchdahl Model)'
                   }
               </h3>
-              <p className="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider relative z-10">
+              <p className="text-[11px] text-gray-500 font-medium mb-6 uppercase tracking-wider relative z-10">
                   {i18n.language.startsWith('de') 
                     ? 'Wissenschaftliche Validierung unserer Vorhersagegenauigkeit und Marktüberlegenheit' 
                     : 'Scientific validation of our forecasting accuracy and market beat'}
@@ -1116,7 +1116,7 @@ export function PerformancePage() {
                   >
                       <div>
                           <div className="flex items-center justify-between mb-2">
-                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Forecasting Calibration</span>
+                              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500">Forecasting Calibration</span>
                               <HelpCircle size={14} className="text-gray-500 group-hover:text-tennis-lime transition-colors shrink-0" />
                           </div>
                           <h4 className="text-white font-black text-xl mb-1 uppercase tracking-tight">Brier Score</h4>
@@ -1125,7 +1125,7 @@ export function PerformancePage() {
                       <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
                           <div className="flex flex-col">
                               <span className="text-3xl font-black text-tennis-lime font-mono">{stats.avgBrier.toFixed(4)}</span>
-                              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1">
                                   {stats.avgBrier < 0.21 ? (i18n.language.startsWith('de') ? '🔥 Exzellent Kalibriert' : '🔥 Highly Calibrated') : (i18n.language.startsWith('de') ? '⚖️ Stabil' : '⚖️ Standard Calibration')}
                               </span>
                           </div>
@@ -1144,7 +1144,7 @@ export function PerformancePage() {
                   >
                       <div>
                           <div className="flex items-center justify-between mb-2">
-                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Statistical Significance</span>
+                              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500">Statistical Significance</span>
                               <HelpCircle size={14} className="text-gray-500 group-hover:text-tennis-lime transition-colors shrink-0" />
                           </div>
                           <h4 className="text-white font-black text-xl mb-1 uppercase tracking-tight">{i18n.language.startsWith('de') ? 'Können-Nachweis (p-Wert)' : 'Proof of Skill (p-Value)'}</h4>
@@ -1153,7 +1153,7 @@ export function PerformancePage() {
                       <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
                           <div className="flex flex-col">
                               <span className="text-3xl font-black text-blue-400 font-mono">p = {stats.pValue.toFixed(4)}</span>
-                              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1">
                                   {stats.skillCertainty.toFixed(2)}% {i18n.language.startsWith('de') ? 'Skill-Sicherheit' : 'Skill Certainty'}
                               </span>
                           </div>
@@ -1186,27 +1186,27 @@ export function PerformancePage() {
               
               <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-3 md:grid md:grid-cols-3 md:gap-6 mb-6 -mx-6 px-6 md:mx-0 md:px-0">
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '10-Tage Verlauf' : '10-Day Run'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '10-Tage Verlauf' : '10-Day Run'}</span>
                       <span className={`text-2xl font-black ${stats.units10d >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
                           {stats.units10d > 0 ? '+' : ''}{stats.units10d}u
                       </span>
                   </div>
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '30-Tage Verlauf' : '30-Day Run'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1"><Calendar size={10}/> {i18n.language.startsWith('de') ? '30-Tage Verlauf' : '30-Day Run'}</span>
                       <span className={`text-2xl font-black ${stats.units30d >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
                           {stats.units30d > 0 ? '+' : ''}{stats.units30d}u
                       </span>
                   </div>
                   <div className="shrink-0 w-[45vw] sm:w-[200px] md:w-auto snap-center bg-black/20 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-t from-tennis-lime/5 to-transparent pointer-events-none"></div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1 relative z-10"><Target size={10}/> {i18n.language.startsWith('de') ? 'Gesamtzeit' : 'All-Time'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 flex items-center gap-1 relative z-10"><Target size={10}/> {i18n.language.startsWith('de') ? 'Gesamtzeit' : 'All-Time'}</span>
                       <span className={`text-2xl font-black ${stats.totalUnits >= 0 ? 'text-tennis-lime' : 'text-red-500'} relative z-10`}>
                           {stats.totalUnits > 0 ? '+' : ''}{stats.totalUnits}u
                       </span>
                   </div>
               </div>
 
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">{
+              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-3">{
                 i18n.language.startsWith('de') 
                   ? 'Modell-Effizienz nach Überzeugung (Einsatzhöhe)' 
                   : 'Model Efficiency by Conviction (Stake Size)'
@@ -1264,7 +1264,7 @@ export function PerformancePage() {
                       }</p>
                       <div className="flex items-center gap-1.5 bg-tennis-lime/10 px-2 py-0.5 rounded-md border border-tennis-lime/20">
                           <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime shadow-[0_0_8px_#84cc16] animate-pulse"></div>
-                          <span className="text-[8px] font-black text-tennis-lime uppercase tracking-widest">Model Alpha</span>
+                          <span className="text-[10px] font-black text-tennis-lime uppercase tracking-widest">Model Alpha</span>
                       </div>
                   </div>
               </div>
@@ -1274,7 +1274,7 @@ export function PerformancePage() {
                       <button
                           key={filter}
                           onClick={() => setChartFilter(filter as any)}
-                          className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${chartFilter === filter ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                          className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${chartFilter === filter ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
                       >
                           {filter}
                       </button>
@@ -1331,7 +1331,7 @@ export function PerformancePage() {
                       <Calendar size={18} className="text-tennis-lime" />
                       {getLocalText('Gewinn & Verlust Kalender', 'Profit & Loss Calendar', 'Calendario de Ganancias y Pérdidas', 'Calendrier des Profits et Pertes', 'Calendario Profitti e Perdite')}
                   </h3>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
                       {getLocalText('Tägliche Netto-Performance Übersicht', 'Daily Net Performance Summary', 'Resumen de Rendimiento Neto Diario', 'Résumé de Performance Nette Journalière', 'Riepilogo delle Performance Nette Giornaliere')}
                   </p>
               </div>
@@ -1345,7 +1345,7 @@ export function PerformancePage() {
                       >
                           <ChevronLeft size={16} />
                       </button>
-                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white px-3 min-w-[100px] text-center">
+                      <span className="text-[11px] md:text-xs font-black uppercase tracking-widest text-white px-3 min-w-[100px] text-center">
                           {calMonthName}
                       </span>
                       <button 
@@ -1358,7 +1358,7 @@ export function PerformancePage() {
 
                   {/* Monthly Net Return */}
                   <div className="flex flex-col items-end">
-                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                      <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
                           {getLocalText('Monats-Netto', 'Monthly Net', 'Neto Mensual', 'Net Mensuel', 'Netto Mensile')}
                       </span>
                       <span className={`text-base font-black font-mono tracking-tight ${activeMonthNet >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
@@ -1373,7 +1373,7 @@ export function PerformancePage() {
               {/* Weekday headers */}
               <div className="grid grid-cols-7 gap-1.5 md:gap-3 mb-2">
                   {weekdayLabels.map((lbl, idx) => (
-                      <div key={idx} className="text-center text-[9px] md:text-xs font-black uppercase tracking-widest text-gray-500 py-1">
+                      <div key={idx} className="text-center text-[11px] md:text-xs font-black uppercase tracking-widest text-gray-500 py-1">
                           {lbl}
                       </div>
                   ))}
@@ -1421,12 +1421,12 @@ export function PerformancePage() {
                                   isSelected ? 'ring-2 ring-tennis-lime border-tennis-lime bg-white/[0.05] scale-[1.02]' : ''
                               }`}
                           >
-                              <span className="text-[9px] md:text-xs font-bold text-gray-400/80 absolute top-1 md:top-2 left-1 md:left-2">
+                              <span className="text-[11px] md:text-xs font-bold text-gray-400/80 absolute top-1 md:top-2 left-1 md:left-2">
                                   {cell.dayNumber}
                               </span>
 
                               {profitText && (
-                                  <span className="text-[9px] md:text-xs font-black tracking-tighter text-center w-full mt-auto mb-0">
+                                  <span className="text-[11px] md:text-xs font-black tracking-tighter text-center w-full mt-auto mb-0">
                                       {profitText}
                                   </span>
                               )}
@@ -1444,14 +1444,14 @@ export function PerformancePage() {
                           <h4 className="text-white font-black text-sm md:text-base uppercase tracking-tight">
                               {new Date(selectedDate).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}
                           </h4>
-                          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
                               {getLocalText('Tages-Performance Details', 'Daily Performance Details', 'Detalles de Rendimiento Diario', 'Détails de Performance Journalière', 'Dettagli Performance Giornaliera')}
                           </p>
                       </div>
 
                       <div className="flex items-center gap-6">
                           <div>
-                              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">
+                              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
                                   {getLocalText('Wetten', 'Bets', 'Apuestas', 'Paris', 'Scommesse')}
                               </span>
                               <span className="text-xs font-bold text-white font-mono">
@@ -1460,7 +1460,7 @@ export function PerformancePage() {
                           </div>
                           <div className="h-6 w-px bg-white/10"></div>
                           <div>
-                              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Net Profit</span>
+                              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Net Profit</span>
                               <span className={`text-sm font-black font-mono ${dailyData[selectedDate]?.netProfit >= 0 ? 'text-tennis-lime' : 'text-red-500'}`}>
                                   {dailyData[selectedDate]?.netProfit > 0 ? '+' : ''}{dailyData[selectedDate]?.netProfit.toFixed(2)}u
                               </span>
@@ -1479,11 +1479,11 @@ export function PerformancePage() {
                                           <span className="text-xs font-black text-white truncate max-w-[180px] md:max-w-none" title={bet.calculated.pickName}>
                                               {bet.calculated.pickName}
                                           </span>
-                                          <span className="text-[9px] font-mono text-gray-400 bg-white/5 px-1.5 py-0.5 rounded shrink-0">
+                                          <span className="text-[11px] font-mono text-gray-400 bg-white/5 px-1.5 py-0.5 rounded shrink-0">
                                               @{bet.calculated.entryOdds.toFixed(2)}
                                           </span>
                                       </div>
-                                      <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider truncate">
+                                      <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
                                           <span className="truncate max-w-[120px] md:max-w-none">{bet.tournament}</span>
                                           <span>•</span>
                                           <span>{bet.calculated.type}</span>
@@ -1492,11 +1492,11 @@ export function PerformancePage() {
 
                                   <div className="flex items-center gap-3 shrink-0">
                                       <div className="text-right flex flex-col items-end">
-                                          <span className="text-[8px] font-bold text-gray-500 uppercase">Stake</span>
-                                          <span className="text-[10px] font-bold text-gray-300 font-mono">{bet.calculated.stake.toFixed(1)}u</span>
+                                          <span className="text-[10px] font-bold text-gray-500 uppercase">Stake</span>
+                                          <span className="text-[11px] font-bold text-gray-300 font-mono">{bet.calculated.stake.toFixed(1)}u</span>
                                       </div>
                                       <div className="h-5 w-px bg-white/5"></div>
-                                      <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest font-mono text-center min-w-[55px] ${
+                                      <div className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-widest font-mono text-center min-w-[55px] ${
                                           isWin 
                                               ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
                                               : 'bg-red-500/10 border border-red-500/20 text-red-500'
@@ -1518,7 +1518,7 @@ export function PerformancePage() {
             <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
               <History size={16} className="text-gray-500" /> {t('performance.table.title')}
             </h3>
-            <span className="text-[10px] font-mono text-gray-500">
+            <span className="text-[11px] font-mono text-gray-500">
               {i18n.language.startsWith('de') ? 'SEITE' : (i18n.language.startsWith('es') ? 'PÁGINA' : (i18n.language.startsWith('fr') ? 'PAGE' : (i18n.language.startsWith('it') ? 'PAGINA' : 'PAGE')))} {currentPage}/{totalPages || 1}
             </span>
           </div>
@@ -1530,7 +1530,7 @@ export function PerformancePage() {
             <button
               onClick={exportToMarkdown}
               disabled={processedBets.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 hover:border-tennis-lime/30 bg-white/[0.02] hover:bg-tennis-lime/10 text-gray-300 hover:text-tennis-lime transition-all duration-300 text-[9px] font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg border-white/5"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 hover:border-tennis-lime/30 bg-white/[0.02] hover:bg-tennis-lime/10 text-gray-300 hover:text-tennis-lime transition-all duration-300 text-[11px] font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] shadow-lg border-white/5"
             >
               <Download size={12} className="text-gray-400 group-hover:text-tennis-lime" />
               <span>Export .MD</span>
@@ -1542,7 +1542,7 @@ export function PerformancePage() {
         <div className="overflow-x-auto flex-grow hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-black/20 text-gray-500 text-[9px] font-black uppercase tracking-[0.2em] border-b border-white/5">
+              <tr className="bg-black/20 text-gray-500 text-[11px] font-black uppercase tracking-[0.2em] border-b border-white/5">
                 <th className="px-4 md:px-6 py-4">{t('performance.table.cols.date')}</th>
                 <th className="px-4 md:px-6 py-4">{t('performance.table.cols.event')}</th>
                 <th className="px-4 md:px-6 py-4 hidden md:table-cell">{t('performance.table.cols.selection')}</th>
@@ -1561,7 +1561,7 @@ export function PerformancePage() {
 
                 return (
                   <tr key={match.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-4 md:px-6 py-4 text-gray-500 font-mono text-[10px] md:text-xs whitespace-nowrap align-top md:align-middle">
+                    <td className="px-4 md:px-6 py-4 text-gray-500 font-mono text-[11px] md:text-xs whitespace-nowrap align-top md:align-middle">
                       {new Date(match.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </td>
                     
@@ -1573,19 +1573,19 @@ export function PerformancePage() {
                         
                         <div className="flex flex-col gap-1.5 mt-2 md:hidden">
                            <div className="flex items-center flex-wrap gap-1.5">
-                               <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${tagClasses}`}>
+                               <span className={`text-[11px] font-black uppercase px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${tagClasses}`}>
                                  <span>{cleanType}</span>
                                </span>
                                <span className="text-xs font-bold text-gray-200">{pickName}</span>
-                               <span className="text-[10px] font-mono text-gray-500">@{entryOdds?.toFixed(2)}</span>
+                               <span className="text-[11px] font-mono text-gray-500">@{entryOdds?.toFixed(2)}</span>
                                {stake > 0 && (
-                                   <span className="text-[10px] font-mono text-tennis-lime bg-tennis-lime/10 px-1.5 py-0.5 rounded border border-tennis-lime/20">
+                                   <span className="text-[11px] font-mono text-tennis-lime bg-tennis-lime/10 px-1.5 py-0.5 rounded border border-tennis-lime/20">
                                        {stake.toFixed(1)}u
                                    </span>
                                )}
                            </div>
 
-                           <div className="flex items-center gap-2 text-[10px] font-mono">
+                           <div className="flex items-center gap-2 text-[11px] font-mono">
                                 <span className={`font-bold ${edge > 5 ? 'text-tennis-lime' : 'text-blue-400'}`}>
                                     Edge: +{edge.toFixed(1)}%
                                 </span>
@@ -1600,7 +1600,7 @@ export function PerformancePage() {
                            </div>
                         </div>
 
-                        <span className="text-[9px] md:text-[10px] text-gray-500 font-medium uppercase tracking-wider truncate max-w-[120px] md:max-w-[180px] hidden md:block">
+                        <span className="text-[11px] md:text-[11px] text-gray-500 font-medium uppercase tracking-wider truncate max-w-[120px] md:max-w-[180px] hidden md:block">
                           {match.tournament}
                         </span>
                       </div>
@@ -1608,12 +1608,12 @@ export function PerformancePage() {
 
                     <td className="px-6 py-4 hidden md:table-cell align-middle">
                       <div className="flex flex-col gap-1">
-                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm inline-flex items-center gap-1 w-max border ${tagClasses}`}>
                             <span>{cleanType}</span>
                         </span>
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-gray-200">{pickName}</span>
-                            <span className="text-[9px] font-mono text-gray-500">@{entryOdds.toFixed(2)}</span>
+                            <span className="text-[11px] font-mono text-gray-500">@{entryOdds.toFixed(2)}</span>
                         </div>
                       </div>
                     </td>
@@ -1630,7 +1630,7 @@ export function PerformancePage() {
                                 +{edge.toFixed(1)}% EDGE
                             </span>
                             {closingOdds > 0 && Math.abs(clv) > 0.5 && (
-                                <span className={`text-[9px] font-bold mt-0.5 ${clv > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                <span className={`text-[10px] font-bold mt-0.5 ${clv > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                     CLV {clv > 0 ? '+' : ''}{clv.toFixed(1)}%
                                 </span>
                             )}
@@ -1641,13 +1641,13 @@ export function PerformancePage() {
                       <div className="flex flex-col items-end gap-1">
                         {isWin ? (
                           <>
-                            <div className="inline-flex items-center gap-1 text-tennis-lime bg-tennis-lime/10 px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-black tracking-wide border border-tennis-lime/20 shadow-[0_0_10px_rgba(132,204,22,0.1)]">
+                            <div className="inline-flex items-center gap-1 text-tennis-lime bg-tennis-lime/10 px-2 md:px-3 py-1 rounded-full text-[11px] md:text-xs font-black tracking-wide border border-tennis-lime/20 shadow-[0_0_10px_rgba(132,204,22,0.1)]">
                               +{unitProfit.toFixed(2)}u
                             </div>
                           </>
                         ) : (
                           <>
-                            <div className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-black tracking-wide border border-red-500/20">
+                            <div className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2 md:px-3 py-1 rounded-full text-[11px] md:text-xs font-black tracking-wide border border-red-500/20">
                               {unitProfit.toFixed(2)}u
                             </div>
                           </>
@@ -1675,7 +1675,7 @@ export function PerformancePage() {
                   <span className="text-[10px] font-mono text-gray-500">
                     {new Date(match.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
-                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider truncate max-w-[150px]">
+                  <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider truncate max-w-[150px]">
                     {match.tournament}
                   </span>
                 </div>
@@ -1685,7 +1685,7 @@ export function PerformancePage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm border ${tagClasses}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm border ${tagClasses}`}>
                     {cleanType}
                   </span>
                   <span className="text-xs font-bold text-tennis-lime bg-tennis-lime/10 px-2 py-0.5 rounded border border-tennis-lime/20">
@@ -1697,7 +1697,7 @@ export function PerformancePage() {
                 </div>
 
                 <div className="flex items-center justify-between mt-1 pt-2 border-t border-white/5">
-                  <div className="flex items-center gap-3 text-[10px] font-mono text-gray-400">
+                  <div className="flex items-center gap-3 text-[11px] font-mono text-gray-400">
                     <div>
                       <span className="text-gray-500">STAKE:</span> <span className="font-bold text-white">{stake.toFixed(1)}u</span>
                     </div>
@@ -1717,11 +1717,11 @@ export function PerformancePage() {
 
                   <div>
                     {isWin ? (
-                      <span className="inline-flex items-center gap-1 text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide border border-tennis-lime/20 shadow-[0_0_10px_rgba(132,204,22,0.1)]">
+                      <span className="inline-flex items-center gap-1 text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full text-[11px] font-black tracking-wide border border-tennis-lime/20 shadow-[0_0_10px_rgba(132,204,22,0.1)]">
                         WON (+{unitProfit.toFixed(2)}u)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide border border-red-500/20">
+                      <span className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full text-[11px] font-black tracking-wide border border-red-500/20">
                         LOST ({unitProfit.toFixed(2)}u)
                       </span>
                     )}

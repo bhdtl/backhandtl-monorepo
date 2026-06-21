@@ -167,7 +167,7 @@ function ProcessingIndicator({ isVisible, progress, statusText }: { isVisible: b
     return (
         <div className="w-full max-w-sm mx-auto mb-20 md:mb-24 animate-in fade-in duration-300 px-4">
             <div className="flex justify-between items-center mb-2.5">
-                <span className="text-[10px] font-black uppercase tracking-widest text-tennis-lime animate-pulse">
+                <span className="text-[11px] font-black uppercase tracking-widest text-tennis-lime animate-pulse">
                     {statusText}
                 </span>
                 <span className="text-xs font-mono text-gray-400 font-bold">{Math.round(progress)}%</span>
@@ -315,7 +315,7 @@ function StatBattleBar({ label, valA, valB }: { label: string, valA: number, val
 
   return ( 
       <div className="mb-5 md:mb-7 group"> 
-          <div className="flex justify-between text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2 transition-colors"> 
+          <div className="flex justify-between text-[11px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2 transition-colors"> 
               <span className={valA >= valB ? colorA : "text-gray-600"}>{Math.round(valA)} {label}</span>
               <span className={valB >= valA ? colorB : "text-gray-600"}>{label} {Math.round(valB)}</span> 
           </div> 
@@ -355,9 +355,9 @@ function PlayerSlot({ label, player, onClick, onClear, isError }: any) {
                       <X size={12}/>
                   </button> 
                   <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6"> 
-                      <div className="text-tennis-lime text-[9px] font-black uppercase tracking-[0.3em] mb-1">{label}</div> 
+                      <div className="text-tennis-lime text-[11px] font-black uppercase tracking-[0.3em] mb-1">{label}</div> 
                       <div className="text-white font-black text-xl md:text-2xl uppercase leading-none truncate tracking-tight">{player.last_name}</div> 
-                      <div className="text-gray-400 text-[10px] font-bold mt-2 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="text-gray-400 text-xs font-bold mt-2 uppercase tracking-wider flex items-center gap-1.5">
                           <img src={`https://flagcdn.com/w20/${getCountryISO(player.country)}.png`} className="w-3.5 h-auto rounded-[1px] grayscale-[0.2]" alt="" />
                           {player.country}
                       </div> 
@@ -366,7 +366,7 @@ function PlayerSlot({ label, player, onClick, onClear, isError }: any) {
           ) : ( 
               <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40 group-hover:opacity-100 transition-all px-4 relative">
                   <div className={`h-11 w-11 rounded-2xl border border-dashed flex items-center justify-center transition-all relative z-10 ${isError ? 'border-red-500 text-red-500' : 'border-white/20 group-hover:border-tennis-lime text-gray-400 group-hover:text-tennis-lime'}`}><Plus size={20} /></div> 
-                  <span className={`text-[9px] font-black uppercase tracking-[0.2em] text-center leading-normal transition-colors ${isError ? 'text-red-500' : 'text-gray-400 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
+                  <span className={`text-[11px] font-black uppercase tracking-[0.2em] text-center leading-normal transition-colors ${isError ? 'text-red-500' : 'text-gray-400 group-hover:text-white'}`}>{t('matchup.slots.assign', { label })}</span> 
               </div> 
           )} 
       </div> 
@@ -412,7 +412,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
                 {player.play_style && (
                     <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <Target size={10} className="text-gray-400" />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-300 max-w-[100px] truncate">
+                        <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-gray-300 max-w-[100px] truncate">
                             {translatePlayStyle(player.play_style, t)}
                         </span>
                     </div>
@@ -420,7 +420,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
                 {formScore && (
                     <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <Activity size={10} style={{ color: formObj?.color_hex || '#fff' }} />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white">
+                        <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-white">
                             Form: {formScore}
                         </span>
                     </div>
@@ -428,7 +428,7 @@ function PlayerIntelBadges({ player, surface }: { player: any, surface: string }
                 {surfRating && (
                     <div className="flex items-center gap-1.5 bg-[#16171d] border border-white/5 px-2.5 py-1 rounded-full shadow-md">
                         <MapPin size={10} style={{ color: surfColor }} />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white">
+                        <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-white">
                             {surfLabel}: {surfRating}
                         </span>
                     </div>
@@ -495,16 +495,16 @@ function PlayerSelectModal({ isOpen, onClose, onSelect, players }: any) {
                               {p.profile_image_url ? (
                                   <img src={p.profile_image_url} className="h-16 w-12 rounded-xl object-cover bg-gray-800 border border-white/5 group-hover:scale-102 transition-transform transform-gpu" />
                               ) : (
-                                  <div className="h-16 w-12 rounded-xl bg-gray-800 border border-white/5 flex items-center justify-center text-[8px] font-black tracking-wider uppercase text-gray-500">{t('matchup.modal.noImg')}</div>
+                                  <div className="h-16 w-12 rounded-xl bg-gray-800 border border-white/5 flex items-center justify-center text-[10px] font-black tracking-wider uppercase text-gray-500">{t('matchup.modal.noImg')}</div>
                               )} 
                               <div className="flex-1 min-w-0">
                                   <div className="text-white font-black uppercase text-base leading-none mb-1.5 truncate group-hover:text-tennis-lime transition-colors">{p.last_name}</div>
                                   <div className="flex items-center gap-2">
-                                      <div className="text-gray-500 text-[10px] font-bold uppercase tracking-wider truncate">
+                                      <div className="text-gray-500 text-xs font-bold uppercase tracking-wider truncate">
                                           {p.first_name} • <span className="text-white/40">{p.country}</span>
                                       </div>
                                       {pStyle && (
-                                          <div className="hidden md:flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-gray-400">
+                                          <div className="hidden md:flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest text-gray-400">
                                               <Target size={8} /> {pStyle}
                                           </div>
                                       )}
@@ -656,11 +656,11 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.06 }}
             >
-                <div className="flex justify-between items-end text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] mb-1.5 transition-colors">
+                <div className="flex justify-between items-end text-[11px] md:text-xs font-black uppercase tracking-[0.15em] mb-1.5 transition-colors">
                     <span className={valA !== null && (valB === null || valA >= valB) ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
                         {displayA}
                     </span>
-                    <span className="text-gray-500 font-black tracking-widest text-[8px] uppercase">
+                    <span className="text-gray-500 font-black tracking-widest text-[10px] uppercase">
                         {metric.label}
                     </span>
                     <span className={valB !== null && (valA === null || valB >= valA) ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
@@ -685,7 +685,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                     </div>
                 ) : (
                     <div className="flex h-1.5 w-full bg-black/40 rounded-full border border-dashed border-white/5 relative justify-center items-center">
-                        <span className="text-[7px] font-mono text-gray-700 tracking-widest uppercase">No Telemetry</span>
+                        <span className="text-[9px] font-mono text-gray-700 tracking-widest uppercase">No Telemetry</span>
                     </div>
                 )}
             </motion.div>
@@ -697,18 +697,18 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
             <div className="absolute top-0 right-0 h-32 w-32 bg-tennis-lime/5 rounded-full blur-[50px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 h-32 w-32 bg-blue-500/5 rounded-full blur-[50px] pointer-events-none" />
             
-            <div className="flex w-full items-center gap-2 border-b border-white/5 pb-3 mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+            <div className="flex w-full items-center gap-2 border-b border-white/5 pb-3 mb-6 text-[11px] font-black uppercase tracking-[0.3em] text-gray-500">
                 <Swords size={12} className="text-tennis-lime" /> Neural Telemetry Comparison
             </div>
 
             <div className="space-y-6">
                 {/* 1. SURFACE ELO DUEL */}
                 <div className="group">
-                    <div className="flex justify-between items-end text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mb-2.5">
+                    <div className="flex justify-between items-end text-[11px] md:text-xs font-black uppercase tracking-[0.2em] mb-2.5">
                         <span className={eloA >= eloB ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
                             {eloA} {playerAData.player.last_name}
                         </span>
-                        <span className="text-gray-500 font-black tracking-widest text-[9px]">
+                        <span className="text-gray-500 font-black tracking-widest text-[10px]">
                             {surfLabel} ELO {eloDiff > 0 ? `(Δ ${eloDiff})` : ''}
                         </span>
                         <span className={eloB >= eloA ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
@@ -734,11 +734,11 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
 
                 {/* 2. HOT FORM CLASH */}
                 <div className="group">
-                    <div className="flex justify-between items-end text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mb-2.5">
+                    <div className="flex justify-between items-end text-[11px] md:text-xs font-black uppercase tracking-[0.2em] mb-2.5">
                         <span className={formA >= formB ? 'text-tennis-lime font-black' : 'text-gray-400 font-bold'}>
                             {formA.toFixed(1)} Form
                         </span>
-                        <span className="text-gray-500 font-black tracking-widest text-[9px]">
+                        <span className="text-gray-500 font-black tracking-widest text-[10px]">
                             {t('matchup.currentForm', 'Current Form')} {parseFloat(formDiff) > 0 ? `(Δ ${formDiff})` : ''}
                         </span>
                         <span className={formB >= formA ? 'text-blue-400 font-black' : 'text-gray-400 font-bold'}>
@@ -766,16 +766,16 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
             {/* 3. TACTICAL COMBAT PROFILE (SIDE-BY-SIDE INLINE CARDS) */}
             <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/5">
                 <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
-                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
                     <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{translatePlayStyle(playerAData.player.play_style || 'All-Rounder', t)}</div>
-                    <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
+                    <div className="text-xs font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
                         {playerAData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
                     </div>
                 </div>
                 <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-black/25 border border-white/5 relative overflow-hidden group">
-                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1"><Trophy size={8}/> {t('playStyle.Dominant Style', 'Dominant Style')}</div>
                     <div className="text-[11px] font-black text-white uppercase tracking-tight truncate">{translatePlayStyle(playerBData.player.play_style || 'All-Rounder', t)}</div>
-                    <div className="text-[9px] font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
+                    <div className="text-xs font-bold text-gray-400 leading-normal line-clamp-2 mt-1">
                         {playerBData.report?.strengths?.split(';')[0] || 'Consistent shotmaker from the baseline.'}
                     </div>
                 </div>
@@ -784,11 +784,11 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
             {/* ADVANCED QUANT MATRIX */}
             <div className="mt-8 pt-6 border-t border-white/5">
                 <div className="flex w-full items-center justify-between mb-6">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-500 flex items-center gap-2">
                         <Sliders size={12} className="text-tennis-lime animate-pulse" />
                         Granular Surface Telemetry ({surfLabel})
                     </span>
-                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest bg-black/40 px-2.5 py-1 rounded-md border border-white/5 flex items-center gap-1.5 shadow-inner">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/40 px-2.5 py-1 rounded-md border border-white/5 flex items-center gap-1.5 shadow-inner">
                         <Activity size={10} className="text-tennis-lime animate-pulse" /> Live Telemetry Matrix
                     </span>
                 </div>
@@ -796,7 +796,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                     {/* Column 1: Service Metrics */}
                     <div className="space-y-4">
-                        <div className="text-[8px] font-black uppercase tracking-widest text-tennis-lime/70 mb-2 border-b border-tennis-lime/10 pb-1.5 flex items-center gap-1.5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-tennis-lime/70 mb-2 border-b border-tennis-lime/10 pb-1.5 flex items-center gap-1.5">
                             <Zap size={10} className="text-tennis-lime" /> Service Dominance
                         </div>
                         {serviceMetrics.map((metric, idx) => renderAdvancedDuel(metric, idx))}
@@ -804,7 +804,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
 
                     {/* Column 2: Return & Break Point Metrics */}
                     <div className="space-y-4">
-                        <div className="text-[8px] font-black uppercase tracking-widest text-blue-400/70 mb-2 border-b border-blue-400/10 pb-1.5 flex items-center gap-1.5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-blue-400/70 mb-2 border-b border-blue-400/10 pb-1.5 flex items-center gap-1.5">
                             <Crosshair size={10} className="text-blue-400" /> Tactical Return
                         </div>
                         {returnMetrics.map((metric, idx) => renderAdvancedDuel(metric, idx + serviceMetrics.length))}
@@ -812,7 +812,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
                 </div>
 
                 {/* Granular Match Samples Count */}
-                <div className="mt-6 text-[8px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-between border-t border-white/5 pt-4">
+                <div className="mt-6 text-[10px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-between border-t border-white/5 pt-4">
                     <span className="flex items-center gap-1 bg-black/20 px-2.5 py-1.5 rounded-xl border border-white/5 shadow-inner">
                         <span className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse"></span>
                         A Sample: {(statsA?.matches_with_stats || 0)} matches
@@ -830,7 +830,7 @@ function HeadToHeadComparisonHUD({ playerAData, playerBData, surface }: { player
 const BsiInput = ({ value, onChange, label }: { value: number | string, onChange: (v: string) => void, label: string }) => {
     return (
         <div className="flex flex-col w-full">
-            <label className="text-[10px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1.5 md:mb-1.5">{label}</label>
+            <label className="text-xs md:text-xs text-gray-500 uppercase font-black tracking-widest mb-1.5 md:mb-1.5">{label}</label>
             <input
                 type="text" 
                 value={value}
@@ -845,7 +845,7 @@ const CustomSurfaceSelect = ({ value, onChange }: { value: string, onChange: (v:
     const { t } = useTranslation();
     return (
         <div className="flex flex-col w-full">
-            <label className="text-[10px] md:text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1.5 md:mb-1.5">{t('matchup.controls.type')}</label>
+            <label className="text-xs md:text-xs text-gray-500 uppercase font-black tracking-widest mb-1.5 md:mb-1.5">{t('matchup.controls.type')}</label>
             <div className="relative">
                 <select
                     value={value}
@@ -919,7 +919,7 @@ function InternalMatchupCard({ playerA, playerB, prediction, context, isAnalyzin
             <div className="relative z-20 flex justify-between items-center p-6">
                 <div className="inline-flex items-center gap-2 bg-black/50 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-full shadow-lg">
                     <span className="text-white font-bold text-xs tracking-tight uppercase">{pA.name.split(' ').pop()}</span>
-                    <span className={`font-black text-[10px] italic ${scoreColor}`}>{t('matchup.slots.vs')}</span>
+                    <span className={`font-black text-[11px] italic ${scoreColor}`}>{t('matchup.slots.vs')}</span>
                     <span className="text-gray-300 font-bold text-xs tracking-tight uppercase">{pB.name.split(' ').pop()}</span>
                 </div>
             </div>
@@ -932,14 +932,14 @@ function InternalMatchupCard({ playerA, playerB, prediction, context, isAnalyzin
                 
                 <div className="bg-[#15171e]/80 p-5 rounded-[24px] backdrop-blur-xl border border-white/10 shadow-xl space-y-5">
                     <div>
-                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><MapPin size={10}/> {ctx.surface} BSI</div>
+                        <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><MapPin size={10}/> {ctx.surface} BSI</div>
                         <div className="flex gap-0.5 items-center">
                             {[...Array(10)].map((_, i) => (<div key={i} className={`w-1.5 h-3 rounded-sm ${i < ctx.bsi ? 'bg-[#84cc16]' : 'bg-gray-700'}`}></div>))}
                             <span className="text-white font-mono font-bold text-xs ml-3">{ctx.bsi}/10</span>
                         </div>
                     </div>
                     <div className="pt-3 border-t border-white/5">
-                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1 mb-1"><Zap size={10} className={scoreColor}/> {t('matchupCard.labels.edge')}</div>
+                        <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1 mb-1"><Zap size={10} className={scoreColor}/> {t('matchupCard.labels.edge')}</div>
                         <p className="text-sm text-gray-200 font-medium leading-snug line-clamp-2">{keyFactor}</p>
                     </div>
                 </div>
@@ -983,7 +983,7 @@ function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimP
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-tennis-lime"></span>
                       </span>
-                      <span className="text-[8px] font-black uppercase tracking-[0.25em] text-tennis-lime">
+                      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-tennis-lime">
                           {t('picks.partnerPromo', 'Partner Promotion')}
                       </span>
                   </div>
@@ -997,7 +997,7 @@ function NeoBetMatchupPromo({ analysisResult, playerAData, playerBData, onClaimP
           </div>
           
           <div className="flex items-center gap-4 shrink-0 max-sm:w-full max-sm:justify-between">
-              <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">
+              <span className="px-3.5 py-2 bg-white/5 border border-white/10 rounded-lg text-[11px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white group-hover:border-white/30 transition-all">
                   {t('picks.unlockBonus', 'Bonus freischalten')}
               </span>
               <img src="/neobet_logo_white.svg" alt="neobet" className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -1394,7 +1394,7 @@ export function MatchupAnalyzer() {
       <div className="fixed top-24 right-4 lg:right-8 z-50">
           <button 
             onClick={() => setShowTutorial(true)} 
-            className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] backdrop-blur-md rounded-full border border-white/10 hover:border-tennis-lime transition-all text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white shadow-xl hover:shadow-[0_0_15px_rgba(132,204,22,0.15)] group"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1a1d26] backdrop-blur-md rounded-full border border-white/10 hover:border-tennis-lime transition-all text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-white shadow-xl hover:shadow-[0_0_15px_rgba(132,204,22,0.15)] group"
           >
               <HelpCircle size={14} className="group-hover:text-tennis-lime transition-colors"/> Guide
           </button>
@@ -1405,7 +1405,7 @@ export function MatchupAnalyzer() {
           <div className="bg-[#1c1c1e]/90 backdrop-blur-md p-1 rounded-full border border-white/5 flex gap-1 shadow-2xl relative">
               <button 
                   onClick={() => setActiveTab('scanner')} 
-                  className={`relative px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'scanner' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
+                  className={`relative px-6 py-2.5 rounded-full text-[11px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'scanner' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
               >
                   {activeTab === 'scanner' && (
                       <motion.div 
@@ -1421,7 +1421,7 @@ export function MatchupAnalyzer() {
                       if (!user) { alert("Please sign in to access The Vault."); return; }
                       setActiveTab('vault');
                   }} 
-                  className={`relative px-6 py-2.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'vault' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
+                  className={`relative px-6 py-2.5 rounded-full text-[11px] md:text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 transform-gpu will-change-transform z-10 ${activeTab === 'vault' ? 'text-white font-black' : 'text-gray-400 hover:text-white'}`}
               >
                   {activeTab === 'vault' && (
                       <motion.div 
@@ -1485,7 +1485,7 @@ export function MatchupAnalyzer() {
                             <span className="text-xs md:text-sm text-gray-400 font-black uppercase tracking-widest">{finalBsi}/10 <span className="text-white/30 ml-1 md:ml-2">{finalSurface}</span></span>
                           </div>
                         )}
-                        <button onClick={() => { setIsCustomBsiMode(!isCustomBsiMode); setSelectedTournamentId(''); }} className="text-tennis-lime text-[10px] md:text-[10px] font-black uppercase tracking-widest underline hover:text-white whitespace-nowrap px-2 md:px-2">{isCustomBsiMode ? t('matchup.controls.dbSearch') : t('matchup.controls.override')}</button>
+                        <button onClick={() => { setIsCustomBsiMode(!isCustomBsiMode); setSelectedTournamentId(''); }} className="text-tennis-lime text-[11px] md:text-[11px] font-black uppercase tracking-widest underline hover:text-white whitespace-nowrap px-2 md:px-2">{isCustomBsiMode ? t('matchup.controls.dbSearch') : t('matchup.controls.override')}</button>
                     </div>
                  </div>
               </div>
@@ -1537,7 +1537,7 @@ export function MatchupAnalyzer() {
                                     {btnState.main}
                                 </span>
                                 {/* SMART SUBTEXT */}
-                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${canAnalyze ? 'text-black/60' : 'text-gray-500'}`}>
+                                <span className={`text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${canAnalyze ? 'text-black/60' : 'text-gray-500'}`}>
                                     {btnState.icon}
                                     {btnState.sub}
                                 </span>
@@ -1568,9 +1568,9 @@ export function MatchupAnalyzer() {
 
                               <div className="bg-[#1a1d26] p-6 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col items-center w-full relative overflow-hidden group">
                                   <div className="absolute top-0 right-0 h-24 w-24 bg-blue-500/5 blur-[40px]" />
-                                  <div className="mb-6 flex w-full items-center gap-2 border-b border-white/5 pb-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500"><Activity size={12} className="text-tennis-lime"/> {t('matchup.headers.matrix')}</div>
+                                  <div className="mb-6 flex w-full items-center gap-2 border-b border-white/5 pb-4 text-[11px] font-black uppercase tracking-[0.3em] text-gray-500"><Activity size={12} className="text-tennis-lime"/> {t('matchup.headers.matrix')}</div>
                                   <OverlappingRadar skillsA={playerAData.skills} skillsB={playerBData.skills} />
-                                  <div className="mt-6 flex gap-6 rounded-lg border border-white/5 bg-black/20 p-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                                  <div className="mt-6 flex gap-6 rounded-lg border border-white/5 bg-black/20 p-3 text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
                                         <div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-tennis-lime"></div>{playerAData.player.last_name}</div>
                                         <div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-blue-500"></div>{playerBData.player.last_name}</div>
                                   </div>
@@ -1632,7 +1632,7 @@ export function MatchupAnalyzer() {
                                             </button>
                                         </div>
                                         {/* Playstyle Subtitle */}
-                                        <div className="flex justify-center items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-2">
+                                        <div className="flex justify-center items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 mb-2">
                                             <Target size={10} className={activeMobilePlayer === 'A' ? 'text-tennis-lime' : 'text-blue-500'} />
                                             {activeMobilePlayer === 'A' 
                                                 ? translatePlayStyle(playerAData.player.play_style, t)
@@ -1644,19 +1644,19 @@ export function MatchupAnalyzer() {
                                     <div className="flex bg-black/40 p-1.5 rounded-xl border border-white/5 w-full overflow-x-auto no-scrollbar snap-x shadow-lg">
                                         <button 
                                             onClick={() => setActiveDataTab('STYLE')} 
-                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'STYLE' ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'STYLE' ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <TrendingUp size={12} className={activeDataTab === 'STYLE' ? 'text-tennis-lime' : ''}/> Style Edge
                                         </button>
                                         <button 
                                             onClick={() => setActiveDataTab('BSI')} 
-                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'BSI' ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'BSI' ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <Gauge size={12} className={activeDataTab === 'BSI' ? 'text-orange-400' : ''}/> BSI Physics
                                         </button>
                                         <button 
                                             onClick={() => setActiveDataTab('MARKET')} 
-                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'MARKET' ? 'bg-white/10 text-white shadow-inner border border-white/10' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-none min-w-[120px] py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 snap-center ${activeDataTab === 'MARKET' ? 'bg-white/10 text-white shadow-inner border border-white/10' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <DollarSign size={12} className={activeDataTab === 'MARKET' ? 'text-green-500' : ''}/> Market ROI
                                         </button>
@@ -1707,10 +1707,10 @@ export function MatchupAnalyzer() {
                                 <div className="bg-[#1a1d26] p-8 rounded-[2.5rem] border border-white/10 shadow-[0_0_50px_-20px_rgba(132,204,22,0.15)] flex flex-col items-center w-full relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 h-40 w-40 bg-tennis-lime/5 blur-[80px]" />
                                     <div className="mb-8 flex w-full items-center justify-between border-b border-white/5 pb-4">
-                                        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-2"><Activity size={16} className="text-tennis-lime"/> {t('matchup.headers.matrix')}</div>
+                                        <div className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 flex items-center gap-2"><Activity size={16} className="text-tennis-lime"/> {t('matchup.headers.matrix')}</div>
                                         <div className="flex gap-4">
-                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-500"><div className="h-1.5 w-1.5 rounded-full bg-tennis-lime"></div>{playerAData.player.last_name}</div>
-                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-500"><div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>{playerBData.player.last_name}</div>
+                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500"><div className="h-1.5 w-1.5 rounded-full bg-tennis-lime"></div>{playerAData.player.last_name}</div>
+                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500"><div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>{playerBData.player.last_name}</div>
                                         </div>
                                     </div>
                                     <div className="scale-110 mb-4">
@@ -1796,7 +1796,7 @@ export function MatchupAnalyzer() {
                                   <div className="flex flex-col gap-3">
                                       <div className="flex items-center justify-between px-2">
                                           <span className="text-sm font-black text-white uppercase tracking-wider">{playerAData.player.last_name}</span>
-                                          <span className="text-[9px] font-bold text-tennis-lime uppercase tracking-widest flex items-center gap-1.5">
+                                          <span className="text-[10px] font-bold text-tennis-lime uppercase tracking-widest flex items-center gap-1.5">
                                               <Target size={12}/> {translatePlayStyle(playerAData.player.play_style, t)}
                                           </span>
                                       </div>
@@ -1826,7 +1826,7 @@ export function MatchupAnalyzer() {
                                   <div className="flex flex-col gap-3">
                                       <div className="flex items-center justify-between px-2">
                                           <span className="text-sm font-black text-white uppercase tracking-wider">{playerBData.player.last_name}</span>
-                                          <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
+                                          <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
                                               <Target size={12}/> {translatePlayStyle(playerBData.player.play_style, t)}
                                           </span>
                                       </div>

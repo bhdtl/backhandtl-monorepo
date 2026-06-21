@@ -429,11 +429,11 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
           <div className="p-1.5 bg-tennis-lime/10 rounded-lg ring-1 ring-tennis-lime/20">
             <Zap size={14} className="text-tennis-lime fill-current" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{t('homePage.aiStats.title')}</span>
+          <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{t('homePage.aiStats.title')}</span>
         </div>
         
         <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full border border-tennis-lime/10">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-tennis-lime bg-tennis-lime/10 px-2.5 py-1 rounded-full border border-tennis-lime/10">
             <div className="w-1.5 h-1.5 rounded-full bg-tennis-lime animate-pulse shadow-[0_0_8px_#84cc16]"></div>
             {t('homePage.aiStats.live')}
             </div>
@@ -450,7 +450,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 </span>
                 <span className={`text-sm font-bold mb-0.5 ${stats.totalUnits >= 0 ? 'text-tennis-lime/70' : 'text-red-500/70'}`}>u</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 <Wallet size={10} /> {t('homePage.aiStats.netProfit', 'NET PROFIT')}
             </div>
         </div>
@@ -464,7 +464,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 </span>
                 <span className={`text-sm font-bold mb-0.5 ${stats.roi >= 0 ? 'text-blue-400/70' : 'text-red-500/70'}`}>%</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 <PieChart size={10} /> {t('homePage.aiStats.yieldRoi', 'YIELD (ROI)')}
             </div>
         </div>
@@ -478,7 +478,7 @@ const AIStatsHero = ({ isMobile }: { isMobile: boolean }) => {
                 </span>
                 <span className={`text-sm font-bold mb-0.5 ${stats.avgClv >= 0 ? 'text-emerald-400/70' : 'text-gray-500'}`}>%</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 <Zap size={10} /> {t('homePage.aiStats.avgClv', 'AVG. CLV')}
             </div>
         </div>
@@ -635,7 +635,7 @@ function FilterSheet({
         
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar pb-32">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.footer.sortBy')}</label>
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('homePage.footer.sortBy')}</label>
             <div className="flex bg-black/40 p-0.5 rounded-xl border border-white/10 h-10 select-none relative">
               <button
                 onClick={() => setSortBy('name')}
@@ -664,7 +664,7 @@ function FilterSheet({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allCountries')}</label>
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allCountries')}</label>
             <SearchableSelect 
               placeholder={t('homePage.filters.allCountries')}
               options={countries}
@@ -675,7 +675,7 @@ function FilterSheet({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.filterStyles')}</label>
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.filterStyles')}</label>
             <MultiSelect 
               placeholder={t('homePage.filters.filterStyles')}
               options={playStyles}
@@ -686,7 +686,7 @@ function FilterSheet({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allSurfaces')}</label>
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allSurfaces')}</label>
             <SearchableSelect 
               placeholder={t('homePage.filters.allSurfaces')}
               options={surfaces}
@@ -697,7 +697,7 @@ function FilterSheet({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allRatings')}</label>
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('homePage.filters.allRatings')}</label>
             <div className="relative group">
               <select
                 value={ratingFilter}
@@ -1098,7 +1098,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
           </span>
           
           {hasActiveFilters && (
-              <button onClick={resetFilters} className="text-[10px] text-gray-500 hover:text-red-400 underline transition-colors font-bold uppercase tracking-wider">
+              <button onClick={resetFilters} className="text-xs text-gray-500 hover:text-red-400 underline transition-colors font-bold uppercase tracking-wider">
                   {t('homePage.filters.clearAll')}
               </button>
           )}
@@ -1127,7 +1127,7 @@ export function HomePage({ onPlayerClick }: HomePageProps) {
 
       {/* RESPONSIBLE GAMBLING DISCLAIMER */}
       <div className="mt-16 pt-8 border-t border-white/5 text-center">
-          <p className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-gray-600">
+          <p className="flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.2em] font-bold text-gray-600">
               <AlertTriangle size={12} /> {t('homePage.disclaimer')}
           </p>
       </div>
