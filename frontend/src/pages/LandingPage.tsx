@@ -121,23 +121,23 @@ function CookieBanner() {
     >
       <div className="bg-[#15171e]/90 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl shadow-black/50 will-change-transform">
         <h4 className="text-white font-bold text-sm mb-2 flex items-center gap-2">
-          <Lock size={14} className="text-tennis-lime" /> Data Privacy & Cookies
+          <Lock size={14} className="text-tennis-lime" /> {t('landing.cookiesTitle', 'Data Privacy & Cookies')}
         </h4>
         <p className="text-[11px] text-gray-400 leading-relaxed mb-4">
-          We use proprietary encryption and anonymized analytical models (PostHog) to optimize your experience. Strictly necessary cookies are used for authentication. By continuing, you agree to our institutional privacy standards.
+          {t('landing.cookiesDesc', 'We use proprietary encryption and anonymized analytical models (PostHog) to optimize your experience. Strictly necessary cookies are used for authentication. By continuing, you agree to our institutional privacy standards.')}
         </p>
         <div className="flex gap-2">
           <button 
             onClick={handleAccept}
-            className="flex-1 h-11 px-4 bg-white text-black text-xs font-bold rounded-xl hover:bg-tennis-lime transition-all duration-300 flex items-center justify-center"
+            className="flex-1 py-3 md:py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-tennis-lime transition-all duration-300 flex items-center justify-center"
           >
-            Accept All
+            {t('landing.acceptAll', 'Accept All')}
           </button>
           <button 
             onClick={handleDecline}
-            className="flex-1 h-11 px-4 bg-white/5 text-gray-400 text-xs font-bold rounded-xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center"
+            className="flex-1 py-3 md:py-2.5 bg-white/5 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center"
           >
-            Essential Only
+            {t('landing.essentialOnly', 'Essential Only')}
           </button>
         </div>
       </div>
@@ -147,6 +147,7 @@ function CookieBanner() {
 
 // 1. HEADER (SMART LOGIN)
 function LandingHeader({ onLogin }: { onLogin: () => void }) {
+  const { t } = useTranslation();
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
@@ -155,20 +156,20 @@ function LandingHeader({ onLogin }: { onLogin: () => void }) {
     >
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth'})}>
         <BrandLogo className="h-6 text-white" />
-        <span className="text-[11px] font-mono text-gray-500 uppercase tracking-widest hidden md:inline-block border border-white/10 px-2.5 py-0.5 rounded-md">
-          v8.6 PRO
+        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest hidden md:inline-block border border-white/10 px-2.5 py-0.5 rounded-md">
+          {t('landing.version', 'v8.6 PRO')}
         </span>
       </div>
       
       <div className="flex items-center gap-6">
         <a href="#how-it-works" className="text-xs font-bold text-gray-400 hover:text-white transition-colors hidden sm:block">
-          How it works
+          {t('landing.howItWorks', 'How it works')}
         </a>
         <button 
           onClick={onLogin}
-          className="text-xs font-bold bg-white text-black px-6 py-2.5 rounded-xl hover:bg-tennis-lime hover:text-black transition-all duration-300 shadow-md hover:shadow-tennis-lime/20 h-11 flex items-center justify-center"
+          className="text-xs font-black uppercase tracking-wider bg-white text-black px-5 py-3 md:py-2.5 rounded-lg hover:bg-tennis-lime transition-all duration-300 shadow-lg hover:shadow-tennis-lime/20 flex items-center justify-center"
         >
-          Login
+          {t('landing.login', 'Login')}
         </button>
       </div>
     </motion.header>
@@ -328,7 +329,7 @@ function ExplainerModal({ onClose }: { onClose: () => void }) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tennis-lime opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-tennis-lime"></span>
             </span>
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">How it Works</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">{t('landing.howItWorks', 'How it works')}</h2>
           </div>
           
           <div className="space-y-8 relative">
@@ -461,7 +462,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
               </span>
             </motion.div>
 
-            <motion.h1 variants={fadeInUp} className="text-5xl md:text-8xl font-extrabold tracking-tight leading-[0.95] mb-8 text-white">
+            <motion.h1 variants={fadeInUp} className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-8 text-white">
               {t('landing.headlineLine1', 'The Edge')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-600">
                 {t('landing.headlineLine2', "You're Missing.")}
@@ -475,7 +476,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
               <button 
                 onClick={handleStartAnalysis}
-                className="group relative h-13 px-8 bg-tennis-lime text-black font-bold text-sm rounded-xl hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:shadow-[0_0_50px_rgba(204,255,0,0.5)] transform-gpu flex items-center justify-center"
+                className="group relative px-8 py-4 bg-tennis-lime text-black font-black text-sm uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-transform shadow-[0_0_30px_rgba(204,255,0,0.3)] hover:shadow-[0_0_50px_rgba(204,255,0,0.5)] transform-gpu flex items-center justify-center"
               >
                 <span>{t('landing.startAnalysis', 'Start Analysis')}</span>
                 <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={16} />
@@ -484,7 +485,7 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
               <button 
                 onClick={() => setShowExplainer(true)}
                 id="how-it-works"
-                className="h-13 px-8 bg-transparent border border-white/10 text-white font-bold text-sm rounded-xl hover:bg-white/5 transition-all transform-gpu flex items-center justify-center"
+                className="px-8 py-4 bg-transparent border border-white/10 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:bg-white/5 transition-colors transform-gpu flex items-center justify-center"
               >
                 {t('landing.howItWorks', 'How it works')}
               </button>
@@ -509,11 +510,11 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
         <div className="max-w-6xl mx-auto">
           <div className="mb-16 md:flex justify-between items-end border-b border-white/5 pb-8 text-center md:text-left">
             <div>
-              <h2 className="text-3xl font-extrabold tracking-tight mb-2 text-white">Intelligence Grid</h2>
-              <p className="text-gray-500 text-sm">Real-time processing of complex tennis metrics.</p>
+              <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">{t('landing.gridTitle', 'Intelligence Grid')}</h2>
+              <p className="text-gray-500 text-sm font-medium">{t('landing.gridSubtitle', 'Real-time processing of complex tennis metrics.')}</p>
             </div>
             <div className="hidden md:block text-right">
-                <div className="text-[10px] font-mono text-gray-600 bg-white/5 px-2.5 py-1 rounded">STATUS: OPERATIONAL</div>
+                <div className="text-[10px] font-mono text-gray-600 bg-white/5 px-2.5 py-1 rounded">{t('landing.gridStatus', 'STATUS: OPERATIONAL')}</div>
             </div>
           </div>
 
@@ -526,13 +527,13 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                     <div className="bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-md mb-8">
                       <BrainCircuit className="text-tennis-lime" size={28} />
                     </div>
-                    <span className="text-[10px] font-mono text-gray-500 border border-white/5 px-2.5 py-1 rounded bg-black/20">AI MODEL: DEEP LEARNING</span>
+                    <span className="text-[10px] font-mono text-gray-500 border border-white/5 px-2.5 py-1 rounded bg-black/20">{t('landing.modelType', 'AI MODEL: DEEP LEARNING')}</span>
                   </div>
                   
                   <div>
-                    <h3 className="text-2xl font-extrabold mb-3 text-white">Professional Scout Intel</h3>
-                    <p className="text-sm text-gray-400 max-w-md leading-relaxed">
-                      Our system generates comprehensive "Raw Intel" reports. It evaluates tactical matchups, historical performance, and real-time form to predict outcomes with high confidence.
+                    <h3 className="text-2xl font-black mb-3 text-white uppercase tracking-tight">{t('landing.scoutIntelTitle', 'Professional Scout Intel')}</h3>
+                    <p className="text-sm text-gray-400 max-w-md leading-relaxed font-medium">
+                      {t('landing.scoutIntelDesc', 'Our system generates comprehensive "Raw Intel" reports. It evaluates tactical matchups, historical performance, and real-time form to predict outcomes with high confidence.')}
                     </p>
                   </div>
 
@@ -559,8 +560,8 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                    <Eye className="text-blue-400" size={24} />
                  </div>
                  <div>
-                   <h3 className="text-xl font-extrabold mb-2 text-white">Visual BSI</h3>
-                   <p className="text-xs text-gray-500 leading-relaxed">We analyze video feeds to determine the actual Bounce Speed Index of the court.</p>
+                   <h3 className="text-xl font-black mb-2 text-white uppercase tracking-tight">{t('landing.visualBsiTitle', 'Visual BSI')}</h3>
+                   <p className="text-xs text-gray-500 leading-relaxed font-medium">{t('landing.visualBsiDesc', 'We analyze video feeds to determine the actual Bounce Speed Index of the court.')}</p>
                  </div>
               </div>
 
@@ -570,8 +571,8 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
                    <Activity className="text-purple-400" size={24} />
                  </div>
                  <div>
-                   <h3 className="text-xl font-extrabold mb-2 text-white">Market Pulse</h3>
-                   <p className="text-xs text-gray-500 leading-relaxed">Aggregating market data to identify probability discrepancies against our neural models.</p>
+                   <h3 className="text-xl font-black mb-2 text-white uppercase tracking-tight">{t('landing.marketPulseTitle', 'Market Pulse')}</h3>
+                   <p className="text-xs text-gray-500 leading-relaxed font-medium">{t('landing.marketPulseDesc', 'Aggregating market data to identify probability discrepancies against our neural models.')}</p>
                  </div>
               </div>
             </div>
@@ -590,23 +591,22 @@ export function LandingPage({ onTriggerAuth, forcedShowQuiz, onQuizClosed }: Lan
           <div className="max-w-3xl flex flex-col items-center gap-8">
             <div className="flex flex-wrap justify-center gap-4 w-full">
               {paymentMethods.map((method) => (
-                <div key={method.name} className="flex items-center gap-2.5 px-4.5 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.06] hover:border-white/20 transition-all cursor-default group transform-gpu h-10">
+                <div key={method.name} className="flex items-center justify-center px-4 py-2 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.06] hover:border-white/20 transition-all cursor-default group transform-gpu h-10 w-16">
                   {method.icon}
-                  <span className="text-[10px] font-bold text-gray-400 tracking-wider">{method.name}</span>
                 </div>
               ))}
             </div>
 
             <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 h-7">
               <ShieldCheck size={12} className="text-tennis-lime" />
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Enterprise Grade Data Security</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('landing.securityTitle', 'Enterprise Grade Data Security')}</span>
             </div>
             
             <p className="text-[10px] text-gray-500 leading-relaxed font-medium tracking-wide">
-              BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Historical player data and matchup statistics are powered by data from Jeff Sackmann (CC BY-NC-SA 4.0, non-commercial only). Sports analysis involves risk. Please use responsibly.
+              {t('landing.disclaimer', 'BACKHAND.DTL is a data analytics platform for informational purposes only. We are not a bookmaker, do not accept bets, and do not provide financial advice. Historical player data and matchup statistics are powered by data from Jeff Sackmann (CC BY-NC-SA 4.0, non-commercial only). Sports analysis involves risk. Please use responsibly.')}
             </p>
             <p className="text-[10px] text-gray-500 font-semibold tracking-wider mt-4">
-              Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00
+              {t('landing.regulatory', 'Offiziell lizenziert (Whitelist) | Spielteilnahme ab 18 Jahren | Glücksspiel kann süchtig machen | Hilfe unter check-dein-spiel.de / buwei.de | BZgA: 0800 1 37 27 00')}
             </p>
           </div>
         </div>
