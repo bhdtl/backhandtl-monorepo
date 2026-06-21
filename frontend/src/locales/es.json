@@ -173,6 +173,16 @@
       "title": "Matchup Analyzer",
       "subtitle": "Simula enfrentamientos con más de 10,000 iteraciones neuronales y descubre ventajas tácticas."
     },
+    "tutorial": {
+      "step1Title": "Cargar Datos de Jugadores",
+      "step1Desc": "Los rankings mundiales suelen mentir. Cargamos la forma reciente, datos biológicos y estadísticas de partidos históricos de ambos jugadores para determinar su nivel de rendimiento real.",
+      "step2Title": "Velocidad de la Pista (BSI)",
+      "step2Desc": "El tenis se juega en arcilla, césped o pistas duras. Algunos jugadores destacan en césped rápido pero fallan en arcilla lenta. Nuestro índice BSI simula las condiciones exactas.",
+      "step3Title": "10,000 Simulaciones",
+      "step3Desc": "En lugar de adivinar, nuestra IA simula el partido punto por punto 10,000 veces. Calculamos la potencia de servicio, probabilidades de quiebre y fortaleza mental bajo presión.",
+      "step4Title": "Ventajas Tácticas",
+      "step4Desc": "Revelamos factores clave como la presión de servicio, dominio de derecha y resistencia física, permitiéndote ver exactamente dónde se encuentra la ventaja ganadora."
+    },
     "analyzeButton": "Analizar Partido",
     "loading": "Consultando IA...",
     "proFeature": "Función Pro",

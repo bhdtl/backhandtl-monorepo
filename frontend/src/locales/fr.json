@@ -173,6 +173,16 @@
       "title": "Matchup Analyzer",
       "subtitle": "Simulez des confrontations avec plus de 10 000 itérations neuronales et découvrez des avantages tactiques."
     },
+    "tutorial": {
+      "step1Title": "Charger les Données",
+      "step1Desc": "Les classements mondiaux mentent souvent. Nous chargeons la forme récente, les données biologiques et les statistiques de matchs de deux joueurs pour déterminer leur niveau réel.",
+      "step2Title": "Vitesse du Court (BSI)",
+      "step2Desc": "Le tennis se joue sur terre battue, gazon ou dur. Certains excellent sur gazon rapide mais échouent sur terre battue lente. Notre indice BSI simule les conditions exactes.",
+      "step3Title": "10 000 Simulations",
+      "step3Desc": "Au lieu de deviner, notre IA simule le match point par point 10 000 fois. Nous calculons la force du service, les chances de break et la force mentale dans les moments clés.",
+      "step4Title": "Avantages Tactiques",
+      "step4Desc": "Nous révélons les facteurs clés de performance comme la pression du service, la domination du coup droit et l'endurance physique pour vous montrer exactement où réside l'avantage."
+    },
     "analyzeButton": "Analyser le Match",
     "loading": "Consultation IA...",
     "proFeature": "Fonctionnalité Pro",

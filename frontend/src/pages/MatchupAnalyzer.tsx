@@ -238,24 +238,30 @@ function AccessDeniedModal({ onClose }: { onClose: () => void }) {
 function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [step, setStep] = useState(0);
     const dragControls = useDragControls();
+    const { t } = useTranslation();
     
     useEffect(() => { if (isOpen) setStep(0); }, [isOpen]);
 
     const steps = [
         {
-            title: "Select Players",
-            desc: "Choose two players from the ATP/WTA database. The system loads their latest performance data and biometrics.",
-            icon: <MousePointerClick size={28} className="text-tennis-lime" />
+            title: t('matchup.tutorial.step1Title', 'Load Player Data'),
+            desc: t('matchup.tutorial.step1Desc', "World rankings often lie. We load the recent form, biological data, and historical match statistics of both players to determine their true active performance level."),
+            icon: <BrainCircuit size={28} className="text-tennis-lime" />
         },
         {
-            title: "Configure Court",
-            desc: "Select a tournament to load official court speed (BSI). Or use 'Override' to manually set surface & speed.",
-            icon: <Settings2 size={28} className="text-blue-400" />
+            title: t('matchup.tutorial.step2Title', 'Court Speed (BSI)'),
+            desc: t('matchup.tutorial.step2Desc', "Tennis is played on Clay, Grass, or Hard courts. Some players excel on fast grass but fail on slow clay. Our Court Speed Index (BSI) simulates the exact court speed."),
+            icon: <Gauge size={28} className="text-blue-400" />
         },
         {
-            title: "Analyze & Dominate",
-            desc: "Our neural network runs 10,000 simulations to predict the winner, key tactical edges, and dominance metrics.",
+            title: t('matchup.tutorial.step3Title', '10,000 Simulations'),
+            desc: t('matchup.tutorial.step3Desc', "Instead of guessing, our AI simulates the match point-by-point 10,000 times. We calculate service pressure, break probabilities, and mental strength during clutch moments."),
             icon: <Zap size={28} className="text-yellow-400" />
+        },
+        {
+            title: t('matchup.tutorial.step4Title', 'Tactical Edges'),
+            desc: t('matchup.tutorial.step4Desc', "We reveal the key performance indicators like service pressure, forehand dictation, and physical stamina, letting you see exactly where the winning mismatch lies."),
+            icon: <BarChart3 size={28} className="text-purple-400" />
         }
     ];
 
@@ -308,7 +314,7 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                 </div>
 
                 <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 animate-in fade-in slide-in-from-bottom-2 duration-300" key={`t-${step}`}>{steps[step].title}</h3>
-                <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 h-16 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75" key={`d-${step}`}>
+                <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 h-24 animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75" key={`d-${step}`}>
                     {steps[step].desc}
                 </p>
 
@@ -316,7 +322,7 @@ function TacticalBriefingModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                     onClick={nextStep} 
                     className="w-full py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
                 >
-                    {step < steps.length - 1 ? "Next Step" : "Get Started"}
+                    {step < steps.length - 1 ? t('common.nextStep', 'Next Step') : t('common.getStarted', 'Get Started')}
                 </button>
             </motion.div>
         </div>

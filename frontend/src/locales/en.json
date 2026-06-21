@@ -174,6 +174,16 @@
       "title": "Matchup Analyzer",
       "subtitle": "Simulate matchups with 10,000+ neural iterations and discover structural matchups."
     },
+    "tutorial": {
+      "step1Title": "Load Player Data",
+      "step1Desc": "World rankings often lie. We load the recent form, biological data, and historical match statistics of both players to determine their true active performance level.",
+      "step2Title": "Court Speed (BSI)",
+      "step2Desc": "Tennis is played on Clay, Grass, or Hard courts. Some players excel on fast grass but fail on slow clay. Our Court Speed Index (BSI) simulates the exact court speed.",
+      "step3Title": "10,000 Simulations",
+      "step3Desc": "Instead of guessing, our AI simulates the match point-by-point 10,000 times. We calculate service pressure, break probabilities, and mental strength during clutch moments.",
+      "step4Title": "Tactical Edges",
+      "step4Desc": "We reveal the key performance indicators like service pressure, forehand dictation, and physical stamina, letting you see exactly where the winning mismatch lies."
+    },
     "analyzeButton": "Analyze Matchup",
     "loading": "Consulting AI...",
     "proFeature": "Pro Feature",
