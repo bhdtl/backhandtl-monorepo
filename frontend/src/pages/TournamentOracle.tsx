@@ -36,6 +36,7 @@ interface OracleDraw {
 }
 
 interface PlayerInfo {
+  id?: string;
   first_name?: string; // SOTA: Added for Initial generation
   last_name: string;
   country: string;
@@ -194,7 +195,7 @@ export function TournamentOracle() {
       // 2. Fetch Player Info (Mit Tour-Zuordnung für ATP/WTA Split)
       const { data: playersData, error: playersError } = await supabase
         .from('players')
-        .select('first_name, last_name, country, profile_image_url, play_style, tour');
+        .select('id, first_name, last_name, country, profile_image_url, play_style, tour');
         
       const dict = new Map<string, PlayerInfo>();
       if (!playersError && playersData) {
@@ -296,22 +297,22 @@ export function TournamentOracle() {
       return tourMatches.filter(m => m.match_date.split('T')[0] === selectedDate);
   }, [tourMatches, selectedDate]);
 
-  // 5. Elite/Freemium Logik (Limitierung GREIFT VOR DER SUCHE!)
-  const unlockedMatches = useMemo(() => {
-      return isElite ? dateMatches : dateMatches.slice(0, 3);
-  }, [dateMatches, isElite]);
-
-  const hiddenMatchesCount = isElite ? 0 : Math.max(0, dateMatches.length - 3);
-
-  // 6. Suchfilter auf die freigeschalteten Matches anwenden
-  const finalDisplayMatches = useMemo(() => {
-      if (!searchQuery.trim()) return unlockedMatches;
+  // 5. Apply Search Filter across ALL scheduled matches for the date
+  const filteredMatches = useMemo(() => {
+      if (!searchQuery.trim()) return dateMatches;
       const query = searchQuery.toLowerCase().trim();
-      return unlockedMatches.filter(m => 
+      return dateMatches.filter(m => 
           m.player_a_name.toLowerCase().includes(query) || 
           m.player_b_name.toLowerCase().includes(query)
       );
-  }, [unlockedMatches, searchQuery]);
+  }, [dateMatches, searchQuery]);
+
+  // 6. Elite/Freemium Logic (Slice search results only, showing lock state correctly)
+  const finalDisplayMatches = useMemo(() => {
+      return isElite ? filteredMatches : filteredMatches.slice(0, 3);
+  }, [filteredMatches, isElite]);
+
+  const hiddenMatchesCount = isElite ? 0 : Math.max(0, filteredMatches.length - 3);
 
 
   // Helper zur Datums-Formatierung (z.B. "Wed, Mar 4")
@@ -377,37 +378,53 @@ export function TournamentOracle() {
                   <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0f1115] to-transparent z-10 md:hidden pointer-events-none"></div>
                   
                   <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 md:flex-wrap md:justify-center gap-2 md:gap-3 pb-2">
-                    {availableTournaments.map(tour => (
-                      <button
-                        key={tour}
-                        onClick={() => { setSelectedDisplayTour(tour); setSearchQuery(""); }}
-                        className={`snap-center shrink-0 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all border whitespace-nowrap ${
-                          selectedDisplayTour === tour 
-                          ? 'bg-tennis-lime text-black border-tennis-lime shadow-[0_0_15px_rgba(132,204,22,0.3)]' 
-                          : 'bg-[#1a1d26] text-gray-400 border-white/5 hover:border-white/20 hover:text-white'
-                        }`}
-                      >
-                        {tour}
-                      </button>
-                    ))}
+                    {availableTournaments.map(tour => {
+                      const isActive = selectedDisplayTour === tour;
+                      return (
+                        <button
+                          key={tour}
+                          onClick={() => { setSelectedDisplayTour(tour); setSearchQuery(""); }}
+                          className="snap-center shrink-0 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-colors relative whitespace-nowrap focus:outline-none"
+                          style={{ color: isActive ? '#000' : 'rgba(255,255,255,0.45)' }}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeTourTab"
+                              className="absolute inset-0 bg-tennis-lime rounded-full z-0 shadow-[0_0_15px_rgba(132,204,22,0.25)]"
+                              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                            />
+                          )}
+                          <span className="relative z-10">{tour}</span>
+                        </button>
+                      );
+                    })}
                   </div>
               </div>
 
               {/* 2. DATE FILTER PILLS */}
               {availableDates.length > 0 && (
                   <div className="flex justify-center mb-8 px-4">
-                      <div className="bg-[#1a1d26] p-1.5 rounded-full border border-white/5 flex flex-wrap shadow-lg justify-center max-w-full">
-                          {availableDates.map(dateStr => (
-                              <button 
-                                  key={dateStr}
-                                  onClick={() => { setSelectedDate(dateStr); setSearchQuery(""); }}
-                                  className={`px-5 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 ${
-                                      selectedDate === dateStr ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
-                                  }`}
-                              >
-                                  {formatDateString(dateStr)}
-                              </button>
-                          ))}
+                      <div className="bg-[#1a1d26] p-1 rounded-full border border-white/5 flex flex-wrap shadow-lg justify-center max-w-full relative select-none">
+                          {availableDates.map(dateStr => {
+                              const isActive = selectedDate === dateStr;
+                              return (
+                                  <button 
+                                      key={dateStr}
+                                      onClick={() => { setSelectedDate(dateStr); setSearchQuery(""); }}
+                                      className="px-5 py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors flex-shrink-0 relative focus:outline-none"
+                                      style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.45)' }}
+                                  >
+                                      {isActive && (
+                                          <motion.div
+                                              layoutId="activeOracleDate"
+                                              className="absolute inset-0 bg-white/10 rounded-full z-0"
+                                              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                          />
+                                      )}
+                                      <span className="relative z-10">{formatDateString(dateStr)}</span>
+                                  </button>
+                              );
+                          })}
                       </div>
                   </div>
               )}
@@ -465,7 +482,10 @@ export function TournamentOracle() {
                                       <div className="w-full flex flex-col items-center justify-center gap-3 relative">
                                           
                                           {/* Player A */}
-                                          <div className={`w-full h-[72px] transition-[opacity,transform] duration-300 ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                          <div 
+                                              onClick={() => p1Info?.id && navigate(`/player/${p1Info.id}`)}
+                                              className={`w-full h-20 transition-[opacity,transform,background-color] duration-300 ${p1Info?.id ? 'cursor-pointer active:scale-[0.99] hover:bg-white/[0.01]' : ''} ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-50 z-0'}`}
+                                          >
                                               <div className={`liquid-winner-inner flex items-center justify-between px-4 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p1Info?.profile_image_url ? (
@@ -474,7 +494,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-bold uppercase tracking-tight truncate max-w-[135px] xs:max-w-[170px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
@@ -495,7 +515,8 @@ export function TournamentOracle() {
                                           <div className="text-[10px] font-black text-gray-600 italic tracking-[0.2em] shrink-0 absolute z-20 bg-[#1a1d26] px-2 py-1 rounded-full">VS</div>
 
                                           {/* Player B */}
-                                          <div className={`w-full h-[72px] transition-[opacity,transform] duration-300 ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                          <div className={`w-full h-20 transition-[opacity,transform,background-color] duration-300 ${p2Info?.id ? 'cursor-pointer active:scale-[0.99] hover:bg-white/[0.01]' : ''} ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-50 z-0'}`}
+                                          >
                                               <div className={`liquid-winner-inner flex items-center justify-between px-4 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p2Info?.profile_image_url ? (
@@ -504,7 +525,7 @@ export function TournamentOracle() {
                                                           <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-base font-black uppercase tracking-tighter truncate max-w-[135px] xs:max-w-[170px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-base font-bold uppercase tracking-tight truncate max-w-[135px] xs:max-w-[170px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (
@@ -555,7 +576,10 @@ export function TournamentOracle() {
                                       <div className="flex-1 w-full flex flex-row items-center justify-center gap-6">
                                           
                                           {/* Player A */}
-                                          <div className={`flex-1 h-20 transition-[opacity,transform,box-shadow] duration-500 ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                          <div 
+                                              onClick={() => p1Info?.id && navigate(`/player/${p1Info.id}`)}
+                                              className={`flex-1 h-20 transition-[opacity,transform,box-shadow,background-color] duration-500 ${p1Info?.id ? 'cursor-pointer active:scale-[0.99] hover:bg-white/[0.01]' : ''} ${isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-50 z-0'}`}
+                                          >
                                               <div className={`liquid-winner-inner flex items-center justify-between px-5 border ${isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p1Info?.profile_image_url ? (
@@ -564,7 +588,7 @@ export function TournamentOracle() {
                                                           <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-lg font-bold uppercase tracking-tight truncate max-w-[200px] ${isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_a_name}
                                                           </span>
                                                           {p1Info && (
@@ -585,7 +609,10 @@ export function TournamentOracle() {
                                           <div className="text-xs font-black text-gray-600 italic tracking-[0.2em] shrink-0">VS</div>
 
                                           {/* Player B */}
-                                          <div className={`flex-1 h-20 transition-[opacity,transform,box-shadow] duration-500 ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-60 scale-[0.98] z-0'}`}>
+                                          <div 
+                                              onClick={() => p2Info?.id && navigate(`/player/${p2Info.id}`)}
+                                              className={`flex-1 h-20 transition-[opacity,transform,box-shadow,background-color] duration-500 ${p2Info?.id ? 'cursor-pointer active:scale-[0.99] hover:bg-white/[0.01]' : ''} ${!isP1Winner ? 'liquid-winner-border shadow-[0_0_20px_rgba(132,204,22,0.1)] z-10' : 'opacity-50 z-0'}`}
+                                          >
                                               <div className={`liquid-winner-inner flex items-center justify-between px-5 border ${!isP1Winner ? 'border-transparent' : 'border-white/5'} rounded-[0.9rem]`}>
                                                   <div className="flex items-center gap-3">
                                                       {p2Info?.profile_image_url ? (
@@ -594,7 +621,7 @@ export function TournamentOracle() {
                                                           <div className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500"><User size={16} /></div>
                                                       )}
                                                       <div className="flex flex-col items-start">
-                                                          <span className={`text-lg font-black uppercase tracking-tighter truncate max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
+                                                          <span className={`text-lg font-bold uppercase tracking-tight truncate max-w-[200px] ${!isP1Winner ? 'text-white' : 'text-gray-400'}`}>
                                                               {match.player_b_name}
                                                           </span>
                                                           {p2Info && (
