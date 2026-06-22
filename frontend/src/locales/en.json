@@ -646,6 +646,11 @@
       "new": "New",
       "hot": "Hot",
       "help": "Help"
+    },
+    "sections": {
+      "scouting": "Scouting",
+      "aiTools": "AI Analytics",
+      "accountHelp": "Account & Support"
     }
   },
   "picks": {

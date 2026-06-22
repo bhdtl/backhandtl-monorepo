@@ -646,6 +646,11 @@
       "new": "Neu",
       "hot": "Heiß",
       "help": "Hilfe"
+    },
+    "sections": {
+      "scouting": "Scouting",
+      "aiTools": "KI-Analysen",
+      "accountHelp": "Konto & Support"
     }
   },
   "picks": {

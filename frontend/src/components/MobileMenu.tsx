@@ -107,21 +107,37 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
     }
   };
 
-  const navItems = [
-    { id: 'home', label: t('mobileMenu.nav.playerDatabase'), icon: Users },
-    { id: 'watchlist', label: t('mobileMenu.nav.watchlist'), icon: Star },
-
-    { id: 'pricing', label: t('mobileMenu.nav.membershipPlans'), icon: Crown, badge: t('mobileMenu.badges.upgrade') },
-    { id: 'scanner', label: t('mobileMenu.nav.valueScanner'), icon: Zap, badge: t('mobileMenu.badges.hot') },
-    { id: 'picks', label: t('mobileMenu.nav.aiPicks', { defaultValue: 'AI Picks' }), icon: Target, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) },
-    { id: 'matchup', label: t('mobileMenu.nav.matchupAnalyzer'), icon: Swords },
-    { id: 'oracle', label: t('mobileMenu.nav.tournamentOracle', { defaultValue: 'Tournament Oracle' }), icon: Radar },
-    { id: 'courts', label: t('mobileMenu.nav.bsiCourtIndex'), icon: Gauge },
-    { id: 'performance', label: t('mobileMenu.nav.aiPerformance'), icon: TrendingUp },
-    { id: 'support', label: t('mobileMenu.nav.supportIdeas'), icon: LifeBuoy, badge: t('mobileMenu.badges.help') },
+  const menuGroups = [
+    {
+      title: t('mobileMenu.sections.scouting', 'Scouting'),
+      items: [
+        { id: 'home', label: t('mobileMenu.nav.playerDatabase'), icon: Users },
+        { id: 'watchlist', label: t('mobileMenu.nav.watchlist'), icon: Star }
+      ]
+    },
+    {
+      title: t('mobileMenu.sections.aiTools', 'AI Analytics'),
+      items: [
+        { id: 'scanner', label: t('mobileMenu.nav.valueScanner'), icon: Zap, badge: t('mobileMenu.badges.hot') },
+        { id: 'picks', label: t('mobileMenu.nav.aiPicks', { defaultValue: 'AI Picks' }), icon: Target, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) },
+        { id: 'matchup', label: t('mobileMenu.nav.matchupAnalyzer'), icon: Swords },
+        { id: 'oracle', label: t('mobileMenu.nav.tournamentOracle', { defaultValue: 'Tournament Oracle' }), icon: Radar },
+        { id: 'courts', label: t('mobileMenu.nav.bsiCourtIndex'), icon: Gauge },
+        { id: 'performance', label: t('mobileMenu.nav.aiPerformance'), icon: TrendingUp }
+      ]
+    },
+    {
+      title: t('mobileMenu.sections.accountHelp', 'Account & Support'),
+      items: [
+        { id: 'pricing', label: t('mobileMenu.nav.membershipPlans'), icon: Crown, badge: t('mobileMenu.badges.upgrade') },
+        { id: 'support', label: t('mobileMenu.nav.supportIdeas'), icon: LifeBuoy, badge: t('mobileMenu.badges.help') }
+      ]
+    }
   ];
 
-  if (isAdmin) navItems.push({ id: 'admin', label: t('mobileMenu.nav.systemAdmin'), icon: Shield });
+  if (isAdmin) {
+    menuGroups[2].items.push({ id: 'admin', label: t('mobileMenu.nav.systemAdmin'), icon: Shield });
+  }
 
   const isPremium = profile?.premium_until && new Date(profile.premium_until) > new Date();
   const tier = isPremium ? 'PRO' : 'FREE';
@@ -140,6 +156,15 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
       />
 
       <motion.div
+        drag={!showAccountOverlay ? "x" : false}
+        dragDirectionLock
+        dragConstraints={{ left: 0, right: window.innerWidth }}
+        dragElastic={{ left: 0.05, right: 0.8 }}
+        onDragEnd={(_e, info) => {
+          if (info.offset.x > 100) {
+            onClose();
+          }
+        }}
         initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
         transition={{ type: "tween", duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative w-[85%] max-w-[340px] h-full flex flex-col overflow-hidden"
@@ -193,32 +218,55 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
                   </div>
                 )}
 
-                <div className="px-4 space-y-0.5 pb-6">
-                  <div className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em] px-3 mb-2">{t('mobileMenu.menu')}</div>
-                  {navItems.map((item) => {
-                    const isActive = currentPage === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => { onClose(); onNavigate(item.id || 'home'); }}
-                        className={`liquid-menu-item ${isActive ? 'liquid-menu-item-active' : ''}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <item.icon size={17} className={isActive ? 'text-black' : 'text-gray-500'} />
-                          <span className="text-[13px]">{item.label}</span>
-                        </div>
-                        {item.badge && (
-                          <span className={`liquid-menu-badge ${isActive ? 'bg-black/20 text-black' : 'bg-white/[0.06] text-gray-400'}`}>
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                <div className="px-4 pb-6 space-y-5">
+                  {menuGroups.map((group, gIdx) => (
+                    <div key={gIdx} className="space-y-1.5">
+                      <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2.5 mb-1.5">
+                        {group.title}
+                      </div>
+                      <div className="bg-white/[0.02] border border-white/[0.04] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
+                        {group.items.map((item) => {
+                          const isActive = currentPage === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => { onClose(); onNavigate(item.id || 'home'); }}
+                              className={`w-full flex items-center justify-between px-3.5 py-3 transition-colors ${
+                                isActive 
+                                  ? 'bg-tennis-lime text-black font-black shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]' 
+                                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <item.icon size={16} className={isActive ? 'text-black' : 'text-gray-500'} />
+                                <span className={`text-[13px] ${isActive ? 'font-black' : 'font-medium'}`}>{item.label}</span>
+                              </div>
+                              {item.badge && (
+                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                  isActive ? 'bg-black/25 text-black' : 'bg-white/[0.05] text-gray-400 border border-white/[0.05]'
+                                }`}>
+                                  {item.badge}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
 
               <motion.div
+                drag="x"
+                dragDirectionLock
+                dragConstraints={{ left: 0, right: window.innerWidth }}
+                dragElastic={{ left: 0.05, right: 0.8 }}
+                onDragEnd={(_e, info) => {
+                  if (info.offset.x > 100) {
+                    setShowAccountOverlay(false);
+                  }
+                }}
                 className="absolute inset-0 z-30 flex flex-col liquid-glass-overlay-panel"
                 initial={{ x: '100%' }}
                 animate={{ x: showAccountOverlay ? '0%' : '100%' }}
