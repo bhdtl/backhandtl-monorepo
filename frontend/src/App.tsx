@@ -261,7 +261,7 @@ function MobileHeader() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/courts'];
+    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/courts', '/watchlist', '/pricing'];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
