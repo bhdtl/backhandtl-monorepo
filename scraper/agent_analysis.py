@@ -332,6 +332,8 @@ async def run_analysis():
         2. "multiplier": Propose scaling down the stakes (e.g., multiplier between 0.3 and 0.6) to mitigate downside variance while keeping the system active in this segment.
         3. "veto": Complete skip. Propose this ONLY if the yield is worse than -25% and represents a structural breakdown that cannot be rescued by raising the edge threshold.
         
+        WARNING: If you select "veto", you MUST NOT include "min_edge" in the conditions. Veto rules skip the entire subgroup unconditionally. If you want to specify a minimum edge threshold, you MUST use "odds_filter" as the rule_type.
+        
         Generate the appropriate JSON rule configuration matching these conditions:
         - Valid conditions keys: "surface" (clay/grass/hard), "is_favorite" (true/false), "is_challenger" (true/false), "tour" (ATP/WTA).
         

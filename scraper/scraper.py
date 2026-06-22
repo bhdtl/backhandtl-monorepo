@@ -2103,6 +2103,14 @@ def calculate_value_metrics(
                 
         if rule_match:
             if rule_type == "veto":
+                min_edge = conditions.get("min_edge")
+                if min_edge is not None:
+                    try:
+                        min_edge_val = float(min_edge)
+                        if edge_percent >= min_edge_val:
+                            continue
+                    except:
+                        pass
                 veto_bet = True
                 veto_reason = f"🛑 AI SCOUT VETO: {desc}"
                 break

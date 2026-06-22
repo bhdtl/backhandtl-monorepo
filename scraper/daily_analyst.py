@@ -762,6 +762,9 @@ async def run_daily_analysis():
     - Falls keine Änderungen empfohlen/ausgeführt wurden, schreibe einfach: 'Aktuell keine automatischen Statusänderungen oder Empfehlungen.'
     
     Gibt es Vorschläge für NEUE Regeln, formuliere sie am Ende des Berichts als JSON-Array im Format:
+    
+    WARNUNG: Wenn du "rule_type": "veto" wählst, darf das conditions-Objekt KEIN "min_edge" enthalten! Ein Veto-Filter schließt die gesamte Gruppe bedingungslos aus. Wenn du ein Edge-Limit setzen willst, verwende stattdessen "odds_filter".
+    
     PROPOSALS_JSON:
     [
       {{
