@@ -2101,6 +2101,83 @@ def calculate_value_metrics(
             if rule_tour != cand_tour:
                 rule_match = False
                 
+        # ── NEW: market_type condition ─────────────────────────────────────
+        # Supported values: "moneyline", "handicap_dog", "handicap_fave",
+        #                   "handicap", "total_over", "total_under", "total"
+        if rule_match and "market_type" in conditions:
+            import re as _re_mt
+            req_mt = conditions["market_type"].lower()
+            pick_lower_mt = (pick_name or "").lower()
+            if "over" in pick_lower_mt:
+                cand_mt = "total_over"
+            elif "under" in pick_lower_mt:
+                cand_mt = "total_under"
+            elif _re_mt.search(r'[+\-]\s*[\d.]+', pick_lower_mt) and "game" in pick_lower_mt:
+                hm = _re_mt.search(r'([+\-])\s*[\d.]+', pick_lower_mt)
+                cand_mt = ("handicap_fave" if hm and hm.group(1) == '-' else "handicap_dog")
+            else:
+                cand_mt = "moneyline"
+            if req_mt == "handicap":
+                if "handicap" not in cand_mt:
+                    rule_match = False
+            elif req_mt == "total":
+                if "total" not in cand_mt:
+                    rule_match = False
+            elif req_mt != cand_mt:
+                rule_match = False
+
+        # ── NEW: min_edge_above — fires only when edge EXCEEDS threshold ──
+        # Used for EDGE_CEILING multiplier rule (punishes Monster-Edge picks)
+        if rule_match and "min_edge_above" in conditions and rule_type == "multiplier":
+            try:
+                ceiling = float(conditions["min_edge_above"])
+                if edge_percent < ceiling:
+                    rule_match = False  # Edge below ceiling → rule doesn't apply
+            except:
+                pass
+
+        # ── NEW: exact_line — fires only for one specific O/U line value ──
+        if rule_match and "exact_line" in conditions:
+            import re as _re_el
+            try:
+                target_line = float(conditions["exact_line"])
+                lm = _re_el.search(r'([\d.]+)', (pick_name or "").lower())
+                if lm:
+                    if abs(float(lm.group(1)) - target_line) > 0.01:
+                        rule_match = False
+                else:
+                    rule_match = False
+            except:
+                rule_match = False
+
+        # ── NEW: line_outside_range — veto if handicap/total line NOT in [lo,hi] ─
+        if rule_match and "line_outside_range" in conditions:
+            import re as _re_lr
+            try:
+                lo = float(conditions["line_outside_range"][0])
+                hi = float(conditions["line_outside_range"][1])
+                lm2 = _re_lr.search(r'([\d.]+)', (pick_name or "").lower())
+                if lm2:
+                    line_val = float(lm2.group(1))
+                    if lo <= line_val <= hi:
+                        rule_match = False  # Line IN acceptable range → no veto
+                else:
+                    rule_match = False  # Can't determine line → don't veto
+            except:
+                rule_match = False
+
+        # ── NEW: max_odds — fires only when pick odds are at or below threshold ─
+        # Used e.g. to veto ML Favorites with odds < 1.80
+        if rule_match and "max_odds" in conditions:
+            try:
+                max_odds_thresh = float(conditions["max_odds"])
+                implied_prob = 1.0 - (edge_percent / 100.0) if edge_percent else 0.5
+                implied_odds = 1.0 / implied_prob if implied_prob > 0 else 9.9
+                if implied_odds > max_odds_thresh:
+                    rule_match = False  # Odds are above threshold → rule doesn't apply
+            except:
+                pass
+                
         if rule_match:
             if rule_type == "veto":
                 min_edge = conditions.get("min_edge")
@@ -2120,11 +2197,22 @@ def calculate_value_metrics(
                     mult = float(mult)
                 except:
                     mult = 1.0
-                pattern_multiplier *= mult
-                if pattern_warning:
-                    pattern_warning += f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
+                
+                # SOTA Check: Target Stake Cap (Scenario B)
+                # If the rule specifies a "max_stake_cap", we only scale down the stake
+                # if the estimated stake BEFORE this rule's scaling exceeds the threshold.
+                if "max_stake_cap" in conditions:
+                    cap_val = float(conditions["max_stake_cap"])
+                    raw_stake = (full_kelly * 100) * kelly_fraction
+                    est_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
+                    if est_stake > cap_val:
+                        pattern_multiplier *= mult
+                        desc_str = f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
+                        pattern_warning = (pattern_warning + desc_str) if pattern_warning else f"⚠️ AI SCOUT ADJUSTMENT: {desc_str.strip()}"
                 else:
-                    pattern_warning = f"⚠️ AI SCOUT ADJUSTMENT: Stakes scaled by {mult:.2f} ({desc})"
+                    pattern_multiplier *= mult
+                    desc_str = f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
+                    pattern_warning = (pattern_warning + desc_str) if pattern_warning else f"⚠️ AI SCOUT ADJUSTMENT: {desc_str.strip()}"
             elif rule_type == "odds_filter":
                 min_edge = conditions.get("min_edge")
                 if min_edge is not None:

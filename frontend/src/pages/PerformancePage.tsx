@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date
-const STATS_RESET_DATE = '2026-05-27T00:00:00.000Z'; 
+const STATS_RESET_DATE = '2026-06-23T00:00:00.000Z';
 
 // --- ROBUST HELPERS ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {
