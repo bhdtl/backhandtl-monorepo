@@ -364,11 +364,36 @@ async def run_analysis():
             desc = data.get("description", "Veto pattern matches due to poor historical ROI.")
             conds = data.get("conditions", {})
             
-            # Simple deduplication check
-            existing = supabase.table("scout_rules").select("*").eq("description", desc).execute()
-            if existing.data:
-                log("Rule already exists in database, skipping insertion.")
+            # ── Deduplication: check by conditions fingerprint, NOT description ──
+            # Two rules with different descriptions but same (rule_type, conditions)
+            # are functionally identical and must not both be active.
+            all_existing = supabase.table("scout_rules").select("*").eq("rule_type", rule_type).execute()
+            conds_fingerprint = json.dumps(dict(sorted(conds.items())), sort_keys=True)
+            is_duplicate = False
+            for ex in (all_existing.data or []):
+                ex_conds = ex.get("conditions") or {}
+                ex_fingerprint = json.dumps(dict(sorted(ex_conds.items())), sort_keys=True)
+                if ex_fingerprint == conds_fingerprint:
+                    log(f"Rule with identical conditions already exists (id={ex['id']}), skipping insertion.")
+                    is_duplicate = True
+                    break
+            if is_duplicate:
                 continue
+
+            # ── Stacking guard: reject if a broader multiplier already covers this scope ──
+            if rule_type == "multiplier":
+                new_mult_keys = {k for k in conds if k != "multiplier"}
+                for ex in (all_existing.data or []):
+                    ex_conds = ex.get("conditions") or {}
+                    ex_mult_keys = {k for k in ex_conds if k != "multiplier"}
+                    # If the existing rule's condition keys are a subset of new rule's keys
+                    # the existing rule fires on ALL matches the new rule would cover -> stacking
+                    if ex_mult_keys and ex_mult_keys.issubset(new_mult_keys):
+                        log(f"Stacking multiplier conflict: existing rule {ex['id']} already covers this scope. Skipping.")
+                        is_duplicate = True
+                        break
+                if is_duplicate:
+                    continue
                 
             confidence = round(float(-f["yield_pct"] * min(1.0, f["total_bets"] / 20.0)), 2)
             

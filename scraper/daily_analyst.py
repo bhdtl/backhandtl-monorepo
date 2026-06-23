@@ -850,10 +850,36 @@ async def run_daily_analysis():
             continue
             
         try:
-            # Check duplicate description
-            dupe = supabase.table("scout_rules").select("id").eq("description", desc).execute()
-            if dupe.data:
+            # ── Deduplication: check by conditions fingerprint, NOT description ──
+            # The LLM often generates different descriptions for functionally identical rules.
+            # We compare the serialized conditions dict to detect semantic duplicates.
+            all_existing = supabase.table("scout_rules").select("*").eq("rule_type", r_type).execute()
+            conds_fingerprint = json.dumps(dict(sorted(conds.items())), sort_keys=True)
+            is_duplicate = False
+            for ex in (all_existing.data or []):
+                ex_conds = ex.get("conditions") or {}
+                ex_fingerprint = json.dumps(dict(sorted(ex_conds.items())), sort_keys=True)
+                if ex_fingerprint == conds_fingerprint:
+                    log(f"Rule with identical conditions already exists (id={ex['id']}), skipping insertion.")
+                    is_duplicate = True
+                    break
+            if is_duplicate:
                 continue
+
+            # ── Stacking guard: reject multiplier if a broader one already covers this scope ──
+            if r_type == "multiplier":
+                new_mult_keys = {k for k in conds if k != "multiplier"}
+                for ex in (all_existing.data or []):
+                    ex_conds = ex.get("conditions") or {}
+                    ex_mult_keys = {k for k in ex_conds if k != "multiplier"}
+                    # A broader rule (fewer condition keys) fires on all matches this new rule
+                    # would affect. Both together would stack and multiply stakes unintentionally.
+                    if ex_mult_keys and ex_mult_keys.issubset(new_mult_keys):
+                        log(f"Stacking multiplier conflict detected: existing rule {ex['id']} already covers this scope. Skipping new rule.")
+                        is_duplicate = True
+                        break
+                if is_duplicate:
+                    continue
                 
             # Confidence based on ROI
             confidence = round(min(0.95, max(0.10, abs(roi) / 100.0)), 2)
