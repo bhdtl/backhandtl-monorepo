@@ -10,8 +10,18 @@ from supabase import create_client
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Supabase Credentials
-SUPABASE_URL = os.environ.get("SUPABASE_URL") or 'https://suoaznisiowoolxilaju.supabase.co'
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1b2F6bmlzaW93b29seGlsYWp1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjM3MDA2MiwiZXhwIjoyMDgxNzMwMDYyfQ.qcOEsflvc9zJnT5ir-SYe2YhoNczDDS11be5TzLyxEo'
+try:
+    from env_loader import load_env
+    load_env()
+except ImportError:
+    try:
+        from scraper.env_loader import load_env
+        load_env()
+    except ImportError:
+        pass
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 if not OPENROUTER_API_KEY:

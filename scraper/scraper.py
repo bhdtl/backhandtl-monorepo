@@ -44,6 +44,16 @@ def log(msg: str):
 log("🔌 Initialisiere Neural Scout (V211.00 - SYNDICATE TWO-BRAIN ENGINE)...")
 
 # Secrets Load
+try:
+    from env_loader import load_env
+    load_env()
+except ImportError:
+    try:
+        from scraper.env_loader import load_env
+        load_env()
+    except ImportError:
+        pass
+
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
@@ -1863,8 +1873,11 @@ def calculate_value_metrics(
     opponent_history: List[Dict] = None,
     players_list: List[Dict] = None,
     all_skills: Dict[str, Dict] = None,
-    opening_odds: float = None
+    opening_odds: float = None,
+    pick_name: str = ""
 ) -> Dict[str, Any]:
+    if not pick_name:
+        pick_name = player_name
     if market_odds <= 1.01 or fair_prob <= 0 or fair_prob >= 1: 
         return {
             "type": "NONE", 
@@ -2942,8 +2955,8 @@ async def run_pipeline():
                     fair2 = round(1 / (1 - (1/fair1)), 2) if fair1 > 1.01 else 99
                     # Wir benötigen auch bei gecacheten Spielen den Conviction-Wert des LLMs. Da dieser nicht gecached ist,
                     # nutzen wir den Standard-Wert 1.0, sofern nicht anders bekannt.
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, pick_name=full_n1)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai_conviction_multiplier=1.0, surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, pick_name=full_n2)
 
                     
                     value_tag = ""
@@ -3114,8 +3127,8 @@ async def run_pipeline():
                     # Compute winner value metrics BEFORE building candidate_picks
                     op_o1 = to_float(existing_match.get('opening_odds1'), 0) if existing_match else None
                     op_o2 = to_float(existing_match.get('opening_odds2'), 0) if existing_match else None
-                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, opening_odds=op_o1)
-                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, opening_odds=op_o2)
+                    val_p1 = calculate_value_metrics(1/fair1, m['odds1'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds1'] <= m['odds2']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, opening_odds=op_o1, pick_name=full_n1)
+                    val_p2 = calculate_value_metrics(1/fair2, m['odds2'], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(m['odds2'] <= m['odds1']), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, opening_odds=op_o2, pick_name=full_n2)
 
 
                     candidate_picks = []
@@ -3188,7 +3201,7 @@ async def run_pipeline():
                                 
                                 if has_no_rhythm or has_choke_skills or has_choke_history:
                                     prob_set1 = (mc_results.get("probA_set1", 50.0) if target_p == 1 else mc_results.get("probB_set1", 50.0)) / 100.0
-                                    val_set1 = calculate_value_metrics(prob_set1, set1_odd, matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(set1_odd <= 1.79), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=target_name)
+                                    val_set1 = calculate_value_metrics(prob_set1, set1_odd, matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(set1_odd <= 1.79), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=target_name, pick_name=f"{target_name} (Satz 1 Gewinner)")
                                     
                                     if val_set1["is_value"]:
                                         pivot_reason = []
@@ -3221,6 +3234,8 @@ async def run_pipeline():
                     game_diffs = mc_results.get("game_differentials", [])
                     for sp in m.get("neobet_spreads", []):
                         hc = sp["handicap"]
+                        sign1 = "+" if hc > 0 else ""
+                        sign2 = "+" if -hc > 0 else ""
                         p_home_sp_sim = sum(1 for diff in game_diffs if diff + hc > 0) / len(game_diffs) if game_diffs else prob
                         p_away_sp_sim = 1.0 - p_home_sp_sim
                         
@@ -3244,12 +3259,9 @@ async def run_pipeline():
                         fair_home_sp = round(1/p_home_sp_final, 2) if p_home_sp_final > 0.01 else 99
                         fair_away_sp = round(1/p_away_sp_final, 2) if p_away_sp_final > 0.01 else 99
                         
-                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills)
-                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills)
+                        val_home_sp = calculate_value_metrics(p_home_sp_final, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, pick_name=f"{full_n1} {sign1}{hc} Games")
+                        val_away_sp = calculate_value_metrics(p_away_sp_final, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, pick_name=f"{full_n2} {sign2}{-hc} Games")
 
-                        
-                        sign1 = "+" if hc > 0 else ""
-                        sign2 = "+" if -hc > 0 else ""
                         
                         # Inject custom handicap coverage pattern warning or boost cards
                         if emp_home_sp >= 0.65:
@@ -3312,8 +3324,8 @@ async def run_pipeline():
                         fair_over = round(1/p_over_blended, 2) if p_over_blended > 0.01 else 99
                         fair_under = round(1/p_under_blended, 2) if p_under_blended > 0.01 else 99
                         
-                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
-                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'))
+                        val_over = calculate_value_metrics(p_over_blended, ou["over"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), pick_name=f"Over {boundary} Games")
+                        val_under = calculate_value_metrics(p_under_blended, ou["under"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=True, is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), pick_name=f"Under {boundary} Games")
                         
                         candidate_picks.append({
                             "market_type": "TOTALS",

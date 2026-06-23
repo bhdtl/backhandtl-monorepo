@@ -12,6 +12,16 @@ sys.stdout.reconfigure(encoding='utf-8')
 from supabase import create_client
 from collections import defaultdict
 
+try:
+    from env_loader import load_env
+    load_env()
+except ImportError:
+    try:
+        from scraper.env_loader import load_env
+        load_env()
+    except ImportError:
+        pass
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 

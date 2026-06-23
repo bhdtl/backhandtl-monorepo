@@ -25,6 +25,16 @@ def compute_p_value(n_bets: int, avg_odds: float, roi: float) -> float:
 
 
 # Supabase Credentials
+try:
+    from env_loader import load_env
+    load_env()
+except ImportError:
+    try:
+        from scraper.env_loader import load_env
+        load_env()
+    except ImportError:
+        pass
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
@@ -943,6 +953,14 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
             proposals = json.loads(json_str)
         except Exception as parse_err:
             log(f"⚠️ Error parsing proposed rules: {parse_err}")
+
+    metrics_breakdown = {
+        "overall": overall_30,
+        "market_types": mkt_stats,
+        "surface_mkt": surface_mkt,
+        "edge_calibration": edge_cal,
+        "stake_efficiency": stake_eff
+    }
 
     # Write report entry
     report_data = {

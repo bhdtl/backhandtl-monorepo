@@ -29,6 +29,16 @@ def log(msg: str):
 
 log("🔮 Initializing Oracle Pre-Warmer (V155.3 SOTA - State Synchronization Mode)...")
 
+try:
+    from env_loader import load_env
+    load_env()
+except ImportError:
+    try:
+        from scraper.env_loader import load_env
+        load_env()
+    except ImportError:
+        pass
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 FUNCTION_URL = os.environ.get("SUPABASE_FUNCTION_URL") or (f"{SUPABASE_URL.rstrip('/')}/functions/v1/smart-api" if SUPABASE_URL else None)
