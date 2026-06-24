@@ -14,7 +14,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date
-const STATS_RESET_DATE = '2026-06-23T00:00:00.000Z';
+const STATS_RESET_DATE = '2026-06-25T00:00:00.000Z';
+
+// 🚀 CACHE INVALIDATION: When STATS_RESET_DATE changes, clear stale localStorage caches
+const CACHE_VERSION_KEY = 'bh_perf_cache_version';
+try {
+  const storedVersion = safeLocalStorage.getItem(CACHE_VERSION_KEY);
+  if (storedVersion !== STATS_RESET_DATE) {
+    safeLocalStorage.removeItem('bh_perf_stats');
+    safeLocalStorage.removeItem('bh_perf_raw_bets');
+    safeLocalStorage.removeItem('bh_perf_chart_data');
+    safeLocalStorage.removeItem('bh_perf_processed_bets');
+    safeLocalStorage.setItem(CACHE_VERSION_KEY, STATS_RESET_DATE);
+  }
+} catch (e) {
+  // Ignore localStorage errors
+}
 
 // --- ROBUST HELPERS ---
 const isPlayer1Target = (pickName: string, p1Name: string) => {

@@ -21,6 +21,7 @@ import numpy as np
 import httpx
 from supabase import create_client, Client
 from neobet_client import NeoBetAPI, reorder_player_name
+from staking_rules import apply_staking_rules, get_surface, is_grand_slam as is_slam_check, is_challenger as is_challenger_check
 
 # =================================================================
 # 1. CONFIGURATION & LOGGING
