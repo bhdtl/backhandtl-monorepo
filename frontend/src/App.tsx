@@ -324,6 +324,7 @@ function AppContent() {
 
   const isLandingPage = location.pathname === '/';
   const isPlayerProfile = location.pathname.startsWith('/player/');
+  const isAdminPage = location.pathname === '/admin';
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0f1115] text-white">
@@ -381,7 +382,7 @@ function AppContent() {
         </Routes>
       </main>
       
-      {!isLandingPage && (
+      {!isLandingPage && !isAdminPage && (
         <MobileTabBar
             onMenuAction={handleBottomRightAction}
             isLoggedIn={!!user}
