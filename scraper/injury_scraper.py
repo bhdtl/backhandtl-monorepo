@@ -116,6 +116,15 @@ async def search_edgeaiapp():
         return []
 
 
+def tweet_already_saved(tweet_id):
+    """Check if tweet already exists in DB."""
+    try:
+        resp = supabase.table('player_injury_intel').select('tweet_id').eq('tweet_id', tweet_id).execute()
+        return len(resp.data) > 0
+    except Exception:
+        return False
+
+
 def save_to_supabase(tweet, analysis):
     """Save tweet + GPT analysis to Supabase."""
     try:
@@ -229,6 +238,11 @@ async def run_scan():
     total_tweets += len(edge_tweets)
     
     for tweet in edge_tweets:
+        # Skip if already saved
+        if tweet_already_saved(tweet['id']):
+            print(f"  ⏭️ Already in DB: {tweet['text'][:50]}...")
+            continue
+        
         analysis = analyze_with_gpt(tweet['text'], surnames)
         # Only save if it's actual injury/MTO news
         if analysis.get('is_injury_news') or analysis.get('is_mto'):

@@ -1,7 +1,9 @@
-name: Injury Intel Bot (Manual)
+name: Injury Intel Bot
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-injury-bot]
 
 permissions:
   contents: read
