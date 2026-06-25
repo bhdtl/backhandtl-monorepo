@@ -20,7 +20,7 @@ TWITTER_AUTH = os.getenv("TWITTER_AUTH_TOKEN")
 TWITTER_CT0 = os.getenv("TWITTER_CT0")
 BATCH_SIZE = 15  # Spieler pro Query
 MAX_SEARCHES = 15  # Max Suchen pro Lauf (Rate Limit safe)
-INJURY_KEYWORDS = ['MTO', 'medical timeout', 'withdrawal', 'injury', 'retired']
+INJURY_KEYWORDS = ['MTO', 'medical timeout', 'withdrawal', 'injury', 'retired', 'medical']
 
 # ── Supabase ────────────────────────────────────────────────
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -64,12 +64,11 @@ async def search_twitter_batch(query, max_results=20):
         from twscrape import API
         api = API()
         
-        # Add account with cookies
-        await api.pool.add_account(
-            TWITTER_AUTH, TWITTER_CT0,
-            'injury_bot', 'pass123'
+        # Add account with cookies — NO login_all needed!
+        await api.pool.add_account_cookies(
+            'injury_bot',
+            f'auth_token={TWITTER_AUTH}; ct0={TWITTER_CT0}'
         )
-        await api.pool.login_all()
         
         tweets = []
         async for tweet in api.search(query, limit=max_results):
@@ -93,8 +92,10 @@ async def search_edgeaiapp():
     try:
         from twscrape import API
         api = API()
-        await api.pool.add_account(TWITTER_AUTH, TWITTER_CT0, 'injury_bot', 'pass123')
-        await api.pool.login_all()
+        await api.pool.add_account_cookies(
+            'injury_bot',
+            f'auth_token={TWITTER_AUTH}; ct0={TWITTER_CT0}'
+        )
         
         tweets = []
         async for tweet in api.search('from:edgeAIapp', limit=30):
@@ -214,56 +215,33 @@ async def run_scan():
     print(f"🏥 INJURY INTEL SCAN v2.0 — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}")
     
-    # 1. Load player surnames
+    # Load player names for GPT context
     surnames = load_player_surnames()
-    print(f"📊 Loaded {len(surnames)} player surnames from DB")
+    print(f"📊 Loaded {len(surnames)} player surnames for GPT context")
     
-    # 2. Build batch queries
-    queries = build_batch_queries(surnames)
-    print(f"📋 Built {len(queries)} batch queries ({BATCH_SIZE} players each)")
-    
-    # 3. Limit searches
-    if len(queries) > MAX_SEARCHES:
-        queries = random.sample(queries, MAX_SEARCHES)
-        print(f"🎲 Randomly selected {MAX_SEARCHES} queries for this run")
-    
-    # 4. Search + analyze + save
     total_tweets = 0
     total_saved = 0
     
-    for i, query in enumerate(queries):
-        print(f"\n🔎 [{i+1}/{len(queries)}] Searching batch...")
-        tweets = await search_twitter_batch(query, max_results=15)
-        print(f"  📊 Found {len(tweets)} tweets")
-        total_tweets += len(tweets)
-        
-        for tweet in tweets:
-            analysis = analyze_with_gpt(tweet['text'], surnames)
-            if analysis.get('is_injury_news') or analysis.get('is_mto'):
-                if save_to_supabase(tweet, analysis):
-                    total_saved += 1
-                    player = analysis.get('player_name', '?')
-                    print(f"  ✅ Saved: {player} ({analysis.get('injury_type', 'unknown')})")
-        
-        # Rate limit: small delay between batches
-        await asyncio.sleep(random.uniform(2, 4))
-    
-    # 5. Also search @edgeAIapp
-    print(f"\n🔎 Searching @edgeAIapp...")
+    # ONLY search @edgeAIapp — our trusted source
+    print(f"\n🔎 Searching @edgeAIapp (trusted source only)...")
     edge_tweets = await search_edgeaiapp()
-    print(f"  📊 Found {len(edge_tweets)} edgeAIapp tweets")
+    print(f"  📊 Found {len(edge_tweets)} relevant tweets")
     total_tweets += len(edge_tweets)
     
     for tweet in edge_tweets:
         analysis = analyze_with_gpt(tweet['text'], surnames)
-        if save_to_supabase(tweet, analysis):
-            total_saved += 1
-            print(f"  ✅ Saved edgeAIapp tweet")
+        # Only save if it's actual injury/MTO news
+        if analysis.get('is_injury_news') or analysis.get('is_mto'):
+            if save_to_supabase(tweet, analysis):
+                total_saved += 1
+                player = analysis.get('player_name', '?')
+                print(f"  ✅ Saved: {player} ({analysis.get('injury_type', 'unknown')})")
+        else:
+            print(f"  ⏭️ Skipped (not injury news): {tweet['text'][:60]}...")
     
     print(f"\n{'='*60}")
     print(f"📊 SUMMARY")
     print(f"  Players in DB: {len(surnames)}")
-    print(f"  Batch queries: {len(queries)}")
     print(f"  Total tweets: {total_tweets}")
     print(f"  Saved to DB: {total_saved}")
     print(f"{'='*60}")
