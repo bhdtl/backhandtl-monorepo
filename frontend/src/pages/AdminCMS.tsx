@@ -9,6 +9,7 @@ import {
   ThumbsUp, LifeBuoy, Briefcase,
   Copy // 🚀 SOTA FIX: Briefcase für Partner Tab hinzugefügt
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useAccess } from '../hooks/useAccess';
@@ -1717,9 +1718,9 @@ export function AdminCMS() {
       {/* HEADER — Logo + Aktion (wie alle anderen Seiten) */}
       <div className="mb-6 md:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-            <a href="/scout" className="shrink-0">
+            <Link to="/scout" className="shrink-0">
                 <BrandLogo className="h-7 md:h-8 text-white" />
-            </a>
+            </Link>
             <div className="h-8 w-px bg-white/10 hidden md:block"></div>
             <div>
                 <h1 className="text-lg md:text-2xl font-black text-white tracking-tight capitalize">
