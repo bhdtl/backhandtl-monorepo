@@ -29,17 +29,12 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 def load_player_surnames():
     """Load all player surnames from database."""
     try:
-        resp = supabase.table('players').select('name').execute()
+        resp = supabase.table('players').select('last_name').execute()
         surnames = []
         for p in resp.data:
-            name = p.get('name', '')
-            if name:
-                # Extract surname (last word)
-                parts = name.strip().split()
-                surname = parts[-1] if parts else name
-                # Skip very short names
-                if len(surname) > 2:
-                    surnames.append(surname)
+            last = (p.get('last_name') or '').strip()
+            if last and len(last) > 2:
+                surnames.append(last)
         return list(set(surnames))  # deduplicate
     except Exception as e:
         print(f"⚠️ Could not load players: {e}")
