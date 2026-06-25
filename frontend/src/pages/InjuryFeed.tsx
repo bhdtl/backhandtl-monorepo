@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from 'react-i18next';
 import { 
   AlertTriangle, Shield, ExternalLink, Clock, 
   Filter, TrendingUp, AlertCircle, CheckCircle2,
@@ -76,6 +77,7 @@ function CredibilityBadge({ credibility }: { credibility: number }) {
 }
 
 function InjuryCard({ item }: { item: InjuryIntel }) {
+  const { t } = useTranslation();
   const severity = severityConfig[item.severity] || severityConfig.unknown;
   const injuryType = item.injury_type ? injuryTypeConfig[item.injury_type] : null;
   const timeAgo = getTimeAgo(item.tweet_date || item.created_at);
@@ -125,7 +127,7 @@ function InjuryCard({ item }: { item: InjuryIntel }) {
         <div className="bg-black/30 rounded-xl p-3 mb-3 border border-white/5">
           <div className="flex items-center gap-1.5 mb-1">
             <Brain size={10} className="text-purple-400" />
-            <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">AI Analysis</span>
+            <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">{t('injuryIntel.aiAnalysis', 'AI Analysis')}</span>
           </div>
           <p className="text-gray-500 text-xs leading-relaxed">{item.reasoning}</p>
         </div>
@@ -146,7 +148,7 @@ function InjuryCard({ item }: { item: InjuryIntel }) {
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-[9px] text-gray-500 hover:text-tennis-lime transition-colors font-bold uppercase tracking-widest"
         >
-          <ExternalLink size={10} /> Source
+          <ExternalLink size={10} /> {t('injuryIntel.source', 'Source')}
         </a>
       </div>
     </div>
@@ -169,6 +171,7 @@ function getTimeAgo(dateStr: string): string {
 }
 
 export function InjuryFeed() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<InjuryIntel[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
@@ -192,14 +195,14 @@ export function InjuryFeed() {
 
       if (fetchError) {
         console.warn('Injury intel fetch error:', fetchError);
-        setError('Injury Intel Tabelle existiert noch nicht. Führe den Injury Bot aus.');
+        setError(t('injuryIntel.errorTable', 'Injury Intel Tabelle existiert noch nicht. Führe den Injury Bot aus.'));
         setItems([]);
       } else {
         setItems(data || []);
       }
     } catch (e) {
       console.error('Load error:', e);
-      setError('Failed to load injury data');
+      setError(t('injuryIntel.errorLoad', 'Failed to load injury data'));
     } finally {
       setLoading(false);
     }
@@ -216,15 +219,15 @@ export function InjuryFeed() {
   });
 
   const filters: { id: FilterType; label: string; count: number }[] = [
-    { id: 'all', label: 'All', count: items.length },
-    { id: 'verified', label: 'Verified', count: items.filter(i => i.credibility >= 70).length },
-    { id: 'injury', label: 'Injuries', count: items.filter(i => i.is_injury_news && i.injury_type !== 'recovery').length },
+    { id: 'all', label: t('injuryIntel.filterAll', 'All'), count: items.length },
+    { id: 'verified', label: t('injuryIntel.filterVerified', 'Verified'), count: items.filter(i => i.credibility >= 70).length },
+    { id: 'injury', label: t('injuryIntel.filterInjuries', 'Injuries'), count: items.filter(i => i.is_injury_news && i.injury_type !== 'recovery').length },
     { id: 'mto', label: 'MTO', count: items.filter(i => i.is_mto).length },
-    { id: 'recovery', label: 'Recovery', count: items.filter(i => i.injury_type === 'recovery').length },
+    { id: 'recovery', label: t('injuryIntel.filterRecovery', 'Recovery'), count: items.filter(i => i.injury_type === 'recovery').length },
   ];
 
   if (loading) {
-    return <LoadingScreen message="Loading Injury Intel..." />;
+    return <LoadingScreen message={t('injuryIntel.loading', 'Loading Injury Intel...')} />;
   }
 
   return (
@@ -237,10 +240,10 @@ export function InjuryFeed() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic">
-              Injury Intel
+              {t('injuryIntel.title', 'Injury Intel')}
             </h1>
             <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
-              AI-powered tennis injury intelligence from Twitter
+              {t('injuryIntel.subtitle', 'AI-powered tennis injury intelligence from Twitter')}
             </p>
           </div>
         </div>
@@ -272,7 +275,7 @@ export function InjuryFeed() {
           <AlertCircle size={24} className="text-yellow-500 mx-auto mb-3" />
           <p className="text-yellow-400 text-sm font-bold">{error}</p>
           <p className="text-gray-500 text-xs mt-2 font-mono">
-            Führe aus: python scraper/injury_scraper.py --once
+            {t('injuryIntel.errorHint', 'Führe aus: python scraper/injury_scraper.py --once')}
           </p>
         </div>
       )}
@@ -280,19 +283,19 @@ export function InjuryFeed() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <div className="bg-[#15171e]/50 border border-white/5 p-4 rounded-2xl">
-          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Total Intel</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">{t('injuryIntel.statTotal', 'Total Intel')}</span>
           <span className="text-white font-black text-xl">{items.length}</span>
         </div>
         <div className="bg-[#15171e]/50 border border-white/5 p-4 rounded-2xl">
-          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Verified</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">{t('injuryIntel.statVerified', 'Verified')}</span>
           <span className="text-green-400 font-black text-xl">{items.filter(i => i.credibility >= 70).length}</span>
         </div>
         <div className="bg-[#15171e]/50 border border-white/5 p-4 rounded-2xl">
-          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">MTO Alerts</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">{t('injuryIntel.statMTO', 'MTO Alerts')}</span>
           <span className="text-purple-400 font-black text-xl">{items.filter(i => i.is_mto).length}</span>
         </div>
         <div className="bg-[#15171e]/50 border border-white/5 p-4 rounded-2xl">
-          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Recoveries</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">{t('injuryIntel.statRecoveries', 'Recoveries')}</span>
           <span className="text-tennis-lime font-black text-xl">{items.filter(i => i.injury_type === 'recovery').length}</span>
         </div>
       </div>
@@ -302,11 +305,11 @@ export function InjuryFeed() {
         {filteredItems.length === 0 ? (
           <div className="text-center py-20">
             <Brain size={48} className="text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-500 font-bold text-lg">No injury intel found</p>
+            <p className="text-gray-500 font-bold text-lg">{t('injuryIntel.emptyTitle', 'No injury intel found')}</p>
             <p className="text-gray-600 text-sm mt-2">
               {items.length === 0 
-                ? "The Injury Bot hasn't run yet. Start it with: python scraper/injury_scraper.py --once"
-                : "No items match this filter."
+                ? t('injuryIntel.emptyBot', "The Injury Bot hasn't run yet. Start it with: python scraper/injury_scraper.py --once")
+                : t('injuryIntel.emptyFilter', "No items match this filter.")
               }
             </p>
           </div>
@@ -323,7 +326,7 @@ export function InjuryFeed() {
           onClick={loadInjuryData}
           className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex items-center gap-2 mx-auto"
         >
-          <RefreshCw size={14} /> Refresh Feed
+          <RefreshCw size={14} /> {t('injuryIntel.refresh', 'Refresh Feed')}
         </button>
       </div>
     </div>

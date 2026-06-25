@@ -370,7 +370,7 @@ function AppContent() {
           <Route path="/courts" element={<CourtDatabase />} />
           <Route path="/court/:id" element={<CourtProfile />} />
           <Route path="/performance" element={<PerformancePage />} />
-          <Route path="/injuries" element={<InjuryFeed />} />
+          <Route path="/injuries" element={<AnalyticsGuard><InjuryFeed /></AnalyticsGuard>} />
           <Route path="/watchlist" element={<Watchlist onPlayerClick={(id) => navigate(`/player/${id}`)} />} />
           <Route 
             path="/player/:id" 
