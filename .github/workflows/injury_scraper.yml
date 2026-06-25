@@ -1,9 +1,7 @@
-name: Injury Intel Bot
+name: Injury Intel Bot (Manual)
 
 on:
-  workflow_dispatch:        # Manueller Trigger + Supabase pg_cron Dispatch
-  repository_dispatch:
-    types: [trigger-injury-bot]
+  workflow_dispatch:
 
 permissions:
   contents: read
