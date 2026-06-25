@@ -1,9 +1,9 @@
 name: Injury Intel Bot
 
 on:
-  schedule:
-    - cron: '17 * * * *'  # Stündlich zur Minute 17 (nicht synchron mit anderen Scrapern)
-  workflow_dispatch:        # Manueller Trigger
+  workflow_dispatch:        # Manueller Trigger + Supabase pg_cron Dispatch
+  repository_dispatch:
+    types: [trigger-injury-bot]
 
 permissions:
   contents: read
