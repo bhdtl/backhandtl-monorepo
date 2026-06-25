@@ -20,6 +20,7 @@ import { PricingPage } from './pages/PricingPage';
 import { SupportPage } from './pages/SupportPage';
 import { TournamentOracle } from './pages/TournamentOracle';
 import { AIPicksPage } from './pages/AIPicksPage';
+import { InjuryFeed } from './pages/InjuryFeed';
 
 
 import { AuthModal } from './components/AuthModal';
@@ -126,7 +127,7 @@ function MobileHeader() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/courts', '/watchlist', '/pricing'];
+    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/injuries', '/courts', '/watchlist', '/pricing'];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
@@ -137,6 +138,7 @@ function MobileHeader() {
         if (path === '/watchlist') return t('sidebar.watchlist', 'Watchlist');
         if (path === '/admin') return t('sidebar.admin', 'Admin');
         if (path === '/performance') return t('sidebar.aiPerformance', 'AI Performance');
+        if (path === '/injuries') return 'Injury Intel';
         return t('navigation.details', 'Details');
     };
 
@@ -368,6 +370,7 @@ function AppContent() {
           <Route path="/courts" element={<CourtDatabase />} />
           <Route path="/court/:id" element={<CourtProfile />} />
           <Route path="/performance" element={<PerformancePage />} />
+          <Route path="/injuries" element={<InjuryFeed />} />
           <Route path="/watchlist" element={<Watchlist onPlayerClick={(id) => navigate(`/player/${id}`)} />} />
           <Route 
             path="/player/:id" 
