@@ -195,6 +195,7 @@ export function AdminCMS() {
   const [agentSubTab, setAgentSubTab] = useState<'reports' | 'rules'>('reports');
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [settingsSection, setSettingsSection] = useState<'courts' | 'promos' | 'designs'>('courts');
+  const [affiliateRequests, setAffiliateRequests] = useState<any[]>([]);
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);

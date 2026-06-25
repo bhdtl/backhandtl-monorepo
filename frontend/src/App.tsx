@@ -340,7 +340,7 @@ function AppContent() {
         </div>
       )}
 
-      {!isLandingPage && !isPlayerProfile && <MobileHeader />}
+      {!isLandingPage && !isPlayerProfile && !isAdminPage && <MobileHeader />}
       
       <main className={`flex-grow max-w-7xl mx-auto w-full overflow-x-hidden ${isLandingPage ? '' : isPlayerProfile ? 'pt-0 md:pt-[5rem] px-4 md:px-8' : 'pt-[calc(3.5rem+env(safe-area-inset-top,0px))] md:pt-[5rem] px-4 md:px-8'}`}>
         <Routes>
