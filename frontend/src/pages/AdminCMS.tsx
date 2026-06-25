@@ -187,13 +187,13 @@ export function AdminCMS() {
   const { user } = useAuth();
   const { isAdmin, isFounder, loading: accessLoading } = useAccess();
   
-  const [activeTab, setActiveTab] = useState<'players' | 'courts' | 'metrics' | 'promos' | 'designs' | 'intelligence' | 'support' | 'affiliates' | 'ai-agent'>('players');
-  const [affiliateRequests, setAffiliateRequests] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'players' | 'ai-agent' | 'metrics' | 'support' | 'settings'>('players');
   const [scoutRules, setScoutRules] = useState<any[]>([]);
   const [rulesFilter, setRulesFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [scoutReports, setScoutReports] = useState<any[]>([]);
   const [agentSubTab, setAgentSubTab] = useState<'reports' | 'rules'>('reports');
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [settingsSection, setSettingsSection] = useState<'courts' | 'promos' | 'designs'>('courts');
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -761,23 +761,48 @@ export function AdminCMS() {
 
   const tabs = [
       { id: 'players', label: 'Players', icon: Users },
-      { id: 'courts', label: 'Courts', icon: LayoutGrid },
-      { id: 'intelligence', label: 'Intelligence', icon: Sparkles },
+      { id: 'ai-agent', label: 'AI Agent', icon: Brain },
       { id: 'metrics', label: 'Metrics', icon: BarChart3 },
-      { id: 'promos', label: 'Promos', icon: Ticket },
-      { id: 'designs', label: 'Designs', icon: Palette },
-      { id: 'support', label: 'Support & Ops', icon: LifeBuoy },
-      { id: 'affiliates', label: 'Affiliates', icon: Briefcase },
-      { id: 'ai-agent', label: 'AI Scout Agent', icon: Brain },
-  ];
+      { id: 'support', label: 'Support', icon: LifeBuoy },
+      { id: 'settings', label: 'Settings', icon: Sliders },
+    ];
 
   // --- RENDER CONTENT ---
   const renderContent = () => {
     switch(activeTab) {
       case 'metrics': return <MetricsDashboard />;
-      case 'courts': return <CourtsManager />;
-      case 'promos': return <PromoCodeManager />;
-      case 'designs': return <CardGallery />;
+      case 'settings':
+        return (
+          <div className="space-y-6 animate-in fade-in">
+            {/* Settings Sub-Nav (Apple Segmented Control Style) */}
+            <div className="flex gap-2 p-1 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-fit shadow-lg">
+              {([
+                { id: 'courts', label: 'Courts', icon: LayoutGrid },
+                { id: 'promos', label: 'Promos', icon: Ticket },
+                { id: 'designs', label: 'Designs', icon: Palette },
+              ] as const).map(item => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setSettingsSection(item.id)}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${
+                      settingsSection === item.id
+                        ? 'bg-tennis-lime text-black shadow-lg shadow-tennis-lime/20'
+                        : 'text-gray-500 hover:text-gray-300'
+                    }`}
+                  >
+                    <Icon size={14} /> {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {settingsSection === 'courts' && <CourtsManager />}
+            {settingsSection === 'promos' && <PromoCodeManager />}
+            {settingsSection === 'designs' && <CardGallery />}
+          </div>
+        );
       case 'affiliates':
         return (
           <div className="space-y-6 animate-in fade-in">
@@ -1096,24 +1121,6 @@ export function AdminCMS() {
 
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
-            {/* Silicon Valley Veteran Advice Banner */}
-            <div className="relative bg-gradient-to-r from-purple-900/40 via-[#15171e] to-black border border-purple-500/30 rounded-3xl p-6 md:p-8 overflow-hidden shadow-[0_20px_50px_rgba(147,51,234,0.15)] flex flex-col md:flex-row gap-6 items-center">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Brain size={160} className="text-purple-400" />
-              </div>
-              <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 text-purple-400 shrink-0">
-                <Brain size={40} className="animate-pulse" />
-              </div>
-              <div className="space-y-2 text-center md:text-left">
-                <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-wider">
-                  Neural Scout AI Operations Analyst
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-3xl">
-                  <span className="text-purple-400 font-bold">Veteran Silicon Valley Veto:</span> Human-in-the-Loop (HITL) ist im Sportwetten-Bereich extrem kritisch. Ein vollautomates Auto-Pilot System kann durch plötzliche Formänderungen, Verletzungen oder Nischen-Turniere verfälscht werden. Dieser AI Agent analysiert jede Nacht die letzten 30 Tage, deckt unprofitable Muster auf und schlägt dir Veto- und Multiplikator-Regeln vor. Du hast die volle Kontrolle über die Freigabe.
-                </p>
-              </div>
-            </div>
-
             {/* Sub-tab selection */}
             <div className="overflow-x-auto no-scrollbar w-full sm:w-fit -mx-4 px-4 sm:mx-0 sm:px-0">
               <div className="flex gap-2 p-1 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-max shadow-lg">
@@ -2000,37 +2007,54 @@ export function AdminCMS() {
       <ScrollToTop />
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
       
-      {/* HEADER */}
-      <div className="mb-8 md:mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      {/* HEADER — Apple HIG: Clean, Bold, Content-First */}
+      <div className="mb-6 md:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 mb-2">
-                <ShieldAlert size={12} className="text-tennis-lime animate-pulse"/>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Security Level: {isFounder ? 'FOUNDER' : 'ADMIN'}</span>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic outline-text">Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-tennis-lime to-white">Intelligence</span></h1>
+            <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight capitalize">
+                {tabs.find(t => t.id === activeTab)?.label || 'Admin'}
+            </h1>
+            {activeTab === 'ai-agent' && <p className="text-gray-400 text-xs mt-1">Tägliche Reports & Risikoregeln</p>}
+            {activeTab === 'players' && <p className="text-gray-400 text-xs mt-1">Spieler-Verwaltung & Scouting</p>}
+            {activeTab === 'metrics' && <p className="text-gray-400 text-xs mt-1">Performance Dashboard</p>}
+            {activeTab === 'support' && <p className="text-gray-400 text-xs mt-1">Tickets & Feedback</p>}
+            {activeTab === 'settings' && <p className="text-gray-400 text-xs mt-1">Courts, Promos & Designs</p>}
         </div>
         {activeTab === 'players' && (
-            <button onClick={() => setShowNewPlayerForm(true)} className="w-full md:w-auto flex items-center justify-center gap-3 bg-tennis-lime text-black px-8 py-4 rounded-2xl hover:scale-105 hover:shadow-[0_0_30px_rgba(132,204,22,0.4)] font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"><Plus size={18} strokeWidth={3} /> <span>Initialize Asset</span></button>
-        )}
-        {activeTab === 'intelligence' && !isEditingArticle && (
-            <button onClick={handleNewArticle} className="w-full md:w-auto flex items-center justify-center gap-3 bg-purple-500 text-white px-8 py-4 rounded-2xl hover:scale-105 font-black text-xs uppercase tracking-widest transition-all shadow-lg"><FileText size={18} strokeWidth={3} /> <span>Draft Report</span></button>
+            <button onClick={() => setShowNewPlayerForm(true)} className="w-full md:w-auto flex items-center justify-center gap-3 bg-tennis-lime text-black px-6 py-3.5 rounded-2xl hover:scale-105 hover:shadow-[0_0_30px_rgba(132,204,22,0.4)] font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"><Plus size={18} strokeWidth={3} /> <span>Neuer Spieler</span></button>
         )}
       </div>
 
-      {/* TABS */}
-      <div className="mb-8 md:mb-10 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-        <div className="flex p-1 md:p-1.5 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-fit min-w-max shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      {/* Desktop TABS — Hidden on Mobile (Bottom Nav statt dessen) */}
+      <div className="mb-8 md:mb-10 hidden md:block overflow-x-auto pb-2 no-scrollbar">
+        <div className="flex p-1.5 bg-black/45 backdrop-blur-md rounded-2xl border border-white/5 w-fit shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
             {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2 md:gap-2.5 px-4 md:px-5 py-2.5 md:py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 active:scale-95 ${isActive ? 'bg-white/10 text-white border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}>
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2.5 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 active:scale-95 ${isActive ? 'bg-white/10 text-white border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Icon size={16} className={isActive ? 'text-tennis-lime' : ''} /> {tab.label}
                     </button>
                 )
             })}
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation — Apple Tab Bar Style */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/70 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex justify-around items-center h-16 px-2">
+            {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center justify-center gap-1 min-w-[56px] py-1.5 rounded-xl transition-all active:scale-90 ${isActive ? 'text-tennis-lime' : 'text-gray-500'}`}>
+                        <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-tennis-lime' : 'text-gray-500'}`}>{tab.label}</span>
+                        {isActive && <div className="w-1 h-1 bg-tennis-lime rounded-full mt-0.5"></div>}
+                    </button>
+                )
+            })}
+        </div>
+      </nav>
 
       <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
           {renderContent()}
