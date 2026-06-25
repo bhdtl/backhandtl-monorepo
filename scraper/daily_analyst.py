@@ -862,7 +862,17 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
     else:
         rules_eval_summary += "Keine Statusänderungen empfohlen.\n"
 
-    # ═══ 7. LLM REPORT GENERATION ═══
+    # ═══ 7. AUTOPILOT v2.0 — Syndicate Board Agent ═══
+    autopilot_result = {"enabled": False, "decisions": [], "executed_count": 0, "proposed_count": 0, "safety_status": "not_called"}
+    try:
+        from autopilot_engine import run_autopilot
+        autopilot_result = await run_autopilot(rich_picks, analytics_text)
+        log(f"🤖 Autopilot v2.0: {autopilot_result.get('executed_count', 0)} executed, {autopilot_result.get('proposed_count', 0)} proposed")
+    except Exception as ap_err:
+        log(f"⚠️ Autopilot v2.0 Error: {ap_err}")
+        autopilot_result = {"enabled": False, "decisions": [], "executed_count": 0, "proposed_count": 0, "safety_status": f"error: {ap_err}"}
+
+    # ═══ 8. LLM REPORT GENERATION ═══
     system_prompt = (
         "Du bist der Lead Quant Analyst und Risk Officer bei einem professionellen Tennis-Wettsyndikat.\n"
         "Deine Aufgabe: Erstelle einen präzisen, datengetriebenen Tagesreport auf Deutsch.\n\n"
@@ -994,6 +1004,13 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
             "total_staked": round(total_staked, 2),
             "breakdown": metrics_breakdown,
             "rule_recommendations": rule_recommendations,
+            "autopilot_decisions": autopilot_result.get("decisions", []),
+            "autopilot_summary": {
+                "enabled": autopilot_result.get("enabled", False),
+                "executed_count": autopilot_result.get("executed_count", 0),
+                "proposed_count": autopilot_result.get("proposed_count", 0),
+                "safety_status": autopilot_result.get("safety_status", "unknown"),
+            },
             "today": {
                 "bets": len(picks_24h),
                 "win_rate": round(today_win_rate, 1),
