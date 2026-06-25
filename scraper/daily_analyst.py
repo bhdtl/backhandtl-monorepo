@@ -361,25 +361,53 @@ def _grp_stats(grp):
     )
 
 
+MIN_SAMPLE_FOR_LLM = 8  # 🚀 SOTA: Mindest-Sample-Size für Segmente im LLM-Input
+MIN_SAMPLE_NOTABLE = 20  # Segmente ab 20 Bets sind statistisch belastbar
+MIN_SAMPLE_STRONG = 50   # Segmente ab 50 Bets sind robust
+
+
+def _sample_reliability(n: int) -> str:
+    """Gibt eine Sample-Size-Warnung zurück."""
+    if n < MIN_SAMPLE_FOR_LLM:
+        return " ⚠️ LOW SAMPLE — nicht belastbar"
+    elif n < MIN_SAMPLE_NOTABLE:
+        return " 📊 MODERATE"
+    elif n < MIN_SAMPLE_STRONG:
+        return " ✅ SOLID"
+    else:
+        return " 🏆 STRONG"
+
+
 def _fmt(label, s, note=""):
     if not s:
         return ""
+    n = s.get("n", 0)
     icon = "🟢" if s["roi"] > 3 else ("🔴" if s["roi"] < -8 else "🟡")
     clv = f"{s['avg_clv']:+.1f}%" if s["avg_clv"] is not None else "N/A"
+    reliability = _sample_reliability(n)
     return (
-        f"{label}: N={s['n']}, WR={s['wr']}% (BE={s['be_wr']}%, Skill={s['skill']:+.1f}%), "
+        f"{label}: N={n}, WR={s['wr']}% (BE={s['be_wr']}%, Skill={s['skill']:+.1f}%), "
         f"P&L={s['pnl']:+.2f}u, ROI={icon}{s['roi']:+.1f}%, ØQ={s['avg_odds']:.2f}, "
-        f"ØEdge={s['avg_edge']}%, CLV={clv}{note}"
+        f"ØEdge={s['avg_edge']}%, CLV={clv}{reliability}{note}"
     )
 
 
-def _section(title, data_dict):
+def _section(title, data_dict, min_n=None):
+    if min_n is None:
+        min_n = MIN_SAMPLE_FOR_LLM
     lines = [f"\n{'='*50}", f"  {title}", f"{'='*50}"]
+    shown = 0
+    skipped = 0
     for k, s in data_dict.items():
-        if s and s.get("n", 0) >= 3:
+        if s and s.get("n", 0) >= min_n:
             row = _fmt(k, s)
             if row:
                 lines.append(f"  {row}")
+                shown += 1
+        elif s and s.get("n", 0) >= 3:
+            skipped += 1
+    if skipped > 0:
+        lines.append(f"  [Hinweis: {skipped} Segmente mit N < {min_n} wurden ausgeblendet — zu wenig Daten für aussagekräftige Analyse]")
     return "\n".join(lines)
 
 
@@ -876,13 +904,22 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
     system_prompt = (
         "Du bist der Lead Quant Analyst und Risk Officer bei einem professionellen Tennis-Wettsyndikat.\n"
         "Deine Aufgabe: Erstelle einen präzisen, datengetriebenen Tagesreport auf Deutsch.\n\n"
+        "WICHTIGE STATISTISCHE REGELN:\n"
+        "- Segmente mit N < 20 sind NICHT belastbar. Erwähne sie nur als 'Hinweis', nicht als Empfehlung.\n"
+        "- Segmente mit N ≥ 20 aber < 50 sind 'moderat' belastbar. Sei vorsichtig mit Vorschlägen.\n"
+        "- Segmente mit N ≥ 50 sind robust. Nur diese sollen Grundlage für scout_rules sein.\n"
+        "- Ein ROI von +55% bei N=5 ist KEIN Beweis für einen Edge — das ist statistisches Rauschen.\n"
+        "- Wenn ein Segment profitabel UND ein anderes unprofitabel ist: Prüfe ob die Sample Sizes groß genug sind.\n"
+        "- Vermeide Widersprüche: Wenn du MONEYLINE als profitabel bezeichnest, prüfe ob andere Markttypen\n"
+        "  in der gleichen Quote-Range ebenfalls profitabel sind.\n\n"
         "Du hast drei Agenten:\n"
         "1. **Deep Pattern Mining Agent (30 Tage):** Analysiert Edge-Kalibrierung, Skill-Metrik, "
         "Markttyp × Surface × Tour × Odds-Bracket, Stake-Effizienz, Handicap-Line-Coverage, Totals-Line-Buckets.\n"
         "2. **24H Micro-Audit Agent:** Analysiert jeden einzelnen Pick der letzten 24 Stunden.\n"
         "3. **Syndicate Board & Risk Officer:** Wertet Regelperformance aus, überwacht Drawdown-Circuit-Breaker.\n\n"
         "Schreibe auf Deutsch. Klar, präzise, analytisch. Apple/Revolut-Stil. Sei direkt und faktenbezogen.\n"
-        "Identifiziere profitable und unprofitable Segmente. Schlage konkrete scout_rules vor."
+        "Identifiziere NUR statistisch signifikante profitable/unprofitable Segmente (N ≥ 20).\n"
+        "Schlage konkrete scout_rules vor — ABER nur für Segmente mit N ≥ 20."
     )
 
     prompt = f"""
@@ -935,7 +972,7 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
         log("❌ OpenRouter returned empty response. Saving metrics only.")
         ai_response = "### Täglicher KI-Bericht\nAnalyse konnte aufgrund eines API-Fehlers nicht vollständig generiert werden."
 
-    # Parse Rules
+    # 🚀 SOTA: Robuste JSON-Parsing mit Multi-Fallback
     proposals = []
     clean_summary = ai_response
     if "PROPOSALS_JSON:" in ai_response:
@@ -943,12 +980,42 @@ Positiv = echter statistischer Edge. Negativ = Modell verliert gegen die Linie.
             parts = ai_response.split("PROPOSALS_JSON:")
             clean_summary = parts[0].strip()
             json_str = parts[1].strip()
-            arr_match = re.search(r'\[\s*\{.*\}\s*\]', json_str, re.DOTALL)
+
+            # Fallback 1: Finde JSON-Array mit non-greedy Regex
+            arr_match = re.search(r'\[\s*\{.*?\}\s*\]', json_str, re.DOTALL)
             if arr_match:
                 json_str = arr_match.group(0)
+
+            # Fallback 2: Entferne Markdown-Code-Blöcke
+            json_str = re.sub(r'^```\w*\n?', '', json_str.strip())
+            json_str = re.sub(r'\n?```$', '', json_str.strip())
+
+            # Fallback 3: Finde erstes [ und letztes ]
+            first_bracket = json_str.find('[')
+            last_bracket = json_str.rfind(']')
+            if first_bracket != -1 and last_bracket != -1 and last_bracket > first_bracket:
+                json_str = json_str[first_bracket:last_bracket + 1]
+
             proposals = json.loads(json_str)
+            log(f"✅ Parsed {len(proposals)} LLM proposals successfully")
+        except json.JSONDecodeError as parse_err:
+            log(f"⚠️ JSON parse error: {parse_err}")
+            # Fallback 4: Versuche einzelne JSON-Objekte zu extrahieren
+            try:
+                obj_matches = re.findall(r'\{\s*"rule_type"\s*:.*?\}', json_str, re.DOTALL)
+                for obj_str in obj_matches:
+                    try:
+                        obj = json.loads(obj_str)
+                        if "rule_type" in obj and "conditions" in obj:
+                            proposals.append(obj)
+                    except json.JSONDecodeError:
+                        continue
+                if proposals:
+                    log(f"✅ Fallback: Recovered {len(proposals)} proposals from individual objects")
+            except Exception:
+                log("⚠️ All JSON parsing fallbacks failed. No proposals extracted.")
         except Exception as parse_err:
-            log(f"⚠️ Error parsing proposals: {parse_err}")
+            log(f"⚠️ Unexpected error parsing proposals: {parse_err}")
 
     # Metrics berechnen
     total_staked = sum(p["stake"] for p in rich_picks)
