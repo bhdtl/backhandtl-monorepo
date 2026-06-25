@@ -16,6 +16,7 @@ import { uploadPlayerImage } from '../lib/imageUpload';
 import { Toast } from '../components/Toast';
 import { CourtsManager } from '../components/CourtsManager';
 import { ScrollToTop } from '../components/ScrollToTop';
+import { BrandLogo } from '../components/BrandLogo';
 import { MetricsDashboard } from './MetricsDashboard';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { PromoCodeManager } from '../components/PromoCodeManager'; 
@@ -803,221 +804,6 @@ export function AdminCMS() {
             {settingsSection === 'designs' && <CardGallery />}
           </div>
         );
-      case 'affiliates':
-        return (
-          <div className="space-y-6 animate-in fade-in">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-black text-white uppercase tracking-wider">NeoBet Affiliate Unlock Requests</h2>
-              <span className="bg-[#15171e] text-[10px] font-mono text-gray-400 border border-white/5 px-3 py-1.5 rounded-xl">
-                {affiliateRequests.filter(r => r.status === 'pending').length} Pending Requests
-              </span>
-            </div>
-
-            {/* Desktop View Table */}
-            <div className="hidden md:block bg-[#15171e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-gray-500 bg-black/20">
-                      <th className="p-4 md:p-5">Date</th>
-                      <th className="p-4 md:p-5">User</th>
-                      <th className="p-4 md:p-5">NeoBet Username</th>
-                      <th className="p-4 md:p-5">Status</th>
-                      <th className="p-4 md:p-5">Feedback / Reason</th>
-                      <th className="p-4 md:p-5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-xs md:text-sm font-semibold text-gray-300">
-                    {affiliateRequests.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="p-8 text-center text-gray-500 italic">
-                          No requests found.
-                        </td>
-                      </tr>
-                    ) : (
-                      affiliateRequests.map((req) => {
-                        const dateStr = new Date(req.created_at).toLocaleDateString();
-                        const userName = req.profiles?.first_name || 'Anonymous';
-                        const userTier = req.profiles?.tier || 'FREE';
-                        const isPremium = !!req.profiles?.is_premium;
-
-                        return (
-                          <tr key={req.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="p-4 md:p-5 text-[11px] font-mono text-gray-500">{dateStr}</td>
-                            <td className="p-4 md:p-5">
-                              <div>
-                                <span className="text-white block">{userName}</span>
-                                <div className="flex items-center gap-1 mt-0.5">
-                                  <span className="text-[9px] text-gray-500 font-mono">
-                                    ID: {req.user_id.slice(0, 8)}...
-                                  </span>
-                                  <button
-                                    onClick={() => handleCopyId(req.user_id)}
-                                    title="Kopiere vollständige User-ID"
-                                    className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <Copy size={10} />
-                                  </button>
-                                  <span className="text-[9px] text-gray-500 font-mono text-gray-600">
-                                    | {userTier} {isPremium && '(Premium)'}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 md:p-5 font-mono text-white select-all">{req.neobet_username}</td>
-                            <td className="p-4 md:p-5">
-                              <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${
-                                req.status === 'approved' 
-                                  ? 'bg-green-500/10 text-green-400 border border-green-500/25'
-                                  : req.status === 'rejected'
-                                    ? 'bg-red-500/10 text-red-400 border border-red-500/25'
-                                    : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/25'
-                              }`}>
-                                {req.status}
-                              </span>
-                            </td>
-                            <td className="p-4 md:p-5 text-xs text-gray-400 max-w-xs truncate">
-                              {req.rejection_reason || <span className="text-gray-600 font-normal italic">—</span>}
-                            </td>
-                            <td className="p-4 md:p-5 text-right">
-                              <div className="flex justify-end gap-2">
-                                {req.status !== 'approved' && (
-                                  <button
-                                    onClick={() => handleApproveRequest(req.id, req.user_id)}
-                                    className="px-3 py-2 bg-green-500 hover:bg-green-600 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-green-500/10"
-                                  >
-                                    Approve
-                                  </button>
-                                )}
-                                {req.status !== 'rejected' && (
-                                  <button
-                                    onClick={() => {
-                                      const reason = prompt("Bitte gib einen Grund für die Ablehnung an (z.B. 'Keine Registrierung unter unserem Link gefunden' oder 'Einzahlung fehlt'):");
-                                      if (reason === null) return;
-                                      handleDeclineRequest(req.id, req.user_id, reason);
-                                    }}
-                                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
-                                  >
-                                    Decline
-                                  </button>
-                                )}
-                                {req.status === 'approved' && (
-                                  <button
-                                    onClick={() => {
-                                      if (confirm(`Möchtest du die Freischaltung für ${req.neobet_username} widerrufen?`)) {
-                                        handleDeclineRequest(req.id, req.user_id, 'Freischaltung widerrufen');
-                                      }
-                                    }}
-                                    className="px-3 py-2 bg-white/5 hover:bg-white/10 text-gray-400 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95"
-                                  >
-                                    Revoke
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Mobile View Card List (Revolut Styled) */}
-            <div className="md:hidden space-y-4">
-              {affiliateRequests.length === 0 ? (
-                <div className="bg-[#15171e]/30 border border-dashed border-white/5 rounded-3xl p-12 text-center text-gray-500 italic">
-                  No requests found.
-                </div>
-              ) : (
-                affiliateRequests.map((req) => {
-                  const dateStr = new Date(req.created_at).toLocaleDateString();
-                  const userName = req.profiles?.first_name || 'Anonymous';
-                  const userTier = req.profiles?.tier || 'FREE';
-                  const isPremium = !!req.profiles?.is_premium;
-
-                  return (
-                    <div key={req.id} className="bg-[#15171e] border border-white/5 rounded-2xl p-5 space-y-4 shadow-xl">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-mono text-gray-500">{dateStr}</span>
-                          <h4 className="text-white font-bold text-base mt-0.5">{userName}</h4>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-[10px] text-gray-500 font-mono">ID: {req.user_id.slice(0, 8)}...</span>
-                            <button
-                              onClick={() => handleCopyId(req.user_id)}
-                              className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-white transition-colors cursor-pointer"
-                            >
-                              <Copy size={10} />
-                            </button>
-                            <span className="text-[10px] text-gray-600 font-mono">| {userTier} {isPremium && '(Premium)'}</span>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${
-                          req.status === 'approved' 
-                            ? 'bg-green-500/10 text-green-400 border border-green-500/25'
-                            : req.status === 'rejected'
-                              ? 'bg-red-500/10 text-red-400 border border-red-500/25'
-                              : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/25'
-                        }`}>
-                          {req.status}
-                        </span>
-                      </div>
-
-                      <div className="bg-black/20 p-3.5 rounded-xl border border-white/5 space-y-1">
-                        <span className="text-[9px] uppercase font-black text-gray-600 tracking-widest block">NeoBet Username</span>
-                        <span className="text-white font-mono text-sm select-all">{req.neobet_username}</span>
-                      </div>
-
-                      {req.rejection_reason && (
-                        <div className="bg-red-500/5 p-3 rounded-xl border border-red-500/10 text-xs text-red-400">
-                          <span className="font-bold block uppercase text-[9px] tracking-wider mb-0.5">Ablehnungs-Grund</span>
-                          {req.rejection_reason}
-                        </div>
-                      )}
-
-                      <div className="flex gap-2 pt-2 border-t border-white/5">
-                        {req.status !== 'approved' && (
-                          <button
-                            onClick={() => handleApproveRequest(req.id, req.user_id)}
-                            className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-black text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-green-500/10"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {req.status !== 'rejected' && (
-                          <button
-                            onClick={() => {
-                              const reason = prompt("Bitte gib einen Grund für die Ablehnung an:");
-                              if (reason === null) return;
-                              handleDeclineRequest(req.id, req.user_id, reason);
-                            }}
-                            className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                          >
-                            Decline
-                          </button>
-                        )}
-                        {req.status === 'approved' && (
-                          <button
-                            onClick={() => {
-                              if (confirm(`Möchtest du die Freischaltung für ${req.neobet_username} widerrufen?`)) {
-                                handleDeclineRequest(req.id, req.user_id, 'Freischaltung widerrufen');
-                              }
-                            }}
-                            className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all active:scale-95"
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        );
       case 'support':
         return (
           <div className="space-y-6 animate-in fade-in">
@@ -1677,86 +1463,6 @@ export function AdminCMS() {
             )}
           </div>
         );
-      case 'intelligence':
-        return (
-            <div className="space-y-6">
-                <SearchSelectionModal isOpen={showMatchupModal} onClose={() => {setShowMatchupModal(false); setMatchupStep(1);}} onSelect={handleMatchupSelect} type={matchupStep === 1 ? "Player 1" : "Player 2"} options={players} />
-                <SearchSelectionModal isOpen={showTournamentModal} onClose={() => setShowTournamentModal(false)} onSelect={handleTournamentSelect} type="Tournament" options={tournaments} />
-                <input type="file" ref={articleImageInputRef} className="hidden" accept="image/*" onChange={handleArticleImageUpload} />
-                {isEditingArticle ? (
-                    <div className="flex flex-col gap-6">
-                        <div className="flex justify-between items-center bg-[#15171e] p-4 rounded-2xl border border-white/10">
-                            <div className="flex gap-2">
-                                <button onClick={() => setEditorMode('write')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${editorMode === 'write' ? 'editor-tab-active' : 'editor-tab-inactive'}`}><PenTool size={14}/> Write</button>
-                                <button onClick={() => setEditorMode('preview')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${editorMode === 'preview' ? 'editor-tab-active' : 'editor-tab-inactive'}`}><Eye size={14}/> Preview</button>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={saveArticle} className="p-3 bg-green-500 rounded-xl text-black hover:bg-green-400 active:scale-95 transition-transform"><Save size={18}/></button>
-                                <button onClick={() => setIsEditingArticle(false)} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 active:scale-95 transition-transform"><X size={18}/></button>
-                            </div>
-                        </div>
-                        {editorMode === 'write' ? (
-                            <div className="flex flex-col gap-4 bg-[#15171e] p-4 rounded-3xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95">
-                                <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar shrink-0">
-                                    <button onClick={() => insertWidget('match')} className="px-3 py-2 bg-tennis-lime/10 text-tennis-lime border border-tennis-lime/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-tennis-lime/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-transform"><Swords size={12}/> Matchup</button>
-                                    <button onClick={() => insertWidget('bsi')} className="px-3 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-transform"><Gauge size={12}/> BSI</button>
-                                    <button onClick={() => articleImageInputRef.current?.click()} className="px-3 py-2 bg-white/5 text-gray-300 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-transform"><ImageIcon size={12}/> Image</button>
-                                    <button onClick={toggleBold} className="px-3 py-2 bg-white/5 text-gray-300 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-transform"><Type size={12}/> Bold</button>
-                                </div>
-                                <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white font-black text-lg" placeholder="Headline" value={articleForm.title} onChange={e => setArticleForm({...articleForm, title: e.target.value})} />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <input className="bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-mono" placeholder="slug-url" value={articleForm.slug} onChange={e => setArticleForm({...articleForm, slug: e.target.value})} />
-                                    <input className="bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs" placeholder="Hero Image URL" value={articleForm.hero_image_url} onChange={e => setArticleForm({...articleForm, hero_image_url: e.target.value})} />
-                                </div>
-                                <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm h-24 shrink-0" placeholder="SEO Excerpt" value={articleForm.excerpt} onChange={e => setArticleForm({...articleForm, excerpt: e.target.value})} />
-                                <textarea id="article-editor" className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white font-mono text-sm leading-relaxed focus:border-tennis-lime outline-none resize-none min-h-[400px]" placeholder="Write your intelligence report here..." value={articleForm.content} onChange={e => setArticleForm({...articleForm, content: e.target.value})} />
-                                <div className="flex flex-col md:flex-row items-center gap-4 bg-black/20 p-2 rounded-xl">
-                                    <input className="w-full bg-transparent border-none text-white text-xs outline-none p-2" placeholder="Tags (comma separated)" value={articleTagsInput} onChange={e => setArticleTagsInput(e.target.value)} />
-                                    <label className="flex items-center gap-2 cursor-pointer p-2 w-full md:w-auto bg-black/40 md:bg-transparent rounded-lg">
-                                        <input type="checkbox" checked={articleForm.is_published} onChange={e => setArticleForm({...articleForm, is_published: e.target.checked})} className="accent-tennis-lime w-4 h-4" />
-                                        <span className="text-xs font-bold text-gray-300">Live</span>
-                                    </label>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="bg-black p-6 rounded-3xl border border-white/10 min-h-[60vh] animate-in fade-in zoom-in-95">
-                                <div className="prose prose-invert max-w-none">
-                                    <h1 className="text-3xl font-black text-white mb-4 leading-tight">{articleForm.title || 'Untitled Report'}</h1>
-                                    {articleForm.hero_image_url && <img src={articleForm.hero_image_url} className="w-full h-48 object-cover rounded-xl mb-6 opacity-80" />}
-                                    <SmartArticleRenderer content={articleForm.content} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                            {['ALL', 'DRAFT', 'LIVE'].map(filter => (
-                                <button key={filter} onClick={() => setNewsFilter(filter as any)} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newsFilter === filter ? 'bg-white text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>{filter}</button>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {filteredArticles.map(art => (
-                                <div key={art.id} className="bg-[#15171e] p-5 rounded-2xl border border-white/5 flex justify-between items-center group relative overflow-hidden">
-                                    <div className="relative z-10">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            {art.is_published ? <span className="bg-green-500/10 text-green-500 text-[9px] font-black px-2 py-0.5 rounded border border-green-500/20 uppercase">Live</span> : <span className="bg-yellow-500/10 text-yellow-500 text-[9px] font-black px-2 py-0.5 rounded border border-yellow-500/20 uppercase">Draft</span>}
-                                        </div>
-                                        <h4 className="font-bold text-white truncate max-w-[200px] md:max-w-[300px] text-sm md:text-base">{art.title}</h4>
-                                        <div className="text-[10px] text-gray-500 font-mono mt-1">{new Date(art.published_at || new Date()).toLocaleDateString()}</div>
-                                    </div>
-                                    <div className="flex gap-2 relative z-10">
-                                        <button onClick={() => handleEditArticle(art)} className="p-2.5 bg-white/5 rounded-xl hover:bg-white/20 text-white transition-colors active:scale-95"><Edit2 size={16}/></button>
-                                        <button onClick={() => deleteArticle(art.id!)} className="p-2.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors active:scale-95"><Trash2 size={16}/></button>
-                                    </div>
-                                </div>
-                            ))}
-                            {filteredArticles.length === 0 && <div className="text-gray-500 italic p-12 text-center col-span-2 border border-dashed border-white/10 rounded-2xl">No reports found in this category.</div>}
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
       default: // Players (Default Case)
         return (
           <div> 
@@ -2007,17 +1713,25 @@ export function AdminCMS() {
       <ScrollToTop />
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
       
-      {/* HEADER — Apple HIG: Clean, Bold, Content-First */}
+      {/* HEADER — Logo + Aktion (wie alle anderen Seiten) */}
       <div className="mb-6 md:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight capitalize">
-                {tabs.find(t => t.id === activeTab)?.label || 'Admin'}
-            </h1>
-            {activeTab === 'ai-agent' && <p className="text-gray-400 text-xs mt-1">Tägliche Reports & Risikoregeln</p>}
-            {activeTab === 'players' && <p className="text-gray-400 text-xs mt-1">Spieler-Verwaltung & Scouting</p>}
-            {activeTab === 'metrics' && <p className="text-gray-400 text-xs mt-1">Performance Dashboard</p>}
-            {activeTab === 'support' && <p className="text-gray-400 text-xs mt-1">Tickets & Feedback</p>}
-            {activeTab === 'settings' && <p className="text-gray-400 text-xs mt-1">Courts, Promos & Designs</p>}
+        <div className="flex items-center gap-4">
+            <a href="/scout" className="shrink-0">
+                <BrandLogo className="h-7 md:h-8 text-white" />
+            </a>
+            <div className="h-8 w-px bg-white/10 hidden md:block"></div>
+            <div>
+                <h1 className="text-lg md:text-2xl font-black text-white tracking-tight capitalize">
+                    {tabs.find(t => t.id === activeTab)?.label || 'Admin'}
+                </h1>
+                <p className="text-gray-500 text-[10px] md:text-xs font-mono uppercase tracking-widest mt-0.5">
+                    {activeTab === 'ai-agent' && 'Tägliche Reports & Risikoregeln'}
+                    {activeTab === 'players' && 'Spieler-Verwaltung & Scouting'}
+                    {activeTab === 'metrics' && 'Performance Dashboard'}
+                    {activeTab === 'support' && 'Tickets & Feedback'}
+                    {activeTab === 'settings' && 'Courts, Promos & Designs'}
+                </p>
+            </div>
         </div>
         {activeTab === 'players' && (
             <button onClick={() => setShowNewPlayerForm(true)} className="w-full md:w-auto flex items-center justify-center gap-3 bg-tennis-lime text-black px-6 py-3.5 rounded-2xl hover:scale-105 hover:shadow-[0_0_30px_rgba(132,204,22,0.4)] font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"><Plus size={18} strokeWidth={3} /> <span>Neuer Spieler</span></button>
@@ -2039,22 +1753,32 @@ export function AdminCMS() {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation — Apple Tab Bar Style */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/70 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex justify-around items-center h-16 px-2">
+      {/* Mobile Bottom Navigation — Exakt wie App MobileTabBar (ios-tab-bar) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pointer-events-none px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <nav className="ios-tab-bar pointer-events-auto">
+          <div className="ios-tab-inner">
             {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center justify-center gap-1 min-w-[56px] py-1.5 rounded-xl transition-all active:scale-90 ${isActive ? 'text-tennis-lime' : 'text-gray-500'}`}>
-                        <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
-                        <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-tennis-lime' : 'text-gray-500'}`}>{tab.label}</span>
-                        {isActive && <div className="w-1 h-1 bg-tennis-lime rounded-full mt-0.5"></div>}
-                    </button>
-                )
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className="ios-tab-item group relative"
+                >
+                  {isActive && (
+                    <div className="absolute inset-x-1.5 inset-y-1 bg-white/[0.06] border border-white/[0.04] rounded-xl z-0"></div>
+                  )}
+                  <div className={`ios-tab-content relative z-10 ${isActive ? 'ios-tab-active' : 'ios-tab-inactive'}`}>
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                    <span className="ios-tab-label">{tab.label}</span>
+                  </div>
+                </button>
+              )
             })}
-        </div>
-      </nav>
+          </div>
+        </nav>
+      </div>
 
       <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
           {renderContent()}
