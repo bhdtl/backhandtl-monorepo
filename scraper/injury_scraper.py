@@ -38,16 +38,22 @@ def get_api():
         # Account will be added lazily on first search
     return _api_instance
 
+_account_added = False
+
 async def ensure_account():
-    """Add account to the pool if not already present."""
+    """Add account to the pool only once."""
+    global _account_added
+    if _account_added:
+        return
     api = get_api()
     try:
         await api.pool.add_account_cookies(
             'injury_bot',
             f'auth_token={TWITTER_AUTH}; ct0={TWITTER_CT0}'
         )
+        _account_added = True
     except Exception:
-        pass  # Account already exists, that's fine
+        _account_added = True  # Already exists, that's fine
 
 
 def load_player_surnames():
