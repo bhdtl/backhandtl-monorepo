@@ -104,13 +104,13 @@ async def search_edgeaiapp():
         return []
 
 
-def tweet_already_saved(tweet_id):
-    """Check if tweet already exists in DB."""
+def load_saved_tweet_ids():
+    """Load all existing tweet IDs from DB (for bulk dedup)."""
     try:
-        resp = supabase.table('player_injury_intel').select('tweet_id').eq('tweet_id', tweet_id).execute()
-        return len(resp.data) > 0
+        resp = supabase.table('player_injury_intel').select('tweet_id').execute()
+        return {row['tweet_id'] for row in resp.data}
     except Exception:
-        return False
+        return set()
 
 
 def save_to_supabase(tweet, analysis):
@@ -198,8 +198,17 @@ async def run_scan():
     surnames = load_player_surnames()
     print(f"📊 Loaded {len(surnames)} player surnames")
     
+    # Load ALL existing tweet IDs for bulk dedup
+    saved_ids = load_saved_tweet_ids()
+    print(f"📋 Loaded {len(saved_ids)} existing tweet IDs for dedup")
+    
+    # Only keep tweets from last 7 days
+    cutoff_date = datetime.now(timezone.utc).timestamp() - (7 * 24 * 60 * 60)
+    
     total_tweets = 0
     total_saved = 0
+    total_skipped_old = 0
+    total_skipped_dup = 0
     
     # ── 1. @edgeAIapp (trusted source) ──
     print(f"\n🔎 [1/2] Searching @edgeAIapp...")
@@ -208,9 +217,21 @@ async def run_scan():
     total_tweets += len(edge_tweets)
     
     for tweet in edge_tweets:
-        if tweet_already_saved(tweet['id']):
-            print(f"  ⏭️ Already in DB: {tweet['text'][:50]}...")
+        # Bulk dedup check
+        if tweet['id'] in saved_ids:
+            total_skipped_dup += 1
             continue
+        
+        # Skip old tweets (>7 days)
+        try:
+            tweet_ts = datetime.fromisoformat(tweet['date'].replace('Z', '+00:00')).timestamp()
+            if tweet_ts < cutoff_date:
+                total_skipped_old += 1
+                continue
+        except Exception:
+            pass
+        
+        total_tweets += 1
         analysis = analyze_with_gpt(tweet['text'], surnames)
         if analysis.get('is_injury_news') or analysis.get('is_mto'):
             if save_to_supabase(tweet, analysis):
@@ -236,8 +257,21 @@ async def run_scan():
             tweets = await search_twitter(query, max_results=5)
             
             for tweet in tweets:
-                if tweet_already_saved(tweet['id']):
+                # Bulk dedup check
+                if tweet['id'] in saved_ids:
+                    total_skipped_dup += 1
                     continue
+                
+                # Skip old tweets (>7 days)
+                try:
+                    tweet_ts = datetime.fromisoformat(tweet['date'].replace('Z', '+00:00')).timestamp()
+                    if tweet_ts < cutoff_date:
+                        total_skipped_old += 1
+                        continue
+                except Exception:
+                    pass
+                
+                total_tweets += 1
                 analysis = analyze_with_gpt(tweet['text'], surnames)
                 if analysis.get('is_tennis_related') and (analysis.get('is_injury_news') or analysis.get('is_mto')):
                     if save_to_supabase(tweet, analysis):
@@ -254,8 +288,10 @@ async def run_scan():
     print(f"📊 SUMMARY")
     print(f"  Players in DB: {len(surnames)}")
     print(f"  Players searched: {len(selected)}")
-    print(f"  Total tweets: {total_tweets}")
+    print(f"  Total tweets found: {total_tweets}")
     print(f"  Saved to DB: {total_saved}")
+    print(f"  Skipped (duplicates): {total_skipped_dup}")
+    print(f"  Skipped (>7 days old): {total_skipped_old}")
     print(f"{'='*60}")
     
     return total_saved
