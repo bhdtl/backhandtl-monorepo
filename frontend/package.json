@@ -9,7 +9,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "api:login": "supabase login",
-    "api:deploy": "supabase functions deploy smart-api --project-ref suoaznisiowoolxilaju --no-verify-jwt"
+    "api:deploy": "supabase functions deploy smart-api --project-ref suoaznisiowoolxilaju --no-verify-jwt",
+    "webhook:deploy": "supabase functions deploy lemon-webhook --project-ref suoaznisiowoolxilaju --no-verify-jwt",
+    "webhook:deploy:all": "npm run api:deploy && npm run webhook:deploy"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
