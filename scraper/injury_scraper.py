@@ -21,6 +21,8 @@ TWITTER_CT0 = os.getenv("TWITTER_CT0")
 BATCH_SIZE = 15  # Spieler pro Query
 MAX_SEARCHES = 15  # Max Suchen pro Lauf (Rate Limit safe)
 INJURY_KEYWORDS = ['MTO', 'medical timeout', 'withdrawal', 'injury', 'retired', 'medical']
+PLAYER_SEARCH_KEYWORDS = ['MTO', 'medical timeout', 'injury', 'withdrawal']
+MAX_PLAYERS_PER_RUN = 80  # Max Spieler pro Lauf (Rate Limit safe)
 
 # ── Supabase ────────────────────────────────────────────────
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -156,7 +158,7 @@ def save_to_supabase(tweet, analysis):
 
 
 def analyze_with_gpt(tweet_text, player_names):
-    """Simple GPT analysis using OpenRouter."""
+    """GPT analysis — checks if it's a TENNIS player and injury/MTO news."""
     import httpx
     
     api_key = os.getenv("OPENROUTER_API_KEY")
@@ -169,10 +171,13 @@ def analyze_with_gpt(tweet_text, player_names):
             'summary': tweet_text[:200]
         }
     
-    prompt = f"""Analyze this tennis tweet for injury/MTO intel.
+    prompt = f"""Analyze this tweet for TENNIS injury/MTO intel.
+
 Tweet: "{tweet_text}"
 
-Known players in DB: {', '.join(player_names[:20])}
+Known tennis players in DB: {', '.join(player_names[:30])}
+
+IMPORTANT: Only return is_tennis_related=true if this is about a TENNIS player (not boxing, table tennis, football, etc.)
 
 Return JSON:
 {{
@@ -219,43 +224,78 @@ Return JSON:
 
 
 async def run_scan():
-    """Main scan: load players → batch search → analyze → save."""
+    """Main scan: @edgeAIapp + player name searches."""
     print(f"\n{'='*60}")
     print(f"🏥 INJURY INTEL SCAN v2.0 — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}")
     
-    # Load player names for GPT context
+    # Load player names
     surnames = load_player_surnames()
-    print(f"📊 Loaded {len(surnames)} player surnames for GPT context")
+    print(f"📊 Loaded {len(surnames)} player surnames")
     
     total_tweets = 0
     total_saved = 0
     
-    # ONLY search @edgeAIapp — our trusted source
-    print(f"\n🔎 Searching @edgeAIapp (trusted source only)...")
+    # ── 1. @edgeAIapp (trusted source) ──
+    print(f"\n🔎 [1/2] Searching @edgeAIapp...")
     edge_tweets = await search_edgeaiapp()
     print(f"  📊 Found {len(edge_tweets)} relevant tweets")
     total_tweets += len(edge_tweets)
     
     for tweet in edge_tweets:
-        # Skip if already saved
         if tweet_already_saved(tweet['id']):
             print(f"  ⏭️ Already in DB: {tweet['text'][:50]}...")
             continue
         
         analysis = analyze_with_gpt(tweet['text'], surnames)
-        # Only save if it's actual injury/MTO news
         if analysis.get('is_injury_news') or analysis.get('is_mto'):
             if save_to_supabase(tweet, analysis):
                 total_saved += 1
                 player = analysis.get('player_name', '?')
                 print(f"  ✅ Saved: {player} ({analysis.get('injury_type', 'unknown')})")
         else:
-            print(f"  ⏭️ Skipped (not injury news): {tweet['text'][:60]}...")
+            print(f"  ⏭️ Skipped: {tweet['text'][:60]}...")
+    
+    # ── 2. Player name + MTO/medical timeout searches ──
+    print(f"\n🔎 [2/2] Searching player names + MTO/medical timeout...")
+    
+    # Pick random players for this run
+    if len(surnames) > MAX_PLAYERS_PER_RUN:
+        selected = random.sample(surnames, MAX_PLAYERS_PER_RUN)
+    else:
+        selected = surnames
+    
+    print(f"  📋 Selected {len(selected)} players for this run")
+    
+    for i, surname in enumerate(selected):
+        # Search for this player + injury keywords
+        for keyword in PLAYER_SEARCH_KEYWORDS:
+            query = f'"{surname}" {keyword}'
+            tweets = await search_twitter_batch(query, max_results=5)
+            
+            for tweet in tweets:
+                if tweet_already_saved(tweet['id']):
+                    continue
+                
+                analysis = analyze_with_gpt(tweet['text'], surnames)
+                # Only save if it's a TENNIS player and injury/MTO news
+                if analysis.get('is_tennis_related') and (analysis.get('is_injury_news') or analysis.get('is_mto')):
+                    if save_to_supabase(tweet, analysis):
+                        total_saved += 1
+                        player = analysis.get('player_name', '?')
+                        print(f"  ✅ Saved: {player} ({analysis.get('injury_type', 'unknown')})")
+            
+            # Rate limit: small delay between searches
+            import time; time.sleep(1)
+        
+        # Progress indicator
+        if (i + 1) % 10 == 0:
+            print(f"  📊 Progress: {i+1}/{len(selected)} players searched")
     
     print(f"\n{'='*60}")
     print(f"📊 SUMMARY")
     print(f"  Players in DB: {len(surnames)}")
+    print(f"  Players searched: {len(selected)}")
     print(f"  Total tweets: {total_tweets}")
     print(f"  Saved to DB: {total_saved}")
     print(f"{'='*60}")
