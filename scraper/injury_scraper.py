@@ -135,7 +135,7 @@ def translate_text(text, target_lang="de"):
     import httpx
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
-        return text  # No API key, return original
+        return text
     
     try:
         resp = httpx.post(
@@ -154,32 +154,72 @@ def translate_text(text, target_lang="de"):
         return text
 
 
-def guardar_en_db(hash_id, titulo, resumen, fuente, link, fecha, tipo):
-    """Save news to Supabase with translation."""
+def extract_players(text):
+    """Extract all tennis player names from text using GPT."""
+    import httpx
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return []
+    
     try:
+        resp = httpx.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers={'Authorization': f'Bearer {api_key}'},
+            json={
+                'model': 'openai/gpt-4o-mini',
+                'messages': [{'role': 'user', 'content': f'Extract ALL tennis player names from this text. Return ONLY a JSON array of names (first and last name). No explanation.\n\nText: "{text}"\n\nExample: ["Carlos Alcaraz", "Novak Djokovic"]'}],
+                'max_tokens': 200
+            },
+            timeout=30
+        )
+        content = resp.json()['choices'][0]['message']['content'].strip()
+        start = content.find('[')
+        end = content.rfind(']') + 1
+        if start >= 0:
+            return json.loads(content[start:end])
+    except Exception as e:
+        log.error(f"Player extraction error: {e}")
+    return []
+
+
+def guardar_en_db(hash_id, titulo, resumen, fuente, link, fecha, tipo):
+    """Save news to Supabase with translation and multi-player extraction."""
+    try:
+        # Extract all player names from the article
+        players = extract_players(f"{titulo} {resumen}")
+        
         # Translate title and summary to German
         titulo_de = translate_text(titulo, "de")
         resumen_de = translate_text(resumen, "de")
         
-        data = {
-            'tweet_id': hash_id,
-            'tweet_text': f"{titulo}\n\n{resumen}"[:2000],
-            'tweet_author': fuente,
-            'tweet_url': link,
-            'tweet_date': fecha,
-            'is_tennis_related': True,
-            'is_injury_news': True,
-            'credibility': 100 if "🔴" in credibilidad(tipo, fuente) else 70,
-            'player_name': None,
-            'injury_type': 'injury',
-            'severity': 'unknown',
-            'summary_kurz': titulo_de[:200],
-            'is_mto': 'mto' in titulo.lower() or 'medical timeout' in titulo.lower(),
-            'reasoning': f"Source: {fuente} | Type: {tipo}",
-            'source': f'injury_bot_v3_{tipo}',
-            'analyzed_at': datetime.now(timezone.utc).isoformat()
-        }
-        supabase.table('player_injury_intel').upsert(data, on_conflict='tweet_id').execute()
+        # If no players found, save with player_name=None
+        if not players:
+            players = [None]
+        
+        # Create a separate entry for each player
+        for player in players:
+            player_hash = hashlib.md5(f"{hash_id}_{player}".encode()).hexdigest() if player else hash_id
+            
+            data = {
+                'tweet_id': player_hash,
+                'tweet_text': f"{titulo}\n\n{resumen}"[:2000],
+                'tweet_author': fuente,
+                'tweet_url': link,
+                'tweet_date': fecha,
+                'is_tennis_related': True,
+                'is_injury_news': True,
+                'credibility': 100 if "🔴" in credibilidad(tipo, fuente) else 70,
+                'player_name': player,
+                'injury_type': 'injury',
+                'severity': 'unknown',
+                'summary_kurz': titulo_de[:200],
+                'is_mto': 'mto' in titulo.lower() or 'medical timeout' in titulo.lower(),
+                'reasoning': f"Source: {fuente} | Type: {tipo}",
+                'source': f'injury_bot_v3_{tipo}',
+                'analyzed_at': datetime.now(timezone.utc).isoformat()
+            }
+            supabase.table('player_injury_intel').upsert(data, on_conflict='tweet_id').execute()
+        
         return True
     except Exception as e:
         log.error(f"DB error: {e}")

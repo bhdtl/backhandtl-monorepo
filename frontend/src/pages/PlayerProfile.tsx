@@ -28,7 +28,9 @@ import {
   Activity,
   Heart,
   Radar,
-  Share2
+  Share2,
+  AlertTriangle,
+  ExternalLink
 } from 'lucide-react';
 
 interface Player {
@@ -87,14 +89,16 @@ export const PlayerProfile: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
+  const [injuryData, setInjuryData] = useState<any[]>([]);
 
   const touchStartX = useRef<number>(0);
-  const tabs = ['Overview', 'Stats', 'Scouting', 'Load', 'Form'];
+  const tabs = ['Overview', 'Stats', 'Scouting', 'Load', 'Form', 'Injury'];
 
   useEffect(() => {
     if (id) {
       loadPlayerData();
       loadFavoritesCount();
+      loadInjuryData();
       if (user) {
         checkFavoriteStatus();
       }
@@ -204,6 +208,22 @@ export const PlayerProfile: React.FC = () => {
       setShowToast(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadInjuryData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('player_injury_intel')
+        .select('*')
+        .eq('player_name', player?.last_name || '')
+        .order('tweet_date', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      setInjuryData(data || []);
+    } catch (e) {
+      console.error('Error loading injury data:', e);
     }
   };
 
@@ -605,6 +625,74 @@ export const PlayerProfile: React.FC = () => {
             {/* Form Tab */}
             {activeTab === 'Form' && (
               <VegasFormWidget playerName={player.last_name} dbFormRating={player.form_rating} matches={matches} />
+            )}
+
+            {/* Injury Tab */}
+            {activeTab === 'Injury' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                    <AlertTriangle size={16} className="text-red-500" />
+                  </div>
+                  <h3 className="text-white font-black text-sm uppercase tracking-wider">
+                    {t('playerProfile.injuryIntel', 'Injury Intel')}
+                  </h3>
+                </div>
+                
+                {injuryData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Brain size={32} className="text-gray-700 mx-auto mb-3" />
+                    <p className="text-gray-500 font-bold text-sm">
+                      {t('playerProfile.noInjuryData', 'No injury data found for this player.')}
+                    </p>
+                    <p className="text-gray-600 text-xs mt-1">
+                      {t('playerProfile.injuryBotHint', 'The Injury Bot will automatically detect injury news.')}
+                    </p>
+                  </div>
+                ) : (
+                  injuryData.map((item: any) => (
+                    <div 
+                      key={item.id}
+                      className="bg-[#15171e]/70 backdrop-blur-md rounded-2xl border border-white/5 p-4 hover:border-white/10 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {item.is_mto && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                              MTO
+                            </span>
+                          )}
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
+                            {item.injury_type || 'Injury'}
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-gray-600 font-mono">
+                          {new Date(item.tweet_date || item.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })}
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-300 text-sm font-semibold leading-relaxed mb-2">
+                        {item.summary_kurz || item.tweet_text}
+                      </p>
+                      
+                      {item.reasoning && (
+                        <p className="text-gray-500 text-xs leading-relaxed mb-2">
+                          {item.reasoning}
+                        </p>
+                      )}
+                      
+                      <a 
+                        href={item.tweet_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[9px] text-gray-500 hover:text-tennis-lime transition-colors font-bold uppercase tracking-widest flex items-center gap-1"
+                      >
+                        <ExternalLink size={10} /> {t('injuryIntel.source', 'Source')}
+                      </a>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

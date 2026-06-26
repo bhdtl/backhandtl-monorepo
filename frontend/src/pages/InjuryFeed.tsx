@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { 
   AlertTriangle, Shield, ExternalLink, Clock, 
   Filter, TrendingUp, AlertCircle, CheckCircle2,
-  Brain, MessageCircle, RefreshCw
+  Brain, MessageCircle, RefreshCw, X, ChevronRight
 } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
 
@@ -76,14 +77,18 @@ function CredibilityBadge({ credibility }: { credibility: number }) {
   );
 }
 
-function InjuryCard({ item }: { item: InjuryIntel }) {
+function InjuryCard({ item, onClick }: { item: InjuryIntel; onClick: () => void }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const severity = severityConfig[item.severity] || severityConfig.unknown;
   const injuryType = item.injury_type ? injuryTypeConfig[item.injury_type] : null;
   const timeAgo = getTimeAgo(item.tweet_date || item.created_at);
 
   return (
-    <div className="bg-[#15171e]/70 backdrop-blur-md rounded-3xl border border-white/5 p-5 md:p-6 hover:border-white/10 hover:shadow-2xl transition-all duration-300 group">
+    <div 
+      onClick={onClick}
+      className="bg-[#15171e]/70 backdrop-blur-md rounded-3xl border border-white/5 p-5 md:p-6 hover:border-white/10 hover:shadow-2xl transition-all duration-300 group cursor-pointer active:scale-[0.98]"
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -108,12 +113,19 @@ function InjuryCard({ item }: { item: InjuryIntel }) {
         </div>
       </div>
 
-      {/* Player Name */}
+      {/* Player Name — clickable to profile */}
       {item.player_name && (
         <div className="mb-2">
-          <span className="text-tennis-lime font-black text-sm uppercase tracking-wide">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/player/${item.player_name}`);
+            }}
+            className="text-tennis-lime font-black text-sm uppercase tracking-wide hover:underline flex items-center gap-1"
+          >
             {item.player_name}
-          </span>
+            <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -142,13 +154,102 @@ function InjuryCard({ item }: { item: InjuryIntel }) {
             <span className="text-[9px] font-mono">🔁 {item.retweets}</span>
           </div>
         </div>
+        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1">
+          {t('injuryIntel.readMore', 'Read More')} <ChevronRight size={10} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function InjuryDetailModal({ item, onClose }: { item: InjuryIntel; onClose: () => void }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const severity = severityConfig[item.severity] || severityConfig.unknown;
+  const injuryType = item.injury_type ? injuryTypeConfig[item.injury_type] : null;
+  const timeAgo = getTimeAgo(item.tweet_date || item.created_at);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="bg-[#1a1c24] rounded-t-3xl md:rounded-3xl border border-white/10 w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 md:p-8 animate-in slide-in-from-bottom duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2 flex-wrap">
+            <CredibilityBadge credibility={item.credibility} />
+            {item.is_mto && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <TrendingUp size={10} /> MTO
+              </span>
+            )}
+            {injuryType && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10 ${injuryType.color}`}>
+                {injuryType.icon} {injuryType.label}
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+            <X size={16} className="text-gray-400" />
+          </button>
+        </div>
+
+        {/* Player Name */}
+        {item.player_name && (
+          <button
+            onClick={() => {
+              onClose();
+              navigate(`/player/${item.player_name}`);
+            }}
+            className="text-tennis-lime font-black text-lg uppercase tracking-wide hover:underline flex items-center gap-1 mb-4"
+          >
+            {item.player_name}
+            <ChevronRight size={16} />
+          </button>
+        )}
+
+        {/* Title */}
+        <h2 className="text-white font-black text-xl leading-tight mb-4">
+          {item.summary_kurz || item.tweet_text}
+        </h2>
+
+        {/* Full Text */}
+        <div className="bg-black/30 rounded-2xl p-4 mb-4 border border-white/5">
+          <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+            {item.tweet_text}
+          </p>
+        </div>
+
+        {/* AI Analysis */}
+        {item.reasoning && (
+          <div className="bg-black/30 rounded-2xl p-4 mb-4 border border-white/5">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Brain size={12} className="text-purple-400" />
+              <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">{t('injuryIntel.aiAnalysis', 'AI Analysis')}</span>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">{item.reasoning}</p>
+          </div>
+        )}
+
+        {/* Meta */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-gray-500 font-mono">@{item.tweet_author}</span>
+            <span className="text-[10px] text-gray-500 font-mono">❤️ {item.likes}</span>
+            <span className="text-[10px] text-gray-500 font-mono">🔁 {item.retweets}</span>
+          </div>
+          <span className="text-[10px] text-gray-500 font-mono">{timeAgo}</span>
+        </div>
+
+        {/* Source Link */}
         <a 
           href={item.tweet_url} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-[9px] text-gray-500 hover:text-tennis-lime transition-colors font-bold uppercase tracking-widest"
+          className="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"
         >
-          <ExternalLink size={10} /> {t('injuryIntel.source', 'Source')}
+          <ExternalLink size={14} /> {t('injuryIntel.openSource', 'Open Original Source')}
         </a>
       </div>
     </div>
@@ -176,6 +277,7 @@ export function InjuryFeed() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [error, setError] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InjuryIntel | null>(null);
 
   useEffect(() => {
     loadInjuryData();
@@ -315,7 +417,11 @@ export function InjuryFeed() {
           </div>
         ) : (
           filteredItems.map(item => (
-            <InjuryCard key={item.id} item={item} />
+            <InjuryCard 
+              key={item.id} 
+              item={item} 
+              onClick={() => setSelectedItem(item)}
+            />
           ))
         )}
       </div>
@@ -329,6 +435,14 @@ export function InjuryFeed() {
           <RefreshCw size={14} /> {t('injuryIntel.refresh', 'Refresh Feed')}
         </button>
       </div>
+
+      {/* Detail Modal */}
+      {selectedItem && (
+        <InjuryDetailModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+        />
+      )}
     </div>
   );
 }
