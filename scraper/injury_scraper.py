@@ -22,7 +22,7 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-CHECK_INTERVAL = 30  # minutes
+CHECK_INTERVAL = 15  # minutes
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -130,9 +130,37 @@ def ya_existe(hash_id):
         return False
 
 
-def guardar_en_db(hash_id, titulo, resumen, fuente, link, fecha, tipo):
-    """Save news to Supabase."""
+def translate_text(text, target_lang="de"):
+    """Translate text using OpenRouter GPT."""
+    import httpx
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return text  # No API key, return original
+    
     try:
+        resp = httpx.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers={'Authorization': f'Bearer {api_key}'},
+            json={
+                'model': 'openai/gpt-4o-mini',
+                'messages': [{'role': 'user', 'content': f'Translate this tennis news to {target_lang}. Keep it concise and accurate. Return ONLY the translation, no explanation.\n\n{text}'}],
+                'max_tokens': 300
+            },
+            timeout=30
+        )
+        return resp.json()['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        log.error(f"Translation error: {e}")
+        return text
+
+
+def guardar_en_db(hash_id, titulo, resumen, fuente, link, fecha, tipo):
+    """Save news to Supabase with translation."""
+    try:
+        # Translate title and summary to German
+        titulo_de = translate_text(titulo, "de")
+        resumen_de = translate_text(resumen, "de")
+        
         data = {
             'tweet_id': hash_id,
             'tweet_text': f"{titulo}\n\n{resumen}"[:2000],
@@ -145,7 +173,7 @@ def guardar_en_db(hash_id, titulo, resumen, fuente, link, fecha, tipo):
             'player_name': None,
             'injury_type': 'injury',
             'severity': 'unknown',
-            'summary_kurz': titulo[:200],
+            'summary_kurz': titulo_de[:200],
             'is_mto': 'mto' in titulo.lower() or 'medical timeout' in titulo.lower(),
             'reasoning': f"Source: {fuente} | Type: {tipo}",
             'source': f'injury_bot_v3_{tipo}',
