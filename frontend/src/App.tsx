@@ -20,7 +20,6 @@ import { PricingPage } from './pages/PricingPage';
 import { SupportPage } from './pages/SupportPage';
 import { TournamentOracle } from './pages/TournamentOracle';
 import { AIPicksPage } from './pages/AIPicksPage';
-import { InjuryFeed } from './pages/InjuryFeed';
 
 
 import { AuthModal } from './components/AuthModal';
@@ -370,7 +369,6 @@ function AppContent() {
           <Route path="/courts" element={<CourtDatabase />} />
           <Route path="/court/:id" element={<CourtProfile />} />
           <Route path="/performance" element={<PerformancePage />} />
-          <Route path="/injuries" element={<AnalyticsGuard><InjuryFeed /></AnalyticsGuard>} />
           <Route path="/watchlist" element={<Watchlist onPlayerClick={(id) => navigate(`/player/${id}`)} />} />
           <Route 
             path="/player/:id" 

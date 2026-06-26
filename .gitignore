@@ -48,3 +48,4 @@ dist-ssr/
 .env.production.local
 **/.env
 **/.env.*
+.aider*

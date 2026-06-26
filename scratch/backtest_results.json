@@ -1,0 +1,38 @@
+{
+  "BASELINE (Aktuell)": {
+    "total_picks": 285,
+    "wins": 138,
+    "losses": 147,
+    "win_rate_pct": 48.4,
+    "total_staked": 2.96,
+    "total_pnl": -0.15,
+    "roi_pct": -5.19
+  },
+  "Option A: Haircut 50%": {
+    "total_picks": 355,
+    "wins": 166,
+    "losses": 189,
+    "win_rate_pct": 46.8,
+    "total_staked": 3.73,
+    "total_pnl": -0.44,
+    "roi_pct": -11.84
+  },
+  "Option B: Niedrigere Cutoffs": {
+    "total_picks": 312,
+    "wins": 152,
+    "losses": 160,
+    "win_rate_pct": 48.7,
+    "total_staked": 3.23,
+    "total_pnl": -0.19,
+    "roi_pct": -5.87
+  },
+  "Option C: Hybrid (A+B)": {
+    "total_picks": 370,
+    "wins": 176,
+    "losses": 194,
+    "win_rate_pct": 47.6,
+    "total_staked": 3.88,
+    "total_pnl": -0.42,
+    "roi_pct": -10.81
+  }
+}
