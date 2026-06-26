@@ -126,7 +126,7 @@ function MobileHeader() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/injuries', '/courts', '/watchlist', '/pricing'];
+    const mainTabs = ['/scout', '/scanner', '/picks', '/matchup', '/oracle', '/performance', '/courts', '/watchlist', '/pricing'];
     const isMainTab = mainTabs.includes(location.pathname);
 
     const getPageTitle = (path: string) => {
@@ -137,7 +137,6 @@ function MobileHeader() {
         if (path === '/watchlist') return t('sidebar.watchlist', 'Watchlist');
         if (path === '/admin') return t('sidebar.admin', 'Admin');
         if (path === '/performance') return t('sidebar.aiPerformance', 'AI Performance');
-        if (path === '/injuries') return 'Injury Intel';
         return t('navigation.details', 'Details');
     };
 

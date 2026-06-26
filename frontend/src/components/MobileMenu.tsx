@@ -123,8 +123,7 @@ export function MobileMenu({ isOpen, onClose, currentPage, onNavigate, onOpenMem
         { id: 'matchup', label: t('mobileMenu.nav.matchupAnalyzer'), icon: Swords },
         { id: 'oracle', label: t('mobileMenu.nav.tournamentOracle', { defaultValue: 'Tournament Oracle' }), icon: Radar },
         { id: 'courts', label: t('mobileMenu.nav.bsiCourtIndex'), icon: Gauge },
-        { id: 'performance', label: t('mobileMenu.nav.aiPerformance'), icon: TrendingUp },
-        { id: 'injuries', label: t('mobileMenu.nav.injuryIntel', { defaultValue: 'Injury Intel' }), icon: AlertTriangle, badge: t('mobileMenu.badges.new', { defaultValue: 'New' }) }
+        { id: 'performance', label: t('mobileMenu.nav.aiPerformance'), icon: TrendingUp }
       ]
     },
     {
