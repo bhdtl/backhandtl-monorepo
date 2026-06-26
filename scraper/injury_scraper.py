@@ -20,8 +20,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 TWITTER_AUTH = os.getenv("TWITTER_AUTH_TOKEN")
 TWITTER_CT0 = os.getenv("TWITTER_CT0")
-PLAYER_SEARCH_KEYWORDS = ['MTO', 'medical timeout', 'injury', 'withdrawal']
-MAX_PLAYERS_PER_RUN = 80
+PLAYER_SEARCH_KEYWORDS = ['MTO', 'medical timeout']
+MAX_PLAYERS_PER_RUN = 20
 
 # ── Supabase ────────────────────────────────────────────────
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -285,7 +285,7 @@ async def run_scan():
                         player = analysis.get('player_name', '?')
                         print(f"  ✅ Saved: {player} ({analysis.get('injury_type', 'unknown')})")
             
-            time.sleep(1)  # Rate limit
+            time.sleep(2)  # Rate limit — 2 sec between searches
         
         if (i + 1) % 10 == 0:
             print(f"  📊 Progress: {i+1}/{len(selected)} players searched")
