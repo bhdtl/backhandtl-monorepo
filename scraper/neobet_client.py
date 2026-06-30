@@ -236,6 +236,7 @@ class NeoBetAPI:
         odds_dict = {
             "Home/Away": {},
             "Spread": [],
+            "SetHandicap": [],
             "Over/Under": [],
             "FirstSetWinner": {},
             "RawMarkets": match_data.get("betmarkets", [])  # Keep raw markets for direct deep linking!
@@ -270,7 +271,9 @@ class NeoBetAPI:
                     }
             
             # 2. Handicap Spreads
-            elif betting_type == "Spread" or "Game_MATCH_HC2W" in market_key:
+            elif (betting_type in ("Spread", "AsianHandicap", "Handicap") or 
+                  "Game_MATCH_HC2W" in market_key or "Set_MATCH_HC2W" in market_key):
+                
                 handicap_val = market.get("handicap")
                 if handicap_val is None:
                     # Parse handicap from key e.g. Game_MATCH_HC2W(-5.5) -> -5.5
@@ -279,6 +282,10 @@ class NeoBetAPI:
                         handicap_val = float(inner)
                     except:
                         continue
+                
+                # Check for Match Win (handicap 0.0) which is handled above
+                if "Set_MATCH_HC2W" in market_key and handicap_val == 0.0:
+                    continue
                 
                 home_odd = 0.0
                 away_odd = 0.0
@@ -297,14 +304,18 @@ class NeoBetAPI:
                         away_key = o_key
                 
                 if home_odd > 0 and away_odd > 0:
-                    odds_dict["Spread"].append({
+                    entry = {
                         "handicap": handicap_val,
                         "market_key": market_key,
                         "odds1": home_odd,
                         "odds2": away_odd,
                         "key1": home_key,
                         "key2": away_key
-                    })
+                    }
+                    if "Set_MATCH_HC2W" in market_key:
+                        odds_dict["SetHandicap"].append(entry)
+                    else:
+                        odds_dict["Spread"].append(entry)
             
             # 3. Totals Over/Under
             elif betting_type == "OverUnder" or "Game_MATCH_OU" in market_key:

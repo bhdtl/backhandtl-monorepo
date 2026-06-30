@@ -1856,6 +1856,42 @@ def count_matches_last_45_days(player_history: List[Dict]) -> int:
             pass
     return count
 
+def calculate_set_handicap_prob(set_probs: Dict[str, float], is_p1: bool, hc: float, best_of: int) -> float:
+    if not set_probs:
+        return 0.5
+    probs = {str(k): float(v) for k, v in set_probs.items()}
+    if best_of == 5:
+        p30 = probs.get("3:0", 0.0) / 100.0
+        p31 = probs.get("3:1", 0.0) / 100.0
+        p32 = probs.get("3:2", 0.0) / 100.0
+        p03 = probs.get("0:3", 0.0) / 100.0
+        p13 = probs.get("1:3", 0.0) / 100.0
+        p23 = probs.get("2:3", 0.0) / 100.0
+        if is_p1:
+            if hc == -2.5: return p30
+            if hc == -1.5: return p30 + p31
+            if hc == 1.5:  return 1.0 - (p03 + p13)
+            if hc == 2.5:  return 1.0 - p03
+        else:
+            p2_hc = -hc
+            if p2_hc == -2.5: return p03
+            if p2_hc == -1.5: return p03 + p13
+            if p2_hc == 1.5:  return 1.0 - (p30 + p31)
+            if p2_hc == 2.5:  return 1.0 - p30
+    else:
+        p20 = probs.get("2:0", 0.0) / 100.0
+        p21 = probs.get("2:1", 0.0) / 100.0
+        p02 = probs.get("0:2", 0.0) / 100.0
+        p12 = probs.get("1:2", 0.0) / 100.0
+        if is_p1:
+            if hc == -1.5: return p20
+            if hc == 1.5:  return 1.0 - p02
+        else:
+            p2_hc = -hc
+            if p2_hc == -1.5: return p02
+            if p2_hc == 1.5:  return 1.0 - p20
+    return 0.5
+
 def calculate_value_metrics(
     fair_prob: float, 
     market_odds: float, 
@@ -2080,10 +2116,60 @@ def calculate_value_metrics(
     if veto_bet:
         pattern_multiplier = 0.0
 
+    # 🚀 PRO BETTING SYNDICATE SEGMENT ADAPTATIONS & ELEVATED SIZING
+    is_grass = (surf or "").lower() == "grass"
+    # A handicap pick has "-" or "+" followed by a number, and "games" or "sets"
+    is_hcap = ("games" in pick_name.lower() or "sets" in pick_name.lower()) and ("-" in pick_name or "+" in pick_name)
+    is_grass_hc_fave = is_grass and is_favorite and is_hcap and "-" in pick_name
+    
+    custom_label = None
+    
+    # Overrides based on profitable segments
+    if is_grass_hc_fave:
+        # Grass Handicap Favorite (historically +46.0% ROI)
+        if edge_percent >= 6.0:
+            max_allowed_stake = 5.0
+            kelly_fraction = 0.30
+            custom_label = "⚡ 5U MAX PLAY (Grass HCP Fave + Micro Edge)"
+        elif edge_percent >= 4.0:
+            max_allowed_stake = 4.0
+            kelly_fraction = 0.22
+            custom_label = "🔥 4U HIGH VALUE (Grass HCP Fave + Strong Edge)"
+        else:
+            max_allowed_stake = 3.0
+            kelly_fraction = 0.18
+            custom_label = "🎯 3U PREMIUM (Grass HCP Fave)"
+    elif is_grass and not is_favorite and market_odds >= 2.00 and market_odds <= 3.00:
+        # Grass Underdog 2.00-3.00 (historically +5.8 - 8.5% ROI)
+        if edge_percent >= 4.0:
+            max_allowed_stake = 3.0
+            kelly_fraction = 0.18
+            custom_label = "🎯 3U PREMIUM (Grass Dog 2.00-3.00 + Micro Edge)"
+        else:
+            max_allowed_stake = 2.0
+            kelly_fraction = 0.12
+            custom_label = "🔬 CORE VALUE (Grass Dog 2.00-3.00)"
+    elif market_odds >= 3.50 and not is_favorite and ("games" not in pick_name.lower() and "sets" not in pick_name.lower()):
+        # Big Dog 3.50+ Moneyline (historically +7.2% ROI)
+        max_allowed_stake = 2.0
+        kelly_fraction = 0.08
+        custom_label = "🐕 1.5U STANDARD (Big Dog 3.5+)"
+    elif (surf or "").lower() == "clay" and not is_favorite and edge_percent < 5.0 and ("games" not in pick_name.lower() and "sets" not in pick_name.lower()):
+        # Clay Moneyline, Edge < 5% (historically +5.4% ROI)
+        max_allowed_stake = 1.5
+        kelly_fraction = 0.08
+        custom_label = "🎾 1.5U STANDARD (Clay ML Low Edge)"
+    elif (surf or "").lower() == "clay" and is_slam and is_favorite and market_odds < 2.00 and ("games" not in pick_name.lower() and "sets" not in pick_name.lower()):
+        # Clay Slam Favorite (historically +1.18% ROI)
+        max_allowed_stake = 2.0
+        kelly_fraction = 0.12
+        custom_label = "🔬 2U SOLID (Clay Slam Favorit)"
+        
+    # Recalculate raw and adjusted stake with the new segment-specific variables if set
     raw_stake = (full_kelly * 100) * kelly_fraction
     adjusted_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
     optimal_stake = round(min(max_allowed_stake, max(0.1, adjusted_stake)), 1)
-    
+
     if veto_bet or optimal_stake <= 0.0:
         return {
             "type": veto_reason or "🛑 SYNDICATE VETO (RISK BARRIER)", 
@@ -2105,14 +2191,18 @@ def calculate_value_metrics(
             "pattern_warning": pattern_warning,
             "pattern_boost": pattern_boost
         }
-    elif optimal_stake >= 2.5:
-        label = "🔥 MAX BOMB (QUANT + SCOUT)"
-    elif optimal_stake >= 1.5:
-        label = "✨ HIGH CONVICTION"
-    elif optimal_stake >= 0.5:
-        label = "🛡️ CORE VALUE"
+    
+    if not custom_label:
+        if optimal_stake >= 3.0:
+            label = "🔥 MAX BOMB (QUANT + SCOUT)"
+        elif optimal_stake >= 1.8:
+            label = "✨ HIGH CONVICTION"
+        elif optimal_stake >= 0.8:
+            label = "🔬 CORE VALUE"
+        else:
+            label = "🔬 MICRO EDGE"
     else:
-        label = "🔬 MICRO EDGE"
+        label = custom_label
 
     return {
         "type": label, 
@@ -2590,6 +2680,7 @@ async def run_pipeline():
                 "bookie_set_odds": bookie_set_odds,
                 "actual_ou_line": actual_ou_line,
                 "neobet_spreads": odds_data.get("Spread", []),
+                "neobet_set_spreads": odds_data.get("SetHandicap", []),
                 "neobet_over_unders": over_under_list,
                 "raw_betmarkets": odds_data.get("RawMarkets", []),
                 "trading_type": fix.get("trading_type", "PreMatch")
@@ -3115,6 +3206,45 @@ async def run_pipeline():
                         candidate_picks.append({
                             "market_type": "HANDICAP",
                             "pick_name": f"{full_n2} {sign2}{-hc} Games",
+                            "market_odds": sp["odds2"],
+                            "fair_odds": fair_away_sp,
+                            "value_metrics": val_away_sp,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": sp["market_key"],
+                                "outcomeKey": sp["key2"]
+                            }
+                        })
+
+                    # 2b. Set Handicap Spreads Candidates
+                    for sp in m.get("neobet_set_spreads", []):
+                        hc = sp["handicap"]
+                        sign1 = "+" if hc > 0 else ""
+                        sign2 = "+" if -hc > 0 else ""
+                        p_home_sp_sim = calculate_set_handicap_prob(sim_result.get('set_probs', {}), is_p1=True, hc=hc, best_of=_best_of)
+                        p_away_sp_sim = 1.0 - p_home_sp_sim
+                        
+                        fair_home_sp = round(1/p_home_sp_sim, 2) if p_home_sp_sim > 0.01 else 99
+                        fair_away_sp = round(1/p_away_sp_sim, 2) if p_away_sp_sim > 0.01 else 99
+                        
+                        val_home_sp = calculate_value_metrics(p_home_sp_sim, sp["odds1"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds1"] <= sp["odds2"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n1, opponent_name=full_n2, player_elo=elo1, opponent_elo=elo2, player_history=p1_history, opponent_history=p2_history, players_list=players, all_skills=all_skills, pick_name=f"{full_n1} {sign1}{hc} Sets")
+                        val_away_sp = calculate_value_metrics(p_away_sp_sim, sp["odds2"], matched_tour_name, ai['conviction_multiplier'], surface=surf, is_favorite=(sp["odds2"] <= sp["odds1"]), is_slam=_is_slam, trading_type=m.get('trading_type', 'PreMatch'), player_name=full_n2, opponent_name=full_n1, player_elo=elo2, opponent_elo=elo1, player_history=p2_history, opponent_history=p1_history, players_list=players, all_skills=all_skills, pick_name=f"{full_n2} {sign2}{-hc} Sets")
+                        
+                        candidate_picks.append({
+                            "market_type": "SET_HANDICAP",
+                            "pick_name": f"{full_n1} {sign1}{hc} Sets",
+                            "market_odds": sp["odds1"],
+                            "fair_odds": fair_home_sp,
+                            "value_metrics": val_home_sp,
+                            "betslip": {
+                                "contestId": m['api_match_key'],
+                                "bettingTypeKey": sp["market_key"],
+                                "outcomeKey": sp["key1"]
+                            }
+                        })
+                        candidate_picks.append({
+                            "market_type": "SET_HANDICAP",
+                            "pick_name": f"{full_n2} {sign2}{-hc} Sets",
                             "market_odds": sp["odds2"],
                             "fair_odds": fair_away_sp,
                             "value_metrics": val_away_sp,
