@@ -1,12 +1,10 @@
 """
 reset_system.py — Neural Scout System Reset
 =============================================
-Löscht alte Reports und setzt Scout Rules zurück.
-Vor dem Deploy des neuen v2.0 Systems ausführen.
+Setzt AI System Weights zurück.
 """
 import os
 import sys
-import json
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -36,47 +34,6 @@ def log(msg):
     print(f"[RESET] {msg}")
 
 
-def reset_scout_reports():
-    """Löscht alle alten Scout Reports."""
-    log("🗑️ Lösche alle alten scout_reports...")
-    try:
-        # Alle Reports laden
-        res = supabase.table("scout_reports").select("id").execute()
-        if res.data:
-            count = len(res.data)
-            for row in res.data:
-                supabase.table("scout_reports").delete().eq("id", row["id"]).execute()
-            log(f"  ✅ {count} alte Reports gelöscht.")
-        else:
-            log("  ℹ️ Keine Reports gefunden.")
-    except Exception as e:
-        log(f"  ❌ Fehler: {e}")
-
-
-def reset_scout_rules():
-    """Setzt alle Scout Rules auf 'rejected' zurück (außer SYSTEM_AUTOPILOT)."""
-    log("🔄 Setze alle Scout Rules auf 'rejected' zurück...")
-    try:
-        res = supabase.table("scout_rules").select("*").execute()
-        if res.data:
-            count = 0
-            for rule in res.data:
-                desc = rule.get("description", "")
-                if desc == "SYSTEM_AUTOPILOT":
-                    continue
-                if rule.get("status") != "rejected":
-                    supabase.table("scout_rules").update({
-                        "status": "rejected",
-                        "updated_at": "2026-06-25T00:00:00Z"
-                    }).eq("id", rule["id"]).execute()
-                    count += 1
-            log(f"  ✅ {count} Rules auf 'rejected' zurückgesetzt.")
-        else:
-            log("  ℹ️ Keine Rules gefunden.")
-    except Exception as e:
-        log(f"  ❌ Fehler: {e}")
-
-
 def reset_ai_system_weights():
     """Setzt die System-Gewichte auf Standard zurück."""
     log("🔄 Setze AI System Weights auf Standard zurück...")
@@ -95,37 +52,10 @@ def reset_ai_system_weights():
         log(f"  ❌ Fehler: {e}")
 
 
-def ensure_autopilot_rule():
-    """Stellt sicher, dass die SYSTEM_AUTOPILOT Rule existiert."""
-    log("🔧 Stelle sicher, dass SYSTEM_AUTOPILOT Rule existiert...")
-    try:
-        res = supabase.table("scout_rules").select("*").eq("description", "SYSTEM_AUTOPILOT").execute()
-        if not res.data:
-            supabase.table("scout_rules").insert({
-                "rule_type": "veto",
-                "description": "SYSTEM_AUTOPILOT",
-                "status": "rejected",
-                "conditions": {
-                    "max_veto_percentage": 35.0,
-                    "drawdown_limit_units": 15.0
-                },
-                "confidence": 1.0
-            }).execute()
-            log("  ✅ SYSTEM_AUTOPILOT Rule erstellt (deaktiviert).")
-        else:
-            log("  ℹ️ SYSTEM_AUTOPILOT Rule existiert bereits.")
-    except Exception as e:
-        log(f"  ❌ Fehler: {e}")
-
-
 if __name__ == "__main__":
     log("🚀 Neural Scout System Reset v2.0")
     log("=" * 50)
 
-    reset_scout_reports()
-    reset_scout_rules()
     reset_ai_system_weights()
-    ensure_autopilot_rule()
 
     log("=" * 50)
-    log("✅ System Reset abgeschlossen. Bereit für v2.0 Deploy.")

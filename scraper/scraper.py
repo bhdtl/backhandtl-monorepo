@@ -64,7 +64,6 @@ if not OPENROUTER_API_KEY or not SUPABASE_URL or not SUPABASE_KEY:
     sys.exit(1)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-GLOBAL_ACTIVE_RULES = []
 
 async def save_market_odds(payload: Dict[str, Any], db_match_id: Optional[str] = None, is_insert: bool = False) -> Optional[str]:
     """
@@ -2077,168 +2076,6 @@ def calculate_value_metrics(
                     veto_bet = True
                     veto_reason = f"🛑 SYNDICATE VETO (CHALLENGER DOG TRAP): Challenger underdog {player_name} has sparse surface data or a winrate below 40.0%."
 
-    # 5. Apply active scout rules from AI Scout Agent
-    for rule in GLOBAL_ACTIVE_RULES:
-        rule_type = rule.get("rule_type")
-        conditions = rule.get("conditions") or {}
-        desc = rule.get("description", "AI Scout Rule")
-        
-        rule_match = True
-        
-        # Check surface condition
-        if "surface" in conditions:
-            rule_surf = conditions["surface"].lower().strip()
-            cand_surf = (surface or '').lower()
-            if 'clay' in cand_surf: cand_surf = 'clay'
-            elif 'grass' in cand_surf: cand_surf = 'grass'
-            elif 'hard' in cand_surf: cand_surf = 'hard'
-            else: cand_surf = ''
-            
-            if rule_surf != cand_surf:
-                rule_match = False
-                
-        # Check is_favorite condition
-        if rule_match and "is_favorite" in conditions:
-            if conditions["is_favorite"] != is_favorite:
-                rule_match = False
-                
-        # Check is_challenger condition
-        if rule_match and "is_challenger" in conditions:
-            cand_challenger = ("challenger" in tour_name.lower() or "itf" in tour_name.lower())
-            if conditions["is_challenger"] != cand_challenger:
-                rule_match = False
-                
-        # Check tour condition
-        if rule_match and "tour" in conditions:
-            rule_tour = conditions["tour"].upper().strip()
-            cand_tour = "WTA" if "WTA" in tour_name.upper() else "ATP"
-            if rule_tour != cand_tour:
-                rule_match = False
-                
-        # ── NEW: market_type condition ─────────────────────────────────────
-        # Supported values: "moneyline", "handicap_dog", "handicap_fave",
-        #                   "handicap", "total_over", "total_under", "total"
-        if rule_match and "market_type" in conditions:
-            import re as _re_mt
-            req_mt = conditions["market_type"].lower()
-            pick_lower_mt = (pick_name or "").lower()
-            if "over" in pick_lower_mt:
-                cand_mt = "total_over"
-            elif "under" in pick_lower_mt:
-                cand_mt = "total_under"
-            elif _re_mt.search(r'[+\-]\s*[\d.]+', pick_lower_mt) and "game" in pick_lower_mt:
-                hm = _re_mt.search(r'([+\-])\s*[\d.]+', pick_lower_mt)
-                cand_mt = ("handicap_fave" if hm and hm.group(1) == '-' else "handicap_dog")
-            else:
-                cand_mt = "moneyline"
-            if req_mt == "handicap":
-                if "handicap" not in cand_mt:
-                    rule_match = False
-            elif req_mt == "total":
-                if "total" not in cand_mt:
-                    rule_match = False
-            elif req_mt != cand_mt:
-                rule_match = False
-
-        # ── NEW: min_edge_above — fires only when edge EXCEEDS threshold ──
-        # Used for EDGE_CEILING multiplier rule (punishes Monster-Edge picks)
-        if rule_match and "min_edge_above" in conditions and rule_type == "multiplier":
-            try:
-                ceiling = float(conditions["min_edge_above"])
-                if edge_percent < ceiling:
-                    rule_match = False  # Edge below ceiling → rule doesn't apply
-            except:
-                pass
-
-        # ── NEW: exact_line — fires only for one specific O/U line value ──
-        if rule_match and "exact_line" in conditions:
-            import re as _re_el
-            try:
-                target_line = float(conditions["exact_line"])
-                lm = _re_el.search(r'([\d.]+)', (pick_name or "").lower())
-                if lm:
-                    if abs(float(lm.group(1)) - target_line) > 0.01:
-                        rule_match = False
-                else:
-                    rule_match = False
-            except:
-                rule_match = False
-
-        # ── NEW: line_outside_range — veto if handicap/total line NOT in [lo,hi] ─
-        if rule_match and "line_outside_range" in conditions:
-            import re as _re_lr
-            try:
-                lo = float(conditions["line_outside_range"][0])
-                hi = float(conditions["line_outside_range"][1])
-                lm2 = _re_lr.search(r'([\d.]+)', (pick_name or "").lower())
-                if lm2:
-                    line_val = float(lm2.group(1))
-                    if lo <= line_val <= hi:
-                        rule_match = False  # Line IN acceptable range → no veto
-                else:
-                    rule_match = False  # Can't determine line → don't veto
-            except:
-                rule_match = False
-
-        # ── NEW: max_odds — fires only when pick odds are at or below threshold ─
-        # Used e.g. to veto ML Favorites with odds < 1.80
-        if rule_match and "max_odds" in conditions:
-            try:
-                max_odds_thresh = float(conditions["max_odds"])
-                implied_prob = 1.0 - (edge_percent / 100.0) if edge_percent else 0.5
-                implied_odds = 1.0 / implied_prob if implied_prob > 0 else 9.9
-                if implied_odds > max_odds_thresh:
-                    rule_match = False  # Odds are above threshold → rule doesn't apply
-            except:
-                pass
-                
-        if rule_match:
-            if rule_type == "veto":
-                min_edge = conditions.get("min_edge")
-                if min_edge is not None:
-                    try:
-                        min_edge_val = float(min_edge)
-                        if edge_percent >= min_edge_val:
-                            continue
-                    except:
-                        pass
-                veto_bet = True
-                veto_reason = f"🛑 AI SCOUT VETO: {desc}"
-                break
-            elif rule_type == "multiplier":
-                mult = conditions.get("multiplier", 1.0)
-                try:
-                    mult = float(mult)
-                except:
-                    mult = 1.0
-                
-                # SOTA Check: Target Stake Cap (Scenario B)
-                # If the rule specifies a "max_stake_cap", we only scale down the stake
-                # if the estimated stake BEFORE this rule's scaling exceeds the threshold.
-                if "max_stake_cap" in conditions:
-                    cap_val = float(conditions["max_stake_cap"])
-                    raw_stake = (full_kelly * 100) * kelly_fraction
-                    est_stake = raw_stake * ai_conviction_multiplier * pattern_multiplier
-                    if est_stake > cap_val:
-                        pattern_multiplier *= mult
-                        desc_str = f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
-                        pattern_warning = (pattern_warning + desc_str) if pattern_warning else f"⚠️ AI SCOUT ADJUSTMENT: {desc_str.strip()}"
-                else:
-                    pattern_multiplier *= mult
-                    desc_str = f" (Stakes scaled by {mult:.2f} due to AI Scout: {desc})"
-                    pattern_warning = (pattern_warning + desc_str) if pattern_warning else f"⚠️ AI SCOUT ADJUSTMENT: {desc_str.strip()}"
-            elif rule_type == "odds_filter":
-                min_edge = conditions.get("min_edge")
-                if min_edge is not None:
-                    try:
-                        min_edge_val = float(min_edge)
-                        if edge_percent < min_edge_val:
-                            veto_bet = True
-                            veto_reason = f"🛑 AI SCOUT FILTER: Edge {edge_percent}% is below required {min_edge_val}% ({desc})"
-                            break
-                    except:
-                        pass
-
     pattern_multiplier = max(0.0, min(1.5, pattern_multiplier))
     if veto_bet:
         pattern_multiplier = 0.0
@@ -2666,19 +2503,7 @@ class QuantumGamesSimulator:
 async def run_pipeline():
     log(f"🚀 Neural Scout V211.00 (SYNDICATE TWO-BRAIN ENGINE) Starting...")
     
-    global GLOBAL_ACTIVE_RULES
-    try:
-        res = supabase.table("scout_rules").select("*").eq("status", "approved").execute()
-        raw_rules = res.data or []
-        GLOBAL_ACTIVE_RULES = [r for r in raw_rules if r.get("description") != "SYSTEM_AUTOPILOT"]
-        log(f"🧠 AI Agent: Loaded {len(GLOBAL_ACTIVE_RULES)} approved scout rules.")
-    except Exception as e:
-        err_msg = str(e)
-        if "relation" in err_msg or "does not exist" in err_msg or "PGRST205" in err_msg:
-            log("🧠 AI Agent: Table 'scout_rules' does not exist in database yet (migration pending). Processing without custom rules.")
-        else:
-            log(f"⚠️ AI Agent: Failed to load scout rules: {e}")
-        GLOBAL_ACTIVE_RULES = []
+    pass
         
     api = NeoBetAPI()
 
@@ -3505,12 +3330,7 @@ async def run_pipeline():
         
     log("🏁 Cycle Finished.")
     
-    # Run the daily AI analyst report trigger (automated check)
-    try:
-        from daily_analyst import run_daily_analysis
-        await run_daily_analysis()
-    except Exception as analysis_err:
-        log(f"⚠️ Daily AI Analysis Exception: {analysis_err}")
+    pass
 
 if __name__ == "__main__":
     async def main():
