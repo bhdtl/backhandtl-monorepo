@@ -15,7 +15,7 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 
 // --- CONFIGURATION ---
 // 🚀 SOTA: "Line in the Sand" - Reset auf NEO.bet Integration Launch Date (Sync with Performance Page)
-const STATS_RESET_DATE = '2026-06-25T00:00:00.000Z';
+const STATS_RESET_DATE = '2026-06-30T00:00:00.000Z';
 
 // 🚀 CACHE INVALIDATION: When STATS_RESET_DATE changes, clear stale hero stats cache
 const CACHE_VERSION_KEY = 'bh_hero_cache_version';
